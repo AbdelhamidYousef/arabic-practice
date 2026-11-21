@@ -63,12 +63,14 @@ interface ArabicKeyboardProps {
   /** The field the keys type into. Focus goes back to it after every key. */
   target: RefObject<Field | null>;
   className?: string;
+  /** Extra classes for the key panel (the toggle button is not part of it). */
+  panelClassName?: string;
 }
 
 const keyClasses =
   'flex h-11 min-w-0 flex-1 items-center justify-center rounded-ui border border-line bg-surface text-xl text-ink hover:bg-primary-soft active:bg-primary-soft';
 
-export function ArabicKeyboard({ target, className }: ArabicKeyboardProps) {
+export function ArabicKeyboard({ target, className, panelClassName }: ArabicKeyboardProps) {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   const panelId = useId();
@@ -101,7 +103,11 @@ export function ArabicKeyboard({ target, className }: ArabicKeyboardProps) {
         role="group"
         aria-label={t('keyboard.label')}
         hidden={!open}
-        className={cn('mt-2 space-y-1 rounded-ui border border-line bg-bg p-2', !open && 'hidden')}
+        className={cn(
+          'mt-2 space-y-1 rounded-ui border border-line bg-bg p-2',
+          !open && 'hidden',
+          panelClassName,
+        )}
       >
         {LETTER_ROWS.map((row) => (
           <div key={row.join('')} className="flex gap-1">
@@ -135,7 +141,7 @@ export function ArabicKeyboard({ target, className }: ArabicKeyboardProps) {
         <div className="flex gap-1">
           <button
             type="button"
-            className={cn(keyClasses, 'flex-[6] text-sm')}
+            className={cn(keyClasses, 'flex-[5] text-sm')}
             onMouseDown={keepFocus}
             onClick={press((field) => insertAtCaret(field, ' '))}
           >
@@ -143,7 +149,7 @@ export function ArabicKeyboard({ target, className }: ArabicKeyboardProps) {
           </button>
           <button
             type="button"
-            className={cn(keyClasses, 'flex-[2] text-sm')}
+            className={cn(keyClasses, 'flex-[3] text-sm')}
             onMouseDown={keepFocus}
             onClick={press(backspaceAtCaret)}
           >

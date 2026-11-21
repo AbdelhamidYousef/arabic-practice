@@ -307,3 +307,7 @@ Learn: setting a field's value from code does not tell React; writing with `setR
 1. Why is the first failed 503 written to the ledger as its own row, and which two things would be wrong if it were not?
 2. Why does the turn guard release the claim before sending `done`, and what does the 90-second expiry protect against?
 3. The reply eval went from 80% to 100% on 10 cases. Why is that not proof that the prompt is fixed?
+## Phase 8, step 8.3 (chat)
+- What: the practice page `/practice/:conversationId` (message list, streaming reply, correction cards with word diff, translate, harakat toggle, composer with the Arabic keyboard, limit and retry errors), the shared `diffWords` helper, strict web schemas for conversations, gloss and turn events.
+- Why: the turn stream is the centre of the product, so the rules for its event order live in one pure module (`features/practice/turn.ts`) that is tested without a browser, and the component tests feed a hand-driven stream so they can look at the page between two events.
+- Learn: a POST stream cannot use `EventSource`; `fetch` + a reader gives the same events plus an `AbortSignal`, and aborting is how Stop works. A live region that holds streamed text announces every chunk, so the page announces one string, once, when the reply is complete.

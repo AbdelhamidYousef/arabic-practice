@@ -17,7 +17,11 @@ export const learner = {
 };
 export const teacher = { ...learner, id: 't1', displayName: 'Omar', role: 'teacher', level: 'A1' };
 
-export type Handler = (init: { method: string; body: unknown }) => Response | Promise<Response>;
+export type Handler = (init: {
+  method: string;
+  body: unknown;
+  signal?: AbortSignal | null;
+}) => Response | Promise<Response>;
 export type Handlers = Record<string, Handler>;
 
 export const jsonError = (code: string, status: number) =>
@@ -41,7 +45,9 @@ export function stubApi(handlers: Handlers) {
         (key === 'GET /auth/me' ? () => jsonError('UNAUTHENTICATED', 401) : undefined);
       if (key === 'GET /health') return Promise.resolve(Response.json({ status: 'ok' }));
       return Promise.resolve(
-        handler ? handler({ method, body }) : Response.json({}, { status: 404 }),
+        handler
+          ? handler({ method, body, signal: init?.signal })
+          : Response.json({}, { status: 404 }),
       );
     }),
   );
