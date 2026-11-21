@@ -481,3 +481,17 @@ Neon's free plan restores only 6 hours back. A weekly workflow dumps the databas
 Postgres 18 image (pg_dump must be at least the server's version), encrypts it with a passphrase
 and keeps it as a 7-day artifact. Until the two secrets are set it skips with a notice.
 Learn: a backup you have never restored is a hope. The restore commands sit at the top of the workflow file.
+
+### 23.5: held-out eval set
+`held-out.json` has 20 new cases (15 sentences, 5 reply prompts) that the prompts were never tuned
+on; `pnpm eval --set held-out` runs it and names the report apart. A test checks that no held-out
+sentence appears in the tuning set. First run on gemini-3.1-flash-lite: verdicts 15/15, no false
+alarms, type precision 91%, replies 5/5 within level.
+Learn: a score on the cases you tuned on measures memory, not skill. Keep a set you never look at
+while tuning, and when it fails, move the lesson into the tuning set and write a fresh held-out case.
+
+### Quiz: Phase 23
+1. Why does the production migration run at the end of the Vercel build and not at the start?
+2. What did the first live health probe after a quiet spell answer, and how did that change the
+   uptime check?
+3. Why must a case that fails in the held-out set not lead straight to a prompt change?

@@ -80,9 +80,23 @@ Replies within the level rules went from 80% to 100% after the A1/A2 prompt was 
 failures were 3 sentences where 2 are allowed.
 
 **Read these numbers honestly.** The prompt was tuned on the same 41 cases, so the last row is
-optimistic. With 41 cases, one case is 2.4 points. A held-out case set, written by the teacher, is the
-next step. The eval also showed what the models still get wrong: final-letter harakat on replies, and
-a synonym where the expected word was a different one.
+optimistic. With 41 cases, one case is 2.4 points.
+
+**Held-out set.** `apps/api/evals/held-out.json` has 20 cases (15 sentences, 5 reply prompts),
+written after the tuning and never used for it. Run it with `pnpm eval --set held-out`.
+
+| Held-out (2026-11-21, gemini-3.1-flash-lite, tuned prompt) | Result |
+| --- | --- |
+| Right verdict | 100% (15 of 15) |
+| False alarms | 0% (0 of 5 correct sentences) |
+| Type recall / precision | 100% / 91% |
+| Expected fix present | 100% |
+| Replies within the level rules | 100% (5 of 5), harakat ratio 0.75 |
+
+Twenty cases are few (one case is 5 to 7 points), and they were written by the build session, not
+the teacher, so they may be easier than real learner writing. A teacher-written set is still the
+real test. The eval also showed what the models still get wrong: final-letter harakat on replies,
+and a synonym where the expected word was a different one.
 
 ## Cost control
 
@@ -174,7 +188,7 @@ password from `SEED_TEACHER_PASSWORD` (default `Teacher-demo-1!`), and the read-
 
 ## What's next
 
-- A held-out eval set written by the teacher, and a Claude Haiku adapter compared on it.
+- More held-out cases written by the teacher, and a Claude Haiku adapter compared on them.
 - A paid tier for real students, with a hard monthly cap.
 - Homework review (a paragraph, fully corrected) and a weekly mistake summary for the teacher.
 - Dialects (Egyptian, Levantine) as a lesson setting, with their own eval cases.

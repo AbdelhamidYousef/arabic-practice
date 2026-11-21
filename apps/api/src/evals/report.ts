@@ -29,7 +29,8 @@ const cell = (s: string) =>
 export function reportFileName(run: EvalRun, date: string): string {
   const c = run.only === 'replies' ? 'none' : run.correctionModel;
   const r = run.only === 'corrections' ? 'none' : run.replyModel;
-  return `${date}-${run.provider}-${c}__${r}.md`;
+  const suffix = run.set === 'held-out' ? '-held-out' : '';
+  return `${date}-${run.provider}-${c}__${r}${suffix}.md`;
 }
 
 export interface ScoredRun {
@@ -75,6 +76,7 @@ export function renderReport(run: EvalRun, date: string): string {
     `- Provider: ${run.provider}`,
     `- Correction model: ${run.only === 'replies' ? 'not run' : run.correctionModel}`,
     `- Reply model: ${run.only === 'corrections' ? 'not run' : run.replyModel}`,
+    `- Case set: ${run.set === 'held-out' ? 'held-out (never used to tune the prompts)' : 'main (the prompts were tuned on it, so these numbers are optimistic)'}`,
     `- Parts: ${run.only ?? 'corrections and replies'}`,
     `- Limit: ${run.limit === undefined ? 'none (all cases)' : `${run.limit} per part, evenly spread`}`,
     `- Pacing: at least ${run.pacing.minGapMs} ms between calls to a model, ${run.pacing.retryWaitMs / 1000} s wait and up to ${run.pacing.maxRetries} retries on 429 or 5xx busy errors`,

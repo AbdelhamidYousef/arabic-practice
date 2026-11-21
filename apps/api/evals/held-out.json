@@ -1,0 +1,28 @@
+{
+  "about": "HELD-OUT set: written 2026-11-21 after the prompts were tuned on cases.json, and never used for tuning. Do not change a prompt because of a case here; add the lesson to cases.json instead and keep this set honest. Made-up learner sentences, MSA, no real student data. Same schema as cases.json. The owner (an Arabic teacher) should review them.",
+  "corrections": [
+    { "id": "ho-ok-01", "level": "A1", "lessonSlug": "greetings", "text": "صباح الخير، أنا من لندن", "expected": { "isCorrect": true, "types": [], "mustContain": [] } },
+    { "id": "ho-ok-02", "level": "A1", "lessonSlug": "family", "text": "أبي طبيب وأمي مهندسة", "expected": { "isCorrect": true, "types": [], "mustContain": [] } },
+    { "id": "ho-ok-03", "level": "A2", "lessonSlug": "cafe-order", "text": "هل عندكم شاي بالنعناع؟", "expected": { "isCorrect": true, "types": [], "mustContain": [] } },
+    { "id": "ho-ok-04", "level": "A2", "lessonSlug": "directions", "text": "البنك على اليمين بعد الصيدلية", "expected": { "isCorrect": true, "types": [], "mustContain": [] } },
+    { "id": "ho-ok-05", "level": "B1", "lessonSlug": "travel-plans", "text": "زرت الأردن مرتين", "expected": { "isCorrect": true, "types": [], "mustContain": [] } },
+
+    { "id": "ho-agr-01", "level": "A1", "lessonSlug": "family", "text": "أمي طويل", "expected": { "isCorrect": false, "types": ["grammar"], "mustContain": ["طويلة"] } },
+    { "id": "ho-agr-02", "level": "A2", "lessonSlug": "daily-routine", "text": "نحن يذهب إلى السوق", "expected": { "isCorrect": false, "types": ["grammar"], "mustContain": ["نذهب"] } },
+    { "id": "ho-agr-03", "level": "A2", "lessonSlug": "shopping", "text": "هذا المدينة كبيرة", "expected": { "isCorrect": false, "types": ["grammar"], "mustContain": ["هذه المدينة"] } },
+    { "id": "ho-num-01", "level": "A2", "lessonSlug": "shopping", "text": "اشتريت خمس كتب", "expected": { "isCorrect": false, "types": ["grammar"], "mustContain": ["خمسة كتب"] } },
+    { "id": "ho-case-01", "level": "B1", "lessonSlug": "weather", "text": "أصبح الجو جميل", "expected": { "isCorrect": false, "types": ["grammar"], "mustContain": ["جميلا"] } },
+    { "id": "ho-verb-01", "level": "B1", "lessonSlug": "daily-routine", "text": "هم لم يذهبون إلى العمل أمس", "expected": { "isCorrect": false, "types": ["grammar"], "mustContain": ["يذهبوا"] } },
+    { "id": "ho-rel-01", "level": "B2", "lessonSlug": "work-and-study", "text": "الرجل التي يعمل معي لطيف", "expected": { "isCorrect": false, "types": ["grammar"], "mustContain": ["الذي"] } },
+    { "id": "ho-voc-01", "level": "A2", "lessonSlug": "cafe-order", "text": "أريد أن أشرب خبزا", "expected": { "isCorrect": false, "types": ["vocabulary"], "mustContain": [] } },
+    { "id": "ho-spell-01", "level": "A2", "lessonSlug": "shopping", "text": "السياره سريعة", "expected": { "isCorrect": false, "types": ["spelling"], "mustContain": ["السيارة"] } },
+    { "id": "ho-reg-01", "level": "A1", "lessonSlug": "greetings", "text": "شو اسمك؟", "expected": { "isCorrect": false, "types": ["register", "vocabulary"], "mustContain": ["ما"] } }
+  ],
+  "replies": [
+    { "id": "ho-rep-01", "level": "A1", "lessonSlug": "greetings", "learnerText": "مرحبا! أنا طالب من فرنسا." },
+    { "id": "ho-rep-02", "level": "A2", "lessonSlug": "shopping", "learnerText": "كم ثمن هذا القميص الأبيض؟" },
+    { "id": "ho-rep-03", "level": "A2", "lessonSlug": "directions", "learnerText": "أنا في الشارع الرئيسي، كيف أذهب إلى المتحف؟" },
+    { "id": "ho-rep-04", "level": "B1", "lessonSlug": "hobbies", "learnerText": "في وقت الفراغ أرسم وأستمع إلى الموسيقى." },
+    { "id": "ho-rep-05", "level": "B1", "lessonSlug": "at-the-doctor", "learnerText": "عندي حرارة وسعال منذ أمس." }
+  ]
+}

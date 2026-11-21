@@ -11,7 +11,7 @@ import { renderReport, reportFileName } from './report.ts';
 import { FREE_TIER_PACING, NO_PACING, runEval } from './run.ts';
 
 // `pnpm eval [--provider fake|gemini] [--correction-model x] [--reply-model y]
-//            [--only corrections|replies] [--limit N]`
+//            [--only corrections|replies] [--limit N] [--set main|held-out]`
 // Writes apps/api/evals/reports/<date>-<provider>-<correctionModel>__<replyModel>.md.
 // The key is read from .env by config/env.ts and never printed.
 
@@ -22,6 +22,7 @@ const { values } = parseArgs({
     'reply-model': { type: 'string' },
     only: { type: 'string' },
     limit: { type: 'string' },
+    set: { type: 'string' },
   },
   allowPositionals: false,
 });
@@ -32,6 +33,9 @@ if (providerName !== 'fake' && providerName !== 'gemini') {
 }
 if (values.only !== undefined && values.only !== 'corrections' && values.only !== 'replies') {
   throw new Error('--only must be corrections or replies');
+}
+if (values.set !== undefined && values.set !== 'main' && values.set !== 'held-out') {
+  throw new Error('--set must be main or held-out');
 }
 const limit = values.limit === undefined ? undefined : Number(values.limit);
 if (limit !== undefined && (!Number.isInteger(limit) || limit < 1)) {
@@ -52,6 +56,7 @@ const run = await runEval({
   replyModel: values['reply-model'] ?? env.AI_MODEL_REPLY,
   ...(values.only && { only: values.only }),
   ...(limit !== undefined && { limit }),
+  ...(values.set && { set: values.set }),
   pacing: providerName === 'gemini' ? FREE_TIER_PACING : NO_PACING,
   onProgress: (line) => console.info(line),
 });

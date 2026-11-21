@@ -51,9 +51,18 @@ export interface CaseSet {
   replies: ReplyCase[];
 }
 
-export function loadCases(
-  path = fileURLToPath(new URL('../../evals/cases.json', import.meta.url)),
-): CaseSet {
+/**
+ * `main` is the set the prompts were tuned on (its scores are optimistic); `held-out` was written
+ * afterwards and never used for tuning, so it is the honest number. Same schema for both.
+ */
+export type CaseSetName = 'main' | 'held-out';
+
+export function caseFilePath(set: CaseSetName): string {
+  const file = set === 'held-out' ? 'held-out.json' : 'cases.json';
+  return fileURLToPath(new URL(`../../evals/${file}`, import.meta.url));
+}
+
+export function loadCases(path = caseFilePath('main')): CaseSet {
   return caseFileSchema.parse(JSON.parse(readFileSync(path, 'utf8')));
 }
 
@@ -88,6 +97,8 @@ export interface RunOptions {
   only?: 'corrections' | 'replies';
   limit?: number;
   pacing?: Pacing;
+  /** Which case file to load when `cases` is not given. Default `main`. */
+  set?: CaseSetName;
   cases?: CaseSet;
   lessons?: SeedLesson[];
   /** Injected so tests need no real waiting. */
@@ -117,6 +128,7 @@ export interface EvalRun {
   replyModel: string;
   only?: 'corrections' | 'replies';
   limit?: number;
+  set: CaseSetName;
   pacing: Pacing;
   startedAt: string;
   corrections: CorrectionOutcome[];
@@ -136,7 +148,8 @@ export function takeSpread<T>(items: T[], limit: number | undefined): T[] {
 export async function runEval(options: RunOptions): Promise<EvalRun> {
   const { provider, correctionModel, replyModel, only, limit } = options;
   const pacing = options.pacing ?? NO_PACING;
-  const cases = options.cases ?? loadCases();
+  const set = options.set ?? 'main';
+  const cases = options.cases ?? loadCases(caseFilePath(set));
   const lessons = new Map((options.lessons ?? seedLessons).map((l) => [l.slug, l]));
   const sleep = options.sleep ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const now = options.now ?? Date.now;
@@ -248,6 +261,7 @@ export async function runEval(options: RunOptions): Promise<EvalRun> {
     provider: provider.name,
     correctionModel,
     replyModel,
+    set,
     ...(only && { only }),
     ...(limit !== undefined && { limit }),
     pacing,

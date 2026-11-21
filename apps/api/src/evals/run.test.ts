@@ -5,7 +5,7 @@ import { LlmFailed, LlmRateLimited, type JsonRequest, type TextRequest } from '.
 import { seedLessons } from '../db/seed/lessons.ts';
 
 import { renderReport, reportFileName, scoreRun } from './report.ts';
-import { loadCases, runEval, takeSpread, type Pacing } from './run.ts';
+import { caseFilePath, loadCases, runEval, takeSpread, type Pacing } from './run.ts';
 
 // The runner on the fake provider: covers the case loading, the real prompt path, pacing, the
 // scorer wiring and the report writer without a key. It tests the harness, not a model.
@@ -98,6 +98,33 @@ describe('runEval on the fake', () => {
     const md = renderReport(run, '2026-11-21');
     expect(md).not.toContain('## Replies: summary');
     expect(md).toContain('Reply model: not run');
+  });
+
+  it('runs the held-out set, names its report apart and says so in it', async () => {
+    const run = await runEval({
+      provider: new FakeProvider(),
+      correctionModel: 'c',
+      replyModel: 'r',
+      set: 'held-out',
+    });
+    const heldOut = loadCases(caseFilePath('held-out'));
+    expect(run.set).toBe('held-out');
+    expect(run.corrections).toHaveLength(heldOut.corrections.length);
+    expect(run.replies).toHaveLength(heldOut.replies.length);
+    expect(reportFileName(run, '2026-11-21')).toBe('2026-11-21-fake-c__r-held-out.md');
+    expect(renderReport(run, '2026-11-21')).toContain('Case set: held-out');
+  });
+
+  it('keeps the held-out set apart from the tuning set', () => {
+    const main = loadCases();
+    const heldOut = loadCases(caseFilePath('held-out'));
+    expect(heldOut.corrections.length + heldOut.replies.length).toBe(20);
+    const mainTexts = new Set([
+      ...main.corrections.map((c) => c.text),
+      ...main.replies.map((r) => r.learnerText),
+    ]);
+    for (const c of heldOut.corrections) expect(mainTexts.has(c.text)).toBe(false);
+    for (const r of heldOut.replies) expect(mainTexts.has(r.learnerText)).toBe(false);
   });
 
   it('waits between calls to the same model and retries a 429 up to the limit', async () => {

@@ -13,3 +13,4 @@ apps/api/src/db/migrations/
 
 # Eval cases: one case per line so the teacher can review them like a list
 apps/api/evals/cases.json
+apps/api/evals/held-out.json
