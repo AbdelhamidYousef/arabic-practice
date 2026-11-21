@@ -14,6 +14,7 @@ import { createRateLimiter, type RateLimitOptions } from './middleware/rate-limi
 import { requestId } from './middleware/request-id.ts';
 import { createAuthRouter } from './modules/auth/router.ts';
 import { createLessonsRouter } from './modules/lessons/router.ts';
+import { createPracticeRouter } from './modules/practice/router.ts';
 
 export interface AppConfig {
   nodeEnv: 'development' | 'test' | 'production';
@@ -85,6 +86,7 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
   );
 
   app.use('/api/v1', createLessonsRouter());
+  app.use('/api/v1', createPracticeRouter());
 
   // Order matters: unknown routes first, then the error handler that catches everything above.
   app.use(notFoundHandler);

@@ -12,6 +12,8 @@ export interface LevelMetrics {
   harakatRatio: number;
   lessonVocabHits: number;
   latinChars: number;
+  withinLevel?: boolean;
+  violations?: string[];
 }
 
 export const messages = pgTable(
