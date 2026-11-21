@@ -1,2 +1,3 @@
+export * from './arabic.ts';
 export * from './cefr.ts';
 export * from './errors.ts';
