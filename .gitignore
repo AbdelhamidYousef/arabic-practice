@@ -1,0 +1,21 @@
+# Dependencies and build output
+node_modules/
+dist/
+coverage/
+playwright-report/
+test-results/
+*.log
+*.tsbuildinfo
+.DS_Store
+
+# Environment: real values never committed; .env.example documents every variable
+.env
+.env.*
+!.env.example
+
+# Local tooling output
+.playwright-mcp/
+
+
+# Untracked working notes (learnings, job briefs, screenshots)
+work/
