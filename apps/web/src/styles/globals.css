@@ -1,3 +1,91 @@
+/* Fonts are self-hosted (bundled by Vite from node_modules): no request to Google at runtime.
+   Both are variable fonts, so one file covers every weight we use (up to 600). */
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/noto-naskh-arabic';
+@import './tokens.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-ink);
+    font-family: var(--font-ui);
+    font-weight: var(--weight-body);
+    line-height: 1.6;
+    /* Last line of defence for "no horizontal scroll"; components should never be wider anyway. */
+    overflow-x: clip;
+    /* A long unbroken word wraps instead of widening the page. */
+    overflow-wrap: break-word;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-weight: var(--weight-strong);
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+
+  img,
+  svg,
+  video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* One focus ring for everything: ink ring with a surface halo, visible on sand, cards and teal. */
+  :focus-visible {
+    outline: 3px solid var(--color-ink);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 5px var(--color-surface);
+    border-radius: var(--radius);
+  }
+
+  ::selection {
+    background: var(--color-accent-soft);
+    color: var(--color-ink);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Calmer weights everywhere: unlayered and after the utilities, so these win over Tailwind's 700. */
+.font-bold {
+  font-weight: var(--weight-strong);
+}
+.font-semibold {
+  font-weight: var(--weight-strong);
+}
+.font-medium {
+  font-weight: var(--weight-medium);
+}
+
+/* Arabic text (components/ui/ArabicText.tsx). */
+.arabic {
+  font-family: var(--font-arabic);
+  font-size: calc(1em * var(--arabic-scale));
+  line-height: var(--arabic-line);
+  font-weight: var(--weight-body);
+}
+
+dialog::backdrop {
+  background: rgb(28 43 45 / 55%);
+}

@@ -1,0 +1,48 @@
+/*
+ * Design tokens. Plain CSS variables are the single source of truth: Tailwind (tailwind.config.ts)
+ * only points at them, and src/styles/tokens.test.ts parses this very file to check WCAG AA.
+ * Change a colour here and the contrast test tells you if a text pairing broke.
+ *
+ * Roles: "ink" is text, "bg" the sand page, "surface" a card. "accent" (amber) is reserved for
+ * corrections and highlights; success and danger only ever mean a status.
+ */
+:root {
+  --color-ink: #1c2b2d;
+  --color-muted: #566264;
+  --color-bg: #f6f0e4;
+  --color-surface: #fffcf5;
+  /* Borders and dividers are not text, so they are not in the contrast test. */
+  --color-border: #ddd2bc;
+
+  /* Primary: deep teal. White text on it, and as a link colour on the sand and on cards. */
+  --color-primary: #0f5c63;
+  --color-primary-hover: #0a4a50;
+  --color-primary-soft: #d9ebe8;
+
+  /* Accent: amber, for corrections and highlights. `accent-soft` is a tint behind ink text,
+     `accent-strong` is amber dark enough to be read as text on that tint, the card and the page. */
+  --color-accent: #f0b13a;
+  --color-accent-soft: #fcefcf;
+  --color-accent-strong: #7a4b00;
+
+  --color-success: #166534;
+  --color-success-soft: #dcf3e2;
+  --color-danger: #a8261d;
+  --color-danger-soft: #fbe3df;
+
+  --radius: 0.875rem;
+  --shadow-card: 0 1px 2px rgb(28 43 45 / 5%), 0 6px 20px rgb(28 43 45 / 6%);
+
+  --font-ui: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-arabic: 'Noto Naskh Arabic Variable', 'Noto Naskh Arabic', 'Geeza Pro', serif;
+
+  /* Owner's rule: nothing heavier than 600. Tailwind's font-bold / font-semibold resolve here. */
+  --weight-body: 400;
+  --weight-medium: 500;
+  --weight-strong: 600;
+
+  /* Arabic runs about 1.35x the UI size with a tall line so the harakat above and below a line
+     never touch the neighbouring lines. */
+  --arabic-scale: 1.35;
+  --arabic-line: 2;
+}
