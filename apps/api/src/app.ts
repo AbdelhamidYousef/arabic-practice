@@ -28,6 +28,8 @@ export interface AppConfig {
   rateLimit: RateLimitOptions;
   /** Stricter limit per IP + email on login and register. */
   authRateLimit: RateLimitOptions;
+  /** Login attempts per IP in front of the IP+email limit (defaults to 20 per 15 minutes). */
+  loginIpRateLimit?: RateLimitOptions;
   /** Guest sign-ins per IP (defaults to 10 per hour); tests lower it. */
   guestRateLimit?: RateLimitOptions;
   /** Invite sign-up switch (INVITES_ENABLED); registration answers 403 INVITES_CLOSED while off. */
@@ -93,6 +95,7 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
       authRateLimit: config.authRateLimit,
       invitesEnabled: config.invitesEnabled,
       guestRateLimit: config.guestRateLimit,
+      loginIpRateLimit: config.loginIpRateLimit,
       guestLimits: config.guestLimits ?? DEFAULT_GUEST_LIMITS,
     }),
   );

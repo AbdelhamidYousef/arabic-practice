@@ -136,6 +136,34 @@ describe('POST /auth/login', () => {
   });
 });
 
+describe('POST /auth/login IP limit', () => {
+  it('caps one IP across different emails, in front of the IP+email limit', async () => {
+    const limited = makeTestApp({ config: { loginIpRateLimit: { windowMs: 60_000, limit: 3 } } });
+    const { post: p } = api(limited);
+    for (const n of [1, 2, 3]) {
+      const res = await p('/auth/login', {
+        email: `u${n}@arabic-practice.test`,
+        password: 'wrong',
+      });
+      expect(res.status).toBe(401);
+    }
+    // A fourth, different email is refused: the per-email limit (100000 in tests) never saw it.
+    const fourth = await p('/auth/login', { email: 'u4@arabic-practice.test', password: 'wrong' });
+    expect(fourth.status).toBe(429);
+    expect(errorOf(fourth).code).toBe('RATE_LIMITED');
+  });
+
+  it('defaults to 20 per 15 minutes', async () => {
+    const { post: p } = api(makeTestApp());
+    let last = 0;
+    for (let n = 0; n < 21; n++) {
+      last = (await p('/auth/login', { email: `u${n}@arabic-practice.test`, password: 'wrong' }))
+        .status;
+    }
+    expect(last).toBe(429);
+  });
+});
+
 describe('POST /auth/logout', () => {
   it('deletes the session, clears the cookie and answers 204', async () => {
     const { token, cookie } = await signedIn();

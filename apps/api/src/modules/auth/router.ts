@@ -28,6 +28,8 @@ export interface AuthRouterOptions {
   invitesEnabled: boolean;
   /** Guest sign-ins per IP; defaults to 10 per hour. */
   guestRateLimit?: RateLimitOptions | undefined;
+  /** Login attempts per IP whatever the email (defaults to 20 per 15 minutes). */
+  loginIpRateLimit?: RateLimitOptions | undefined;
   /** Database-backed guest limits (they hold across serverless instances, unlike the limiter above). */
   guestLimits: service.GuestLimits;
 }
@@ -37,8 +39,13 @@ export function createAuthRouter(opts: AuthRouterOptions): Router {
   // Before validation on purpose: malformed attempts count against the limit too.
   const credentialLimit = createAuthRateLimiter(opts.authRateLimit);
 
+  // The IP+email limiter alone lets one machine try 10 passwords on EVERY email; this one caps the
+  // machine itself. It sits in front, so it also counts malformed attempts.
+  const loginIpLimit = createIpRateLimiter(
+    opts.loginIpRateLimit ?? { windowMs: 15 * 60_000, limit: 20 },
+  );
   const login = { body: LoginSchema };
-  router.post('/auth/login', credentialLimit, validate(login), async (req, res) => {
+  router.post('/auth/login', loginIpLimit, credentialLimit, validate(login), async (req, res) => {
     const { body } = valid(req, login);
     // The cookie we read is the one we replace: it is the old session to destroy (fixation).
     const { user, token } = await service.login(body, readSessionCookie(req));
