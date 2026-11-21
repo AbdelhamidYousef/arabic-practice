@@ -176,6 +176,28 @@ export const en = {
   'progress.recent': 'Recent corrections',
   'progress.becomes': 'corrected to',
 
+  'review.session': 'Review session',
+  'review.progress': '{current} of {total}',
+  'review.totalDue': '{shown} of {total} due today',
+  'review.show': 'Show meaning',
+  'review.knew': 'I knew it',
+  'review.notYet': 'Not yet',
+  'review.keys': 'Keyboard: Space shows the meaning, 1 means "I knew it", 2 means "Not yet".',
+  'review.answerError': 'We could not save that answer. Please try again.',
+  'review.empty.title': 'Nothing to review',
+  'review.empty.body':
+    'Nothing to review — practise a lesson first. Words from lessons you have practised show up here.',
+  'review.empty.action': 'Go to the lessons',
+  'review.done': 'Session complete',
+  'review.score': 'You knew {knew} of {total}.',
+  'review.again': {
+    zero: 'Words to see again',
+    one: '{count} word to see again',
+    other: '{count} words to see again',
+  },
+  'review.more': 'Review more',
+  'review.toLessons': 'Back to the lessons',
+
   'readOnly.banner': 'Demo teacher view — changes are switched off.',
   'readOnly.hint': 'Changes are switched off in the demo teacher view.',
   'readOnly.error': 'Changes are switched off in the demo teacher view, so nothing was saved.',
