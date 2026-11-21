@@ -86,11 +86,33 @@ describe('lessons list', () => {
 });
 
 const detail = {
-  lesson: lesson({ conversationCount: 2 }),
+  lesson: {
+    ...lesson({ conversationCount: 2 }),
+    unit: null,
+    kind: 'lesson',
+    grammarNote: [],
+    cultureTip: null,
+  },
   vocab: [
-    { id: 'v1', arabic: 'مَرْحَبًا', english: 'hello', note: 'informal', position: 0 },
-    { id: 'v2', arabic: 'شُكْرًا', english: 'thank you', note: null, position: 1 },
+    {
+      id: 'v1',
+      arabic: 'مَرْحَبًا',
+      translit: 'marḥaban',
+      english: 'hello',
+      note: 'informal',
+      position: 0,
+    },
+    {
+      id: 'v2',
+      arabic: 'شُكْرًا',
+      translit: 'shukran',
+      english: 'thank you',
+      note: null,
+      position: 1,
+    },
   ],
+  exercises: [],
+  progress: { stepsDone: [], practiceScore: null },
   conversations: [
     {
       id: 'c9',

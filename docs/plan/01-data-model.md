@@ -6,9 +6,10 @@ Tables with `updated_at` use the `set_updated_at()` trigger from migration 0000.
 
 ## Enums
 
-- `cefr_level`: `A1 A2 B1 B2 C1 C2`
+- `cefr_level`: `A0 A1 A2 B1 B2 C1 C2` (A0 = "Starter", added in phase 16; migration 0007 only adds the value)
 - `user_role`: `learner teacher`
 - `lesson_status`: `draft published`
+- `lesson_kind`: `letters lesson review`
 - `message_role`: `learner partner`
 - `mistake_type`: `grammar vocabulary harakat spelling word_order register`
 - `ai_purpose`: `correction reply gloss eval`
@@ -43,11 +44,32 @@ Tables with `updated_at` use the `set_updated_at()` trigger from migration 0000.
 `goals text[]`, `grammar_focus text`, `scenario text` (what the partner plays: "You are a shopkeeper in
 a bakery…"), `opening_line text` (the partner's first message, written by the teacher with harakat),
 `status lesson_status`, `position int`, `updated_at`. Index `(teacher_id, status, level, position)`.
+Course columns (phase 16): `unit_id → units on delete set null` (null for teacher-made lessons),
+`kind lesson_kind` (default `lesson`), `grammar_note jsonb` (GrammarBlock[], default `[]`),
+`culture_tip jsonb null` ({ title, body }).
+
+### units
+`id`, `level cefr_level`, `position int`, `code text unique` ('A1.1'), `title`, `summary` (the can-do
+sentence). Unique `(level, position)`. Content, loaded by the seed from `apps/api/src/content/units.ts`.
+
+### lesson_exercises
+`id`, `lesson_id → lessons on delete cascade`, `position int`, `type text` (mirrors `data.type`),
+`data jsonb` (one `Exercise` of the Zod union in `packages/shared/src/course.ts`: choose, match, build,
+gap, listen). Unique `(lesson_id, position)`.
+
+### lesson_progress
+pk `(user_id, lesson_id, step)`, both FKs cascade, `step text` (LessonStep: words practice grammar
+culture talk), `score int null 0..100` (practice only; re-posting keeps the best), `completed_at`
+(the first completion).
+
+### activity_days
+pk `(user_id, day)`, `user_id → users cascade`, `day date` (the learner's local date, sent by the
+browser), `xp int`. A row exists only for a day on which XP was earned; the streak is read from these.
 
 ### lesson_vocab
 `id`, `lesson_id → lessons on delete cascade`, `arabic text` (with harakat), `arabic_plain text`
 (normalised: harakat stripped, alef/ya/ta-marbuta folded; computed in code by `@arabic/shared`),
-`english text`, `note text null`, `position int`. Unique `(lesson_id, arabic_plain)`.
+`translit text` (default ''), `english text`, `note text null`, `position int`. Unique `(lesson_id, arabic_plain)`.
 
 ### conversations
 `id`, `user_id → users on delete cascade`, `lesson_id → lessons on delete cascade`, `turn_count int`,

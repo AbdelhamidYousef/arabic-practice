@@ -2,16 +2,17 @@ import { CEFR_LEVELS, type LessonDetailResponse, type LessonListResponse } from 
 import { and, asc, count, desc, eq } from 'drizzle-orm';
 
 import { db } from '../../db/client.ts';
-import { conversations, lessons, lessonVocab } from '../../db/schema/index.ts';
+import {
+  conversations,
+  lessonExercises,
+  lessons,
+  lessonVocab,
+  units,
+} from '../../db/schema/index.ts';
 import { notFound } from '../../lib/errors.ts';
 import type { AuthUser } from '../auth/sessions.ts';
-
-// Whose lessons a person sees: a learner sees their teacher's, a teacher sees their own. A learner
-// whose teacher was deleted (teacher_id set null) sees none. This is the ownership rule: it goes
-// into every WHERE clause, so a lesson of another teacher is simply "not found".
-function visibleTeacherId(user: AuthUser): string | null {
-  return user.role === 'teacher' ? user.id : user.teacherId;
-}
+import { progressByLesson } from '../course/state.ts';
+import { visibleTeacherId } from '../course/visible.ts';
 
 const summaryColumns = {
   id: lessons.id,
@@ -54,8 +55,16 @@ export async function getLesson(user: AuthUser, slug: string): Promise<LessonDet
   if (!teacherId) throw notFound('Lesson not found');
 
   const [lesson] = await db
-    .select(summaryColumns)
+    .select({
+      ...summaryColumns,
+      kind: lessons.kind,
+      grammarNote: lessons.grammarNote,
+      cultureTip: lessons.cultureTip,
+      unitCode: units.code,
+      unitTitle: units.title,
+    })
     .from(lessons)
+    .leftJoin(units, eq(units.id, lessons.unitId))
     .where(
       and(
         eq(lessons.slug, slug),
@@ -65,11 +74,12 @@ export async function getLesson(user: AuthUser, slug: string): Promise<LessonDet
     );
   if (!lesson) throw notFound('Lesson not found');
 
-  const [vocab, recent, [total]] = await Promise.all([
+  const [vocab, exercises, recent, [total], progress] = await Promise.all([
     db
       .select({
         id: lessonVocab.id,
         arabic: lessonVocab.arabic,
+        translit: lessonVocab.translit,
         english: lessonVocab.english,
         note: lessonVocab.note,
         position: lessonVocab.position,
@@ -77,6 +87,11 @@ export async function getLesson(user: AuthUser, slug: string): Promise<LessonDet
       .from(lessonVocab)
       .where(eq(lessonVocab.lessonId, lesson.id))
       .orderBy(asc(lessonVocab.position), asc(lessonVocab.createdAt)),
+    db
+      .select({ data: lessonExercises.data })
+      .from(lessonExercises)
+      .where(eq(lessonExercises.lessonId, lesson.id))
+      .orderBy(asc(lessonExercises.position)),
     db
       .select({
         id: conversations.id,
@@ -92,11 +107,19 @@ export async function getLesson(user: AuthUser, slug: string): Promise<LessonDet
       .select({ n: count() })
       .from(conversations)
       .where(and(eq(conversations.lessonId, lesson.id), eq(conversations.userId, user.id))),
+    progressByLesson(user.id, [lesson.id]),
   ]);
+  const { unitCode, unitTitle, ...fields } = lesson;
 
   return {
-    lesson: { ...lesson, conversationCount: total?.n ?? 0 },
+    lesson: {
+      ...fields,
+      unit: unitCode && unitTitle ? { code: unitCode, title: unitTitle } : null,
+      conversationCount: total?.n ?? 0,
+    },
     vocab,
+    exercises: exercises.map((e) => e.data),
+    progress: progress.get(lesson.id) ?? { stepsDone: [], practiceScore: null },
     conversations: recent.map((c) => ({
       id: c.id,
       turnCount: c.turnCount,

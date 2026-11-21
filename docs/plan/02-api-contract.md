@@ -19,7 +19,25 @@ Mutations need a matching `Origin`. Ids that are missing or belong to someone el
 
 ## Lessons (learner)
 - `GET /lessons` → published lessons of my teacher, grouped by level, with my conversation count per lesson
-- `GET /lessons/:slug` → lesson + vocab + my recent conversations for it
+- `GET /lessons/:slug` → lesson + vocab + my recent conversations for it. Phase 16 adds `lesson.unit`
+  ({ code, title } or null), `lesson.kind`, `lesson.grammarNote`, `lesson.cultureTip`, `vocab[].translit`,
+  `exercises[]` (the shared `Exercise` union, answers included: practice, not an exam) and `progress`
+  ({ stepsDone, practiceScore }). 404 for missing, draft and foreign lessons.
+
+## Course (learner, phase 16)
+- `GET /course?day=YYYY-MM-DD` → `{ levels: [{ level, units: [{ code, title, summary, position, lessons:
+  [{ slug, title, kind, position, stepsDone, practiceScore }] }] }], nextUp, stats: { streak, xpToday,
+  xpTotal, wordsLearned } }`. Only course lessons (those in a unit) that are published and belong to my
+  teacher; levels and units with none are left out. `nextUp` is the slug of the first lesson (course
+  order) whose required steps are not all done (words, practice, plus grammar and culture when the
+  lesson has them; talk is optional), or null. `day` is optional (default: the server's UTC date).
+- `POST /lessons/:slug/progress` `{ step, score?, day }` → `{ xpGained, xpToday, streak }`. `step` is one
+  of words practice grammar culture talk; `score` (0..100) is required for `practice` and ignored for the
+  rest; `day` is the learner's local date and must be within one day of the server's UTC date, else 400
+  `VALIDATION_ERROR`. XP is paid only on the first completion of a step (words 5, practice 5 +
+  round(10·score/100), grammar 3, culture 2, talk 10); a repeat keeps the best score and pays 0. Finishing
+  `practice` creates review cards for the lesson's words. 403 `DEMO_READ_ONLY` for the demo teacher; the
+  same 404 as `GET /lessons/:slug`.
 
 ## Practice
 - `POST /conversations` `{ lessonId }` → `{ conversation, messages }` (the opening line is the first partner message)
