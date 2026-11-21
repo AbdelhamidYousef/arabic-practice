@@ -53,7 +53,7 @@ type AiEnv = Pick<
  */
 export function createAiRuntime(
   env: AiEnv,
-  db: Pick<Database, 'select' | 'insert'>,
+  db: Pick<Database, 'select' | 'insert' | 'update' | 'transaction'>,
   logger?: Logger,
 ): AiRuntime {
   const name = resolveAiProvider(env);
@@ -93,7 +93,7 @@ export function wrapProvider(
     | 'AI_DAILY_CALLS_PER_MODEL'
     | 'AI_MONTHLY_BUDGET_USD'
   >,
-  db: Pick<Database, 'select' | 'insert'>,
+  db: Pick<Database, 'select' | 'insert' | 'update' | 'transaction'>,
   logger?: Logger,
 ): LlmGateway {
   const inner = createLedgeredGateway({

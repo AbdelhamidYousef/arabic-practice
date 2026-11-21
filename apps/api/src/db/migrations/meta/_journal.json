@@ -43,6 +43,13 @@
       "when": 1795247891561,
       "tag": "0005_guest_ip_hash",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795248130829,
+      "tag": "0006_ai_call_pending",
+      "breakpoints": true
     }
   ]
 }
