@@ -190,6 +190,16 @@ describe('correction prompt', () => {
     expect(system).toContain('ENGLISH');
   });
 
+  it('types vowel-mark-only errors as harakat and any Latin word as a spelling mistake', () => {
+    const { system } = buildCorrectionPrompt({ level: 'A1', learnerText: 'x' });
+    expect(system).toContain('its type is "harakat", even though a grammar rule explains it');
+    expect(system).toContain('Use "grammar" only when a word, a particle');
+    expect(system).toContain('written in Latin script inside an Arabic sentence');
+    expect(system).toContain('is a "spelling" mistake and the message is NOT correct');
+    // The older guard stays: no harakat written means no harakat mistakes.
+    expect(system).toContain('Never penalise a learner for writing no harakat');
+  });
+
   it('includes the lesson vocab when a lesson is given', () => {
     const { system } = buildCorrectionPrompt({ level: 'A1', lesson, learnerText: 'x' });
     expect(system).toContain('- شَاي = tea');

@@ -63,8 +63,9 @@ export function buildCorrectionPrompt({
     '- If the message is correct: isCorrect=true, mistakes=[], corrected = the same sentence with full harakat, and a short warm "praise" in English.',
     '- Do NOT flag a correct sentence for style, word choice or a more elegant phrasing. A simple, correct sentence is correct.',
     '- Harakat mistakes: report them ONLY if the learner wrote harakat themselves and got some wrong. Never penalise a learner for writing no harakat.',
+    '- TYPE of a vowel-mark error: when the learner wrote harakat and the ONLY thing wrong is a vowel mark or a case ending (for example a kasra where a damma belongs on the last letter), its type is "harakat", even though a grammar rule explains it. Use "grammar" only when a word, a particle, a verb form or the structure is wrong; use "harakat" when the letters are right and only the marks are not.',
     '- Do not count missing punctuation or capitalisation of Latin letters as mistakes. Spelling mistakes (hamza, ta marbuta vs ha, alef maqsura) are type "spelling".',
-    '- If the learner wrote Latin letters instead of Arabic, report it as a "spelling" mistake and give the Arabic.',
+    '- LATIN LETTERS: any word written in Latin script inside an Arabic sentence (a name, a loanword, anything) is a "spelling" mistake and the message is NOT correct. Report it with original = the Latin word and correction = the same word in Arabic script, and set isCorrect=false, even if everything else is perfect.',
     `- Explanations are in ENGLISH, ${rules.explanations}.`,
     ...(lesson
       ? [
