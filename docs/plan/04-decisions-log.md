@@ -103,3 +103,9 @@ decisions that you need and mark them for my revision"). OWNER = his own call.
 - 2026-11-21 · REVIEW · The correction schema keeps `mistakes.max(5)` strictly, so a model returning six fails the parse and is retried once · matches the plan's "max 5" · slicing to five after parsing · if the live runs show learners with many mistakes getting AI_FAILED.
 - 2026-11-21 · REVIEW · Gloss answers JSON `{ translation }` rather than free text · the interface has two methods and a validated shape is easier to trust · a third `generateText` method · never.
 - 2026-11-21 · REVIEW · Lesson vocabulary matching in level metrics peels one clitic prefix (و ف ب ل ك ال بال وال ...) and compares normalized forms · learners and models meet `وَالْقَهْوَةُ` for the lesson word `قَهْوَة` · exact match only · if false positives show up in evals.
+
+## Phase 13 (deploy prep, done early)
+- 2026-11-21 · REVIEW · Deploy files added before the features (esbuild bundle `apps/api/dist/{index,vercel}.js`, `apps/web/api/index.js`, `apps/web/vercel.json`), copied from Pawsome's working setup · deploying early surfaces platform problems (streaming through a Vercel Function) while there is still time · waiting for phase 13 · never.
+- 2026-11-21 · REVIEW · Vercel function region `fra1`, Neon in Frankfurt (`aws-eu-central-1`) · the app and DB in one region keeps each query ~1 ms instead of ~90 ms across the Atlantic; Europe is close to his students and to Egypt · Vercel's default `iad1` · if most users turn out to be in the Americas.
+- 2026-11-21 · REVIEW · Function `maxDuration` 60 s · a practice turn streams for a few seconds; 60 s covers a slow model plus a retry, and stays within the free plan · 30 s (Pawsome) · if turns are cut off.
+- 2026-11-21 · REVIEW · `esbuild` added to the API's dev dependencies (Pawsome's version) · bundles the workspace TypeScript for plain `node` · `tsc` emit (cannot inline the shared package) · never.
