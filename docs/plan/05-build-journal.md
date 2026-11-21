@@ -160,3 +160,8 @@ What was built per step and why, for the owner to read; three quiz questions at 
 1. Why is the contrast test fed by `tokens.css` itself rather than a copy of the colours inside the test?
 2. A network chunk ends between the `\r` and `\n` of a line ending. What does `readSse` do, and why?
 3. Why does a 401 from `/auth/me` become `null` while a 401 from any other call, for a signed-in person, clears the caches?
+
+## Phase 9 — Progress and review API (lane api2)
+- **9.1 Progress API.** One endpoint, seven small aggregate queries run in parallel, weeks bucketed in SQL and
+  zero-filled in code. Learn: "per week" needs one definition of a week shared by the database and the code
+  (ISO, Monday, UTC), otherwise a Sunday-night turn lands in different buckets on each side.

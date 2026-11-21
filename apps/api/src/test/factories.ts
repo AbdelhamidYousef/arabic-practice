@@ -2,12 +2,16 @@ import { createHash, randomBytes } from 'node:crypto';
 
 import { db } from '../db/client.ts';
 import {
+  aiCalls,
   conversations,
+  corrections,
   invites,
   lessons,
   lessonVocab,
   messages,
+  mistakes,
   users,
+  vocabCards,
 } from '../db/schema/index.ts';
 
 // Unique suffix per call so factories can be used many times inside one test without colliding
@@ -141,4 +145,63 @@ export async function createInvite(
     .returning();
   if (!row) throw new Error('factory: insert of invite returned no row');
   return { invite: row, code };
+}
+
+// A learner message with its correction and one mistake (tests that only need a mistake row).
+export async function createMistake(
+  conversationId: string,
+  overrides: Partial<typeof mistakes.$inferInsert> & { userId: string; lessonId: string },
+) {
+  const message = await createMessage(conversationId);
+  const correction = first(
+    await db
+      .insert(corrections)
+      .values({ messageId: message.id, isCorrect: false, corrected: 'أَنَا طَالِبٌ' })
+      .returning(),
+    'correction',
+  );
+  return first(
+    await db
+      .insert(mistakes)
+      .values({
+        type: 'grammar',
+        original: 'انا طالب',
+        correction: 'أَنَا طَالِبٌ',
+        explanation: 'Add the harakat.',
+        ...overrides,
+        correctionId: correction.id,
+      })
+      .returning(),
+    'mistake',
+  );
+}
+
+export async function createCard(
+  userId: string,
+  vocabId: string,
+  overrides: Partial<typeof vocabCards.$inferInsert> = {},
+) {
+  return first(
+    await db
+      .insert(vocabCards)
+      .values({ ...overrides, userId, vocabId })
+      .returning(),
+    'vocab card',
+  );
+}
+
+export async function createAiCall(overrides: Partial<typeof aiCalls.$inferInsert> = {}) {
+  return first(
+    await db
+      .insert(aiCalls)
+      .values({
+        purpose: 'reply',
+        provider: 'fake',
+        model: 'fake-model',
+        status: 'ok',
+        ...overrides,
+      })
+      .returning(),
+    'ai call',
+  );
 }

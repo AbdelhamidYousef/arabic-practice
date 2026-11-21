@@ -24,4 +24,16 @@ export const api = (app: App) => ({
     const req = request(app).post(`/api/v1${path}`).set('Origin', TEST_ORIGIN).send(body);
     return cookie ? req.set('Cookie', cookie) : req;
   },
+  put: (path: string, body: object = {}, cookie?: string) => {
+    const req = request(app).put(`/api/v1${path}`).set('Origin', TEST_ORIGIN).send(body);
+    return cookie ? req.set('Cookie', cookie) : req;
+  },
+  patch: (path: string, body: object = {}, cookie?: string) => {
+    const req = request(app).patch(`/api/v1${path}`).set('Origin', TEST_ORIGIN).send(body);
+    return cookie ? req.set('Cookie', cookie) : req;
+  },
+  delete: (path: string, cookie?: string) => {
+    const req = request(app).delete(`/api/v1${path}`).set('Origin', TEST_ORIGIN);
+    return cookie ? req.set('Cookie', cookie) : req;
+  },
 });
