@@ -96,3 +96,29 @@ What was built per step and why, for the owner to read; three quiz questions at 
 1. Why is the request id validated before it is logged or echoed back in a response header?
 2. A hosting dashboard has `INVITES_ENABLED=true` and `AI_TIER=free` in production. What happens at boot, and which promise does that protect?
 3. Why does `/health` answer 503 for a database outage instead of 200 with `"db": "down"`, and why is it exempt from the rate limit?
+
+## Phase 7 — Web foundation (lane web)
+
+- **7.1 Tokens and fonts.** `styles/tokens.css` holds every colour, radius, shadow, font and weight as a CSS
+  variable; Tailwind only points at them. The contrast test parses the CSS file itself, so it checks what ships.
+  Learn: AA means 4.5:1 for normal text. Amber is too light to be text on sand, so correction text uses a dark
+  amber (`accent-strong`) and the bright amber is only ever a fill behind ink text.
+- **7.2 UI kit.** Button, Input, Textarea, Card, Badge, Alert, Spinner, Dialog (native `<dialog>`), Tabs,
+  EmptyState and `ArabicText`. Learn: `lang="ar" dir="rtl"` is not decoration; it tells screen readers which
+  voice to use and keeps punctuation on the correct side. The tall line-height (2) exists so the marks above
+  and below a line do not touch the next one.
+- **7.3 Dictionary.** Typed keys from the English object, `t()` for strings and `tn()` for plurals through
+  `Intl.PluralRules`. A guard test fails on English written into JSX, including text Prettier wraps onto its own
+  line, and tests its own matcher. Learn: a guard that cannot be shown to fail is not a guard.
+- **7.4 API client, auth state, SSE.** One `apiFetch` with credentials, typed errors and Zod-parsed responses;
+  `['me']` treats a 401 as "anonymous"; a 401 while signed in clears every other cache. `readSse` rebuilds events
+  from a byte stream that may be cut anywhere, tested by splitting at every position and one byte at a time.
+  Learn: chunk boundaries are arbitrary; a parser that works only when each chunk is one event works until production.
+- **7.5 Layout and routes.** One route table with a lazy chunk per page, role-aware header, honest footer line,
+  skip link, focus moved to `<main>` on navigation, a "server is waking up" notice and a 404. Learn: after a
+  client-side navigation nothing tells a screen reader the page changed unless focus moves.
+
+### Quiz (phase 7)
+1. Why is the contrast test fed by `tokens.css` itself rather than a copy of the colours inside the test?
+2. A network chunk ends between the `\r` and `\n` of a line ending. What does `readSse` do, and why?
+3. Why does a 401 from `/auth/me` become `null` while a 401 from any other call, for a signed-in person, clears the caches?
