@@ -2,18 +2,28 @@ import {
   ConversationDetailResponseSchema,
   StartConversationRequestSchema,
   StartConversationResponseSchema,
+  TurnRequestSchema,
 } from '@arabic/shared';
 import { Router as ExpressRouter, type Router } from 'express';
 import { z } from 'zod';
 
+import type { AiRuntime } from '../../ai/index.ts';
 import { respond, valid, validate } from '../../lib/validate.ts';
 import { forbidReadOnly, requireUser } from '../../middleware/auth.ts';
+import { createUserRateLimiter, type RateLimitOptions } from '../../middleware/rate-limit.ts';
 
 import * as service from './service.ts';
+import { runTurn } from './turn.ts';
 
 const idParams = { params: z.object({ id: z.uuid() }) };
 
-export function createPracticeRouter(): Router {
+export interface PracticeRouterOptions {
+  ai: AiRuntime;
+  /** Per learner, on top of the daily caps: the free tier allows 15 requests a minute per model for everybody. */
+  turnRateLimit: RateLimitOptions;
+}
+
+export function createPracticeRouter({ ai, turnRateLimit }: PracticeRouterOptions): Router {
   const router = ExpressRouter();
 
   router.post(
@@ -43,6 +53,20 @@ export function createPracticeRouter(): Router {
       await service.getConversation(req.user, params.id),
     );
   });
+
+  const turn = { ...idParams, body: TurnRequestSchema };
+  router.post(
+    '/conversations/:id/turns',
+    requireUser,
+    forbidReadOnly,
+    createUserRateLimiter(turnRateLimit),
+    validate(turn),
+    async (req, res) => {
+      if (!req.user) throw new Error('requireUser let an anonymous request through');
+      const { params, body } = valid(req, turn);
+      await runTurn({ req, res, user: req.user, conversationId: params.id, text: body.text, ai });
+    },
+  );
 
   return router;
 }
