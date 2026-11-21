@@ -18,6 +18,7 @@ import { createPracticeRouter } from './modules/practice/router.ts';
 import { createProgressRouter } from './modules/progress/router.ts';
 import { createReviewRouter } from './modules/review/router.ts';
 import { createTeacherRouter } from './modules/teacher/router.ts';
+import { createTestRouter } from './modules/test/router.ts';
 
 export interface AppConfig {
   nodeEnv: 'development' | 'test' | 'production';
@@ -101,6 +102,9 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
       turnRateLimit: config.turnRateLimit ?? { windowMs: 60_000, limit: 10 },
     }),
   );
+
+  // Test-only helpers (e2e): never mounted outside NODE_ENV=test.
+  if (config.nodeEnv === 'test') app.use('/api/v1', createTestRouter({ db }));
 
   // Order matters: unknown routes first, then the error handler that catches everything above.
   app.use(notFoundHandler);

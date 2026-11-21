@@ -20,6 +20,7 @@ export function bootstrap() {
       webOrigin: env.WEB_ORIGIN,
       rateLimit: { windowMs: env.RATE_LIMIT_WINDOW_MS, limit: env.RATE_LIMIT_MAX },
       authRateLimit: { windowMs: env.RATE_LIMIT_AUTH_WINDOW_MS, limit: env.RATE_LIMIT_AUTH_MAX },
+      guestRateLimit: { windowMs: 3600 * 1000, limit: env.RATE_LIMIT_GUEST_MAX },
       invitesEnabled: env.INVITES_ENABLED,
     },
   });
