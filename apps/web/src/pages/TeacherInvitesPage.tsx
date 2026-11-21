@@ -11,7 +11,7 @@ import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Input } from '../components/ui/Input';
 import { Td, TableScroll, Th, THead, Tr } from '../components/ui/Table';
-import { useCreateInvite, useInvites, useInvitesClosed } from '../features/teacher/queries';
+import { useCreateInvite, useInvites } from '../features/teacher/queries';
 import { TeacherError, useReadOnly } from '../features/teacher/ReadOnly';
 import { useT, type StringKey } from '../i18n';
 import { formatDate } from '../lib/format';
@@ -30,13 +30,12 @@ const statusKey: Record<Invite['status'], StringKey> = {
 export default function TeacherInvitesPage() {
   const { t } = useT();
   const query = useInvites();
-  const closed = useInvitesClosed();
   return (
     <Container className="py-8 sm:py-12">
       <Seo title={t('page.teacherInvites')} noindex />
       <h1 className="text-3xl">{t('page.teacherInvites')}</h1>
       <p className="mt-2 text-muted">{t('invites.lead')}</p>
-      {closed.data === true && (
+      {query.data?.invitesOpen === false && (
         <Alert tone="warning" className="mt-4" data-testid="invites-closed">
           {t('invites.closedNotice')}
         </Alert>
@@ -68,7 +67,7 @@ export default function TeacherInvitesPage() {
                     <tbody>
                       {invites.map((i) => (
                         <Tr key={i.id}>
-                          <Td className="max-w-56 break-words">
+                          <Td className="max-w-56 [overflow-wrap:anywhere]">
                             {i.note || <span className="text-muted">{t('invites.noNote')}</span>}
                           </Td>
                           <Td>

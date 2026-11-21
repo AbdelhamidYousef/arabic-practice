@@ -277,10 +277,55 @@ describe('practice chat: a turn', () => {
 
     expect(await screen.findByText(en['chat.error.replyFailed'])).toBeVisible();
     expect(screen.getByText('مرحبا')).toBeVisible();
+    // The saved line says it got no reply, so the failed turn is not a mystery.
+    expect(screen.getByText(en['chat.noReply'])).toBeVisible();
     // The half reply was never saved, so it is gone.
     expect(screen.queryByText('نصف')).toBeNull();
     expect(screen.getByRole('button', { name: en['chat.retry'] })).toBeVisible();
     expect(calls.filter((c) => c.key === 'POST /conversations/c1/turns')).toHaveLength(1);
+  });
+
+  it('mutes the earlier unanswered line when Retry saves the text a second time', async () => {
+    const first = liveStream();
+    const second = liveStream();
+    let posts = 0;
+    let firstSaved = false;
+    stubApi({
+      ...signedIn,
+      // The server keeps the first learner line even though it got no reply.
+      'GET /conversations/c1': () =>
+        Response.json(
+          detail(
+            firstSaved
+              ? [message('m1', 'partner', OPENING), message('m2', 'learner', 'مرحبا')]
+              : undefined,
+          ),
+        ),
+      'POST /conversations/c1/turns': () => {
+        posts += 1;
+        return posts === 1 ? first.response : second.response;
+      },
+    });
+    const box = await openChat();
+    await typeAndSend(box, 'مرحبا');
+    await first.emit('learner', learnerEvent('مرحبا'));
+    firstSaved = true;
+    await first.emit('error', { code: 'AI_FAILED', message: 'x', scope: 'reply' });
+    await first.end();
+    expect(await screen.findByText(en['chat.noReply'])).toBeVisible();
+
+    await userEvent.click(screen.getByRole('button', { name: en['chat.retry'] }));
+    await second.emit('learner', { message: message('m4', 'learner', 'مرحبا') });
+    await second.emit('delta', { text: 'أهلا' });
+    await second.emit('done', partnerDone('أهلا'));
+    await second.end();
+    expect(await screen.findByText('أهلا')).toBeVisible();
+
+    // Both learner lines are kept (the server has both): the first one muted, the second plain.
+    const lines = screen.getAllByText('مرحبا');
+    expect(lines).toHaveLength(2);
+    expect(screen.getAllByText(en['chat.notAnswered'])).toHaveLength(1);
+    expect(screen.queryByText(en['chat.noReply'])).toBeNull();
   });
 
   it('does not send on Shift+Enter or when empty', async () => {

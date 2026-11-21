@@ -7,11 +7,11 @@ import { createTeacherUsageRouter } from './usage.router.ts';
 
 // Everything under /teacher: each sub-router guards its own routes (role teacher; mutations also
 // forbidReadOnly), so a route added later cannot forget the role check by living in this file.
-export function createTeacherRouter(): Router {
+export function createTeacherRouter(opts: { invitesEnabled: boolean }): Router {
   const router = ExpressRouter();
   router.use(createTeacherLessonsRouter());
   router.use(createTeacherLearnersRouter());
-  router.use(createTeacherInvitesRouter());
+  router.use(createTeacherInvitesRouter(opts));
   router.use(createTeacherUsageRouter());
   return router;
 }

@@ -1,7 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { fetchInvite } from '../../api/auth';
-import { ApiError } from '../../api/client';
 import * as api from '../../api/teacher';
 import { keys } from '../../lib/query-client';
 
@@ -44,24 +42,6 @@ export const useInvites = () =>
 
 export const useUsage = () =>
   useQuery({ queryKey: keys.teacher.usage, queryFn: ({ signal }) => api.fetchUsage(signal) });
-
-// There is no "are invites open" endpoint. The public invite lookup answers 403 INVITES_CLOSED
-// for any code while sign-up is off, and 404 (or 200) while it is on, so one look-up of a code
-// that cannot exist tells the teacher page which it is. Errors other than "closed" mean open/unknown.
-export const useInvitesClosed = () =>
-  useQuery({
-    queryKey: keys.teacher.invitesOpen,
-    queryFn: async ({ signal }) => {
-      try {
-        await fetchInvite('probe-code-that-does-not-exist', signal);
-        return false;
-      } catch (error) {
-        return error instanceof ApiError && error.code === 'INVITES_CLOSED';
-      }
-    },
-    retry: false,
-    staleTime: 5 * 60_000,
-  });
 
 export function useSetLearnerLevel(id: string) {
   const client = useQueryClient();

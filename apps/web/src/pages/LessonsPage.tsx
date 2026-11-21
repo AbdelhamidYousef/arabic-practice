@@ -33,7 +33,7 @@ export default function LessonsPage() {
                     {t('lessons.level', { level })}
                     <span className="text-sm font-normal text-muted">{cefrLabel[level]}</span>
                   </h2>
-                  <ul className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  <ul className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                     {lessons.map((lesson) => (
                       <li key={lesson.id}>
                         <LessonCard
@@ -61,7 +61,7 @@ function LessonCard({ lesson, practised }: { lesson: LessonSummary; practised: s
           {/* The link's ::after stretches over the whole card, so the card is one click target. */}
           <Link
             to={`/lessons/${lesson.slug}`}
-            className="break-words after:absolute after:inset-0 focus:outline-none"
+            className="[overflow-wrap:anywhere] after:absolute after:inset-0 focus:outline-none"
           >
             {lesson.title}
           </Link>

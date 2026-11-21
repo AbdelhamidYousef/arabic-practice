@@ -13,23 +13,39 @@ export function LearnerBubble({
   text,
   hideHarakat,
   pending = false,
+  unanswered,
 }: {
   text: string;
   hideHarakat: boolean;
   pending?: boolean;
+  /** The partner never replied to this message: shown muted with a small label under it. */
+  unanswered?: 'noReply' | 'history';
 }) {
   const { t } = useT();
   return (
     <div className="flex justify-end">
-      <div className={cn(bubble, 'border-primary/30 bg-primary-soft', pending && 'opacity-80')}>
+      <div
+        className={cn(
+          bubble,
+          'border-primary/30 bg-primary-soft',
+          pending && 'opacity-80',
+          unanswered && 'border-line bg-surface text-muted',
+        )}
+        {...(unanswered && { 'data-unanswered': unanswered })}
+      >
         <p className="sr-only">{t('chat.you')}</p>
         <ArabicText
           as="p"
           hideHarakat={hideHarakat}
-          className="whitespace-pre-wrap break-words text-lg"
+          className="whitespace-pre-wrap [overflow-wrap:anywhere] text-lg"
         >
           {text}
         </ArabicText>
+        {unanswered && (
+          <p className="mt-1 text-xs">
+            {t(unanswered === 'noReply' ? 'chat.noReply' : 'chat.notAnswered')}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -70,7 +86,7 @@ export function PartnerBubble({
           <ArabicText
             as="p"
             hideHarakat={hideHarakat}
-            className="whitespace-pre-wrap break-words text-lg"
+            className="whitespace-pre-wrap [overflow-wrap:anywhere] text-lg"
           >
             {text}
           </ArabicText>
@@ -104,7 +120,7 @@ function Translate({ messageId, known }: { messageId: string; known: string | nu
             <p
               lang="en"
               aria-label={t('chat.translate.label')}
-              className="break-words border-t border-line pt-2"
+              className="[overflow-wrap:anywhere] border-t border-line pt-2"
             >
               {text}
             </p>

@@ -7,6 +7,8 @@ interface FieldProps {
   hint?: string | undefined;
   error?: string | undefined;
   className?: string;
+  /** Keeps the label for screen readers only (a repeated row has its own column heading). */
+  hideLabel?: boolean | undefined;
   /** Receives the ids to put on the control so the label, hint and error are all announced. */
   children: (props: {
     id: string;
@@ -16,13 +18,13 @@ interface FieldProps {
 }
 
 // Label + control + hint/error wiring, shared by Input and Textarea (and later Select).
-export function Field({ label, hint, error, className, children }: FieldProps) {
+export function Field({ label, hint, error, className, hideLabel, children }: FieldProps) {
   const id = useId();
   const noteId = `${id}-note`;
   const note = error ?? hint;
   return (
     <div className={cn('flex flex-col gap-1.5', className)}>
-      <label htmlFor={id} className="text-sm font-medium">
+      <label htmlFor={id} className={cn('text-sm font-medium', hideLabel && 'sr-only')}>
         {label}
       </label>
       {children({

@@ -164,7 +164,9 @@ function Editor({ lessonId, initial }: { lessonId: string | null; initial: Lesso
             />
             <Textarea
               label={t('editor.summary')}
-              rows={3}
+              autoGrow
+              rows={2}
+              className="max-h-64 min-h-[5rem]"
               value={form.summary}
               error={err('summary')}
               maxLength={500}
@@ -225,7 +227,9 @@ function Editor({ lessonId, initial }: { lessonId: string | null; initial: Lesso
             <Textarea
               label={t('editor.scenario')}
               hint={t('editor.scenario.hint')}
-              rows={6}
+              autoGrow
+              rows={4}
+              className="max-h-80 min-h-[8rem]"
               value={form.scenario}
               error={err('scenario')}
               maxLength={2000}
@@ -234,10 +238,11 @@ function Editor({ lessonId, initial }: { lessonId: string | null; initial: Lesso
             <Textarea
               label={t('editor.opening')}
               hint={t('editor.opening.hint')}
-              rows={3}
+              autoGrow
+              rows={2}
               dir="rtl"
               lang="ar"
-              className="arabic"
+              className="arabic max-h-48 min-h-[5rem]"
               value={form.openingLine}
               error={err('openingLine')}
               maxLength={500}
@@ -250,7 +255,16 @@ function Editor({ lessonId, initial }: { lessonId: string | null; initial: Lesso
               {t('editor.vocab')}
             </h2>
             <p className="text-sm text-muted">{t('editor.vocab.hint')}</p>
-            <ol className="space-y-3">
+            <div
+              aria-hidden="true"
+              className="hidden gap-2 px-2 text-sm font-medium text-muted sm:grid sm:grid-cols-[1fr_1fr_1.4fr_9rem]"
+            >
+              <span>{t('editor.vocab.colArabic')}</span>
+              <span>{t('editor.vocab.colEnglish')}</span>
+              <span>{t('editor.vocab.colNote')}</span>
+              <span />
+            </div>
+            <ol className="space-y-2">
               {form.vocab.map((row, i) => {
                 const patch = (p: Partial<typeof row>) =>
                   set(
@@ -258,55 +272,65 @@ function Editor({ lessonId, initial }: { lessonId: string | null; initial: Lesso
                     form.vocab.map((r) => (r.key === row.key ? { ...r, ...p } : r)),
                   );
                 return (
-                  <li key={row.key} data-testid="vocab-row">
-                    <Card className="space-y-3 p-4">
-                      <div className="grid gap-3 sm:grid-cols-3">
-                        <Input
-                          label={t('editor.vocab.arabicN', { n: i + 1 })}
-                          dir="rtl"
-                          lang="ar"
-                          className="arabic"
-                          value={row.arabic}
-                          error={err(`vocab.${i}.arabic`)}
-                          maxLength={100}
-                          onChange={(e) => patch({ arabic: e.target.value })}
-                        />
-                        <Input
-                          label={t('editor.vocab.englishN', { n: i + 1 })}
-                          value={row.english}
-                          error={err(`vocab.${i}.english`)}
-                          maxLength={200}
-                          onChange={(e) => patch({ english: e.target.value })}
-                        />
+                  <li
+                    key={row.key}
+                    data-testid="vocab-row"
+                    className="grid grid-cols-2 items-start gap-2 rounded-ui border border-line bg-surface p-2 sm:grid-cols-[1fr_1fr_1.4fr_9rem]"
+                  >
+                    <Input
+                      label={t('editor.vocab.arabicN', { n: i + 1 })}
+                      hideLabel
+                      placeholder={t('editor.vocab.colArabic')}
+                      dir="rtl"
+                      lang="ar"
+                      className="arabic py-0 text-base leading-normal"
+                      value={row.arabic}
+                      error={err(`vocab.${i}.arabic`)}
+                      maxLength={100}
+                      onChange={(e) => patch({ arabic: e.target.value })}
+                    />
+                    <Input
+                      label={t('editor.vocab.englishN', { n: i + 1 })}
+                      hideLabel
+                      placeholder={t('editor.vocab.colEnglish')}
+                      value={row.english}
+                      error={err(`vocab.${i}.english`)}
+                      maxLength={200}
+                      onChange={(e) => patch({ english: e.target.value })}
+                    />
+                    <div className="col-span-2 flex items-start gap-2 sm:contents">
+                      <div className="min-w-0 flex-1">
                         <Input
                           label={t('editor.vocab.noteN', { n: i + 1 })}
+                          hideLabel
+                          placeholder={t('editor.vocab.colNote')}
                           value={row.note}
                           error={err(`vocab.${i}.note`)}
                           maxLength={300}
                           onChange={(e) => patch({ note: e.target.value })}
                         />
                       </div>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex gap-1 sm:justify-end">
                         <Button
-                          size="sm"
+                          size="icon"
                           variant="secondary"
                           disabled={i === 0}
                           aria-label={t('editor.moveUpN', { n: i + 1 })}
                           onClick={() => set('vocab', move(form.vocab, i, i - 1))}
                         >
-                          {t('editor.moveUp')}
+                          <span aria-hidden="true">↑</span>
                         </Button>
                         <Button
-                          size="sm"
+                          size="icon"
                           variant="secondary"
                           disabled={i === form.vocab.length - 1}
                           aria-label={t('editor.moveDownN', { n: i + 1 })}
                           onClick={() => set('vocab', move(form.vocab, i, i + 1))}
                         >
-                          {t('editor.moveDown')}
+                          <span aria-hidden="true">↓</span>
                         </Button>
                         <Button
-                          size="sm"
+                          size="icon"
                           variant="secondary"
                           aria-label={t('editor.removeRowN', { n: i + 1 })}
                           onClick={() =>
@@ -316,10 +340,10 @@ function Editor({ lessonId, initial }: { lessonId: string | null; initial: Lesso
                             )
                           }
                         >
-                          {t('editor.remove')}
+                          <span aria-hidden="true">✕</span>
                         </Button>
                       </div>
-                    </Card>
+                    </div>
                   </li>
                 );
               })}

@@ -43,7 +43,7 @@ function LearnerView({ data }: { data: TeacherLearnerDetailResponse }) {
       <Seo title={learner.displayName} noindex />
       <header className="mt-4 flex flex-wrap items-end justify-between gap-4">
         <div className="min-w-0">
-          <h1 className="break-words text-3xl">{learner.displayName}</h1>
+          <h1 className="[overflow-wrap:anywhere] text-3xl">{learner.displayName}</h1>
           <p className="mt-1 text-sm text-muted">
             {learner.email && <>{learner.email} · </>}
             {t('teacher.learner.lastSeen', { when: formatDateTime(learner.lastSeenAt) })}
@@ -103,7 +103,7 @@ function LearnerView({ data }: { data: TeacherLearnerDetailResponse }) {
             {recentMistakes.length === 0 ? (
               <p className="text-muted">{t('progress.noMistakes')}</p>
             ) : (
-              <RecentMistakes items={recentMistakes} />
+              <RecentMistakes items={recentMistakes} linkLessons={false} />
             )}
           </div>
         </section>
@@ -122,7 +122,7 @@ function LearnerView({ data }: { data: TeacherLearnerDetailResponse }) {
                   className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 p-4"
                 >
                   <div className="min-w-0">
-                    <p className="break-words font-medium">{c.lessonTitle}</p>
+                    <p className="[overflow-wrap:anywhere] font-medium">{c.lessonTitle}</p>
                     <p className="text-sm text-muted">
                       {tn('lesson.turns', c.turnCount)} · {formatDateTime(c.lastMessageAt)}
                     </p>

@@ -35,7 +35,7 @@ function Transcript({ data }: { data: TeacherTranscriptResponse }) {
       >
         {t('teacher.transcript.back', { name: conversation.learner.displayName })}
       </Link>
-      <h1 className="mt-3 break-words text-3xl">{conversation.lessonTitle}</h1>
+      <h1 className="mt-3 [overflow-wrap:anywhere] text-3xl">{conversation.lessonTitle}</h1>
       <p className="mt-1 text-sm text-muted">
         {conversation.learner.displayName} · {tn('lesson.turns', conversation.turnCount)} ·{' '}
         {formatDateTime(conversation.createdAt)}
@@ -70,7 +70,7 @@ function Message({ message: m, learnerName }: { message: TranscriptMessage; lear
           mine ? 'border-primary bg-primary-soft' : 'border-line bg-surface',
         )}
       >
-        <ArabicText as="p" className="break-words text-xl">
+        <ArabicText as="p" className="[overflow-wrap:anywhere] text-xl">
           {m.text}
         </ArabicText>
         {m.glossEn && <p className="mt-1 text-sm text-muted">{m.glossEn}</p>}
@@ -85,7 +85,7 @@ function Message({ message: m, learnerName }: { message: TranscriptMessage; lear
           ) : (
             <>
               <p className="text-accent-strong">{t('home.turn.corrected')}</p>
-              <ArabicText as="p" className="break-words text-lg">
+              <ArabicText as="p" className="[overflow-wrap:anywhere] text-lg">
                 {m.correction.corrected}
               </ArabicText>
             </>

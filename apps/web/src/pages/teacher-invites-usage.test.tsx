@@ -21,12 +21,10 @@ const invite = (over: object) => ({
 });
 
 describe('invites page', () => {
-  const probe = 'GET /auth/invites/probe-code-that-does-not-exist';
-  const open: Handlers = { [probe]: () => jsonError('NOT_FOUND', 404) };
-  const closed: Handlers = { [probe]: () => jsonError('INVITES_CLOSED', 403) };
-  const list = (invites: object[]): Handlers => ({
+  const open: Handlers = {};
+  const list = (invites: object[], invitesOpen = true): Handlers => ({
     ...asTeacher,
-    'GET /teacher/invites': () => Response.json({ invites }),
+    'GET /teacher/invites': () => Response.json({ invites, invitesOpen }),
   });
   const created = {
     invite: invite({ id: 'i2', note: 'New one', maxUses: 1, usedCount: 0 }),
@@ -94,8 +92,7 @@ describe('invites page', () => {
 
   it('still lets the teacher create while sign-up is closed, with a notice', async () => {
     stubApi({
-      ...closed,
-      ...list([]),
+      ...list([], false),
       'POST /teacher/invites': () => Response.json(created, { status: 201 }),
     });
     renderAt('/teacher/invites');

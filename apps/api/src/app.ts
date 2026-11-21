@@ -107,7 +107,7 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
   app.use('/api/v1', createLessonsRouter());
   app.use('/api/v1', createProgressRouter());
   app.use('/api/v1', createReviewRouter());
-  app.use('/api/v1', createTeacherRouter());
+  app.use('/api/v1', createTeacherRouter({ invitesEnabled: config.invitesEnabled }));
   app.use(
     '/api/v1',
     createPracticeRouter({

@@ -107,6 +107,7 @@ const detail = {
       explanation: 'Because.',
       createdAt: '2026-11-20T10:00:00.000Z',
       lessonTitle: 'At the cafe',
+      lessonSlug: 'at-the-cafe',
     },
   ],
 };

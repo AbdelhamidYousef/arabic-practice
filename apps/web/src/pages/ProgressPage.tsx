@@ -10,7 +10,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { MistakeBars, RecentMistakes } from '../features/progress/MistakeViews';
 import { useProgress } from '../features/progress/queries';
 import { useT } from '../i18n';
-import { formatDay, formatNumber } from '../lib/format';
+import { formatDay, formatDayNumber, formatMonthShort, formatNumber } from '../lib/format';
 
 export default function ProgressPage() {
   const { t } = useT();
@@ -57,7 +57,9 @@ function ProgressView({ data }: { data: ProgressResponse }) {
           <li key={s.label}>
             <Card className="p-3 sm:p-5">
               <p className="text-2xl tabular-nums sm:text-3xl">{formatNumber(s.value)}</p>
-              <p className="mt-1 break-words text-xs text-muted sm:text-sm">{s.label}</p>
+              <p className="mt-1 [overflow-wrap:anywhere] text-xs text-muted sm:text-sm">
+                {s.label}
+              </p>
             </Card>
           </li>
         ))}
@@ -107,8 +109,15 @@ function ProgressView({ data }: { data: ProgressResponse }) {
                       }}
                     />
                   </span>
-                  <span className="max-w-full truncate text-[0.7rem] text-muted">
-                    {formatDay(w.weekStart)}
+                  {/* Two short lines ("12" over "Oct") fit a column at 320 px; the full date is for
+                      screen readers (and the hover title on the item). */}
+                  <span className="sr-only">{formatDay(w.weekStart)}</span>
+                  <span
+                    aria-hidden="true"
+                    className="flex flex-col items-center text-[0.7rem] leading-tight text-muted"
+                  >
+                    <span>{formatDayNumber(w.weekStart)}</span>
+                    <span>{formatMonthShort(w.weekStart)}</span>
                   </span>
                 </li>
               ))}

@@ -138,7 +138,7 @@ function Session({
 
       <Card className="mt-4 flex min-h-72 flex-col items-center justify-center gap-4 text-center">
         <p className="text-sm text-muted">{card.lessonTitle}</p>
-        <p className="max-w-full break-words text-4xl" data-testid="card-arabic">
+        <p className="max-w-full [overflow-wrap:anywhere] text-4xl" data-testid="card-arabic">
           <ArabicText>{card.arabic}</ArabicText>
         </p>
         {revealed ? (

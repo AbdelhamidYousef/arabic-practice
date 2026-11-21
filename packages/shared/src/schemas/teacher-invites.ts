@@ -13,7 +13,12 @@ export const InviteSchema = z.object({
 export type Invite = z.infer<typeof InviteSchema>;
 
 // `GET /teacher/invites`: newest first. The codes are not stored, so they cannot be listed.
-export const InviteListResponseSchema = z.object({ invites: z.array(InviteSchema) });
+// `invitesOpen` mirrors the server's INVITES_ENABLED: false means sign-up with a code is closed
+// (the free-tier deployment), so a code the teacher creates cannot be used yet.
+export const InviteListResponseSchema = z.object({
+  invites: z.array(InviteSchema),
+  invitesOpen: z.boolean(),
+});
 export type InviteListResponse = z.infer<typeof InviteListResponseSchema>;
 
 // `POST /teacher/invites`

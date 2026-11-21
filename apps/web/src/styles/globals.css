@@ -22,8 +22,8 @@
     line-height: 1.6;
     /* Last line of defence for "no horizontal scroll"; components should never be wider anyway. */
     overflow-x: clip;
-    /* A long unbroken word wraps instead of widening the page. */
-    overflow-wrap: break-word;
+    /* A long unbroken word wraps instead of widening the page. `anywhere` (not `break-word`) also lowers the min-content width, so grid and flex items shrink instead of overflowing. */
+    overflow-wrap: anywhere;
   }
 
   h1,
@@ -42,11 +42,11 @@
     height: auto;
   }
 
-  /* One focus ring for everything: ink ring with a surface halo, visible on sand, cards and teal. */
+  /* One focus ring for everything: 2 px teal with a 2 px offset (the gap shows the sand or card
+     behind it, so it reads on every surface). */
   :focus-visible {
-    outline: 3px solid var(--color-ink);
+    outline: 2px solid var(--color-primary);
     outline-offset: 2px;
-    box-shadow: 0 0 0 5px var(--color-surface);
     border-radius: var(--radius);
   }
 

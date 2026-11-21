@@ -22,6 +22,7 @@ export async function recentMistakes(userId: string, limit = RECENT) {
       explanation: mistakes.explanation,
       createdAt: mistakes.createdAt,
       lessonTitle: lessons.title,
+      lessonSlug: lessons.slug,
     })
     .from(mistakes)
     .innerJoin(lessons, eq(lessons.id, mistakes.lessonId))
