@@ -3,10 +3,10 @@ import type { ContentLesson } from '../types.ts';
 // A1 L28: at the pharmacy. Made-up for this app from the Classroom plan (curriculum/msa/a1.md,
 // L28: C20, G25, G26); the owner reviews the Arabic before real learners see it.
 export const lesson: ContentLesson = {
-  slug: 'a1-pharmacy',
+  slug: 'a1-pharmacy-symptoms',
   unit: 'A1.3',
   kind: 'lesson',
-  title: 'At the pharmacy',
+  title: 'Back at the pharmacy',
   topic: 'A headache, a cold and the right medicine',
   summary: 'Say what hurts, ask for medicine, and make nouns plural.',
   goals: [

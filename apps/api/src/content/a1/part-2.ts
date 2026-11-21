@@ -12,7 +12,7 @@ import { lesson as l24 } from './24-weather.ts';
 import { lesson as l25 } from './25-taxi-bus.ts';
 import { lesson as l26 } from './26-restaurant.ts';
 import { lesson as l27 } from './27-shopping.ts';
-import { lesson as l28 } from './28-pharmacy.ts';
+import { lesson as l28 } from './28-pharmacy-symptoms.ts';
 import { lesson as l29 } from './29-invitations.ts';
 import { lesson as l30 } from './30-time.ts';
 
