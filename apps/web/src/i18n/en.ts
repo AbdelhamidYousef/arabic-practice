@@ -510,5 +510,32 @@ export const en = {
   'step.talk': 'Talk',
   'step.talk.body': 'Chat it through with your AI partner. Optional.',
 
+  'hub.back': 'Back to the course',
+  'hub.unit': 'Unit {code} · {title}',
+  'hub.steps': 'Steps',
+  'hub.start': 'Start the lesson',
+  'hub.continue': 'Continue',
+  'hub.again': 'Go through it again',
+  'hub.done': 'Done',
+  'hub.optional': 'Optional',
+  'hub.finished': 'You have finished this lesson.',
+  'hub.goals': 'You will be able to',
+
+  'player.close': 'Close the lesson',
+  'player.progress': 'Lesson progress',
+  'player.stepOf': 'Step {current} of {total}',
+  'player.saveError': 'We could not save your progress. Check your connection and try again.',
+  'player.continue': 'Continue',
+
+  'words.title': 'New words',
+  'words.counter': 'Word {current} of {total}',
+  'words.flipHint': 'Tap the card, or press Space, to see the meaning.',
+  'words.flipBackHint': 'Tap again to see the Arabic only.',
+  'words.flipped': '{translit}: {english}',
+  'words.listen': 'Listen',
+  'words.previous': 'Previous',
+  'words.next': 'Next',
+  'words.finish': 'Done with the words',
+
   'count.lessons': { zero: 'No lessons yet', one: '{count} lesson', other: '{count} lessons' },
 } as const;

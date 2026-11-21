@@ -11,6 +11,8 @@ import { ArabicText } from '../components/ui/ArabicText';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card } from '../components/ui/Card';
+import { LessonHub } from '../features/course/LessonHub';
+import { isCourseLesson } from '../features/course/steps';
 import { useLesson } from '../features/lessons/queries';
 import { useStartConversation } from '../features/practice/mutations';
 import { useT } from '../i18n';
@@ -19,12 +21,21 @@ export default function LessonPage() {
   const { t } = useT();
   const { slug = '' } = useParams();
   const query = useLesson(slug);
+  const course = query.data ? isCourseLesson(query.data) : false;
   return (
     <Container className="py-8 sm:py-12">
-      <Link to="/lessons" className="text-sm font-medium text-primary underline underline-offset-4">
-        {t('lesson.back')}
+      <Link
+        to="/lessons"
+        className="inline-flex min-h-11 items-center text-sm font-medium text-primary underline underline-offset-4"
+      >
+        {course ? t('hub.back') : t('lesson.back')}
       </Link>
-      <LoadState query={query}>{(data) => <LessonView data={data} />}</LoadState>
+      <LoadState query={query}>
+        {(data) =>
+          // Course lessons get the five-step hub; the older chat lessons keep their page.
+          isCourseLesson(data) ? <LessonHub data={data} /> : <LessonView data={data} />
+        }
+      </LoadState>
     </Container>
   );
 }
@@ -169,7 +180,7 @@ function LessonView({ data }: { data: LessonDetailResponse }) {
 
 const dateFormat = new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'short' });
 
-function RecentConversation({ conversation }: { conversation: LessonConversation }) {
+export function RecentConversation({ conversation }: { conversation: LessonConversation }) {
   const { t, tn } = useT();
   const when = dateFormat.format(new Date(conversation.lastMessageAt));
   return (

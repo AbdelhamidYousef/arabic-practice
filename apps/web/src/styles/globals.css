@@ -95,3 +95,33 @@
 dialog::backdrop {
   background: rgb(28 43 45 / 55%);
 }
+
+/* The lesson player's small motions. The reduced-motion rule above cuts them to nothing. */
+@keyframes flip-in {
+  from {
+    transform: perspective(800px) rotateY(80deg);
+    opacity: 0.2;
+  }
+  to {
+    transform: perspective(800px) rotateY(0);
+    opacity: 1;
+  }
+}
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-4px);
+  }
+  75% {
+    transform: translateX(4px);
+  }
+}
+.flip-in {
+  animation: flip-in 260ms ease-out;
+}
+.shake {
+  animation: shake 240ms ease-in-out 2;
+}

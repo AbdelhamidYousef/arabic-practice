@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { Outlet, ScrollRestoration, useLocation } from 'react-router-dom';
+import { Outlet, ScrollRestoration, useLocation, useMatches } from 'react-router-dom';
 
 import { Footer } from './Footer';
 import { Header } from './Header';
@@ -9,8 +9,15 @@ import { SkipLink } from './SkipLink';
 // The page frame every route renders inside (via <Outlet />). Landmarks: header (banner), nav,
 // main, footer (contentinfo). `tabIndex={-1}` lets the skip link and the route-change effect move
 // focus to <main> without making it a tab stop.
+// A route with `handle: { focused: true }` (the lesson player) gets the page to itself: no header
+// nav and no footer to wander off to mid-lesson; the player has its own close button.
+function isFocused(handle: unknown): boolean {
+  return typeof handle === 'object' && handle !== null && 'focused' in handle;
+}
+
 export function AppLayout() {
   const { pathname } = useLocation();
+  const focused = useMatches().some((m) => isFocused(m.handle));
   const mainRef = useRef<HTMLElement>(null);
   const lastPath = useRef(pathname);
 
@@ -29,11 +36,11 @@ export function AppLayout() {
     <div className="flex min-h-screen flex-col">
       <SkipLink />
       <ServerNotice />
-      <Header />
+      {!focused && <Header />}
       <main ref={mainRef} id="main" tabIndex={-1} className="flex-1 focus:outline-none">
         <Outlet />
       </main>
-      <Footer />
+      {!focused && <Footer />}
       <ScrollRestoration />
     </div>
   );
