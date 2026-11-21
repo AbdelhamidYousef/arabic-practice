@@ -10,6 +10,7 @@ export function authErrorKey(error: unknown): StringKey {
     if (error.code === 'CONFLICT') return 'auth.error.emailTaken';
     if (error.code === 'WRONG_PASSWORD') return 'auth.error.wrongPassword';
     if (error.code === 'NETWORK') return 'error.network';
+    if (error.code === 'GUEST_LIMIT') return 'auth.error.guestLimit';
     if (error.code === 'DEMO_UNAVAILABLE') return 'auth.error.demoUnavailable';
   }
   return 'auth.error.generic';

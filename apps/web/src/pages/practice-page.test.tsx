@@ -409,7 +409,11 @@ describe('practice chat: errors before the stream', () => {
     setup(limited('AI_LIMIT_GLOBAL'));
     const box = await openChat();
     await typeAndSend(box, 'مرحبا');
-    expect(await screen.findByRole('alert')).toHaveTextContent('The practice partner is resting');
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(en['chat.error.limitGlobal']);
+    // The shared daily cap resets at the same UTC midnight as the personal one.
+    expect(alert).toHaveTextContent('resets at');
+    expect(within(alert).queryByRole('button')).toBeNull();
   });
 
   it('retries the same text after "busy"', async () => {
@@ -469,6 +473,25 @@ describe('practice chat: translate and keyboard', () => {
     expect(await screen.findByText('Hello! How are you?')).toBeVisible();
     // Cached: the second time did not call the API again.
     expect(calls.filter((c) => c.key === 'POST /messages/m1/gloss')).toHaveLength(1);
+  });
+
+  it('explains a daily translation limit with the reset time and no retry button', async () => {
+    setup({ 'POST /messages/m1/gloss': () => jsonError('AI_LIMIT_USER', 429) });
+    await openChat();
+    await userEvent.click(screen.getByRole('button', { name: en['chat.translate'] }));
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(en['chat.translate.limit']);
+    expect(alert).toHaveTextContent('resets at');
+    expect(within(alert).queryByRole('button')).toBeNull();
+  });
+
+  it('still offers a retry for a translation that failed for another reason', async () => {
+    setup({ 'POST /messages/m1/gloss': () => jsonError('FORBIDDEN', 403) });
+    await openChat();
+    await userEvent.click(screen.getByRole('button', { name: en['chat.translate'] }));
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(en['chat.translate.error']);
+    expect(within(alert).getByRole('button', { name: en['chat.translate.retry'] })).toBeVisible();
   });
 
   it('shows a gloss the API already holds without a request', async () => {

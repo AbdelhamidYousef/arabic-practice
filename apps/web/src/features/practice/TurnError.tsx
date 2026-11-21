@@ -4,13 +4,8 @@ import { Alert } from '../../components/ui/Alert';
 import { Button } from '../../components/ui/Button';
 import { useT, type StringKey } from '../../i18n';
 
-import { canRetry, nextUtcMidnight, type TurnFailure } from './turn';
-
-const resetFormat = new Intl.DateTimeFormat('en', {
-  weekday: 'short',
-  hour: 'numeric',
-  minute: '2-digit',
-});
+import { ResetLine } from './limits';
+import { canRetry, type TurnFailure } from './turn';
 
 function messageKey(failure: TurnFailure): StringKey {
   switch (failure.code) {
@@ -46,11 +41,8 @@ export function TurnError({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p>{t(messageKey(failure))}</p>
-          {failure.code === ErrorCode.AI_LIMIT_USER && (
-            <p className="mt-0.5">
-              {t('chat.error.resets', { when: resetFormat.format(nextUtcMidnight(now)) })}
-            </p>
-          )}
+          {(failure.code === ErrorCode.AI_LIMIT_USER ||
+            failure.code === ErrorCode.AI_LIMIT_GLOBAL) && <ResetLine now={now} />}
         </div>
         {canRetry(failure) && (
           <Button variant="secondary" size="sm" onClick={onRetry}>

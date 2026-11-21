@@ -138,6 +138,16 @@ describe('lesson page', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent(en['lesson.startError']);
   });
 
+  it('explains the daily conversation limit and when it resets', async () => {
+    stubApi({ ...api, 'POST /conversations': () => jsonError('CONVERSATION_LIMIT', 429) });
+    renderAt('/lessons/greetings');
+    await userEvent.click(await screen.findByRole('button', { name: en['lesson.start'] }));
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent(en['limit.conversations']);
+    expect(alert).toHaveTextContent('resets at');
+    expect(alert).not.toHaveTextContent(en['lesson.startError']);
+  });
+
   it('handles a lesson with no vocabulary and no conversations', async () => {
     stubApi({
       ...signedIn,

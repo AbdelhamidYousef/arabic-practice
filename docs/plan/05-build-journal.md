@@ -492,3 +492,19 @@ a teacher's lessons are `ON DELETE RESTRICT` because the learners' chats hang of
 of "leave after deleting" sent the person to the sign-in: clearing the cached user made the page's own guard redirect
 before the navigation to `/` could happen. Learn: when a state change removes the very thing a guard checks, the guard
 fires first. Make the exit explicit in the same render instead of racing it.
+
+### 21.5: clear limit messages
+The limits were already enforced; what a learner saw was not. Practice turns had a reset time, but a refused
+translation said "could not translate, try again", a refused new conversation said "could not start", a refused guest
+start in the header did nothing at all (the button's error was never rendered) and the shared cap said "come back
+tomorrow". One small helper (`features/practice/limits.tsx`) now holds the reset time (the next UTC midnight, shown in
+local time) and the start error; the guest limit gets its own text because it is a rolling window, not the UTC day.
+Learn: an error you enforce is also a screen you have to write, and "try again" is the wrong advice for a limit.
+
+### Quiz: Phase 21
+1. A reset link is stored as a SHA-256 of 32 random bytes, not as an argon2 hash like a password. Why is the fast hash enough
+   here, and what would break if the token were a 6-digit code instead?
+2. `POST /auth/reset` marks the link used, stores the new password and deletes the sessions in one transaction, with the
+   link claimed by a single conditional `UPDATE ... RETURNING`. Which two failures would a `SELECT` followed by an `UPDATE`
+   allow, and what does the transaction add on top of the conditional update?
+3. Why does a wrong current password answer 403 `WRONG_PASSWORD` instead of the 401 that login uses?

@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
@@ -46,6 +46,17 @@ describe('landing page', () => {
     renderAt('/');
     await userEvent.click(await screen.findByRole('button', { name: en['home.cta.guest'] }));
     expect(await screen.findByRole('alert')).toHaveTextContent(en['auth.error.demoUnavailable']);
+  });
+
+  it('explains the guest limit instead of doing nothing, on the page and in the header', async () => {
+    stubApi({ 'POST /auth/guest': () => jsonError('GUEST_LIMIT', 429) });
+    renderAt('/');
+    await userEvent.click(await screen.findByRole('button', { name: en['home.cta.guest'] }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(en['auth.error.guestLimit']);
+
+    // The header's own "Start free" button used to swallow the failure.
+    await userEvent.click(screen.getByRole('button', { name: en['nav.startFree'] }));
+    await waitFor(() => expect(screen.getAllByRole('alert')).toHaveLength(2));
   });
 
   it('sends a signed-in learner to /lessons and a teacher to /teacher', async () => {

@@ -150,6 +150,8 @@ export const en = {
   'auth.error.emailTaken': 'An account with this email already exists.',
   'auth.error.demoUnavailable': 'The demo is not set up on this server yet.',
   'auth.error.wrongPassword': 'That is not your current password. Please try again.',
+  'auth.error.guestLimit':
+    'Too many people have tried the demo as a guest from this network or today. The network limit eases within an hour and the daily one within 24 hours. Please try again later.',
   'auth.error.generic': 'Something went wrong. Please try again.',
   'auth.error.emailRequired': 'Enter a valid email address.',
   'auth.error.passwordRequired': 'Enter your password.',
@@ -238,6 +240,7 @@ export const en = {
   'lesson.harakat.toggle': 'Show short vowels (harakat)',
   'lesson.start': 'Start practice',
   'lesson.starting': 'Starting',
+  'limit.conversations': "You've started as many conversations as one day allows.",
   'lesson.startError': 'We could not start the practice. Please try again.',
   'lesson.recent': 'Your recent conversations',
   'lesson.recent.empty': 'You have not practised this lesson yet.',
@@ -276,6 +279,7 @@ export const en = {
   'chat.translate.label': 'English translation',
   'chat.translate.error': 'Could not translate this message.',
   'chat.translate.retry': 'Try again',
+  'chat.translate.limit': "You've used all of today's translations.",
   'chat.guestNote':
     "Practice chats on this demo go through Google's Gemini free tier. Please don't type personal information.",
   'chat.composer.label': 'Your message in Arabic',
@@ -285,7 +289,8 @@ export const en = {
   'chat.stop': 'Stop',
   'chat.error.limitUser': "You've reached today's practice limit.",
   'chat.error.resets': 'It resets at {when}, your local time.',
-  'chat.error.limitGlobal': 'The practice partner is resting for today. Please come back tomorrow.',
+  'chat.error.limitGlobal':
+    'The practice partner has reached its daily limit for everyone, so it is resting until the reset.',
   'chat.error.busy': 'Too many people are practising right now, try again in a minute.',
   'chat.error.disabled': 'Practice is switched off at the moment. Please try again later.',
   'chat.error.slowDown': 'You are sending messages very quickly. Wait a few seconds and try again.',
