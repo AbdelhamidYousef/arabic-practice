@@ -15,7 +15,14 @@ import {
   vocabCards,
 } from '../db/schema/index.ts';
 
-import { createConversation, createMessage, createUser, createVocab } from './factories.ts';
+import {
+  createConversation,
+  createExercise,
+  createMessage,
+  createUnit,
+  createUser,
+  createVocab,
+} from './factories.ts';
 import { assertTestDatabase } from './guard.ts';
 import { childrenFirst, emptyDirtyTables, listTablesChildrenFirst } from './reset.ts';
 
@@ -26,6 +33,8 @@ async function populateEverything() {
   const conversation = await createConversation();
   const message = await createMessage(conversation.id);
   const vocab = await createVocab(conversation.lessonId);
+  await createExercise(conversation.lessonId);
+  await createUnit();
   const [correction] = await db
     .insert(corrections)
     .values({ messageId: message.id, isCorrect: false, corrected: 'x' })
@@ -79,7 +88,7 @@ describe('test harness', () => {
 
     // Every application table held a row; children come before the tables they point at.
     expect(emptied.sort()).toEqual(all.filter((t) => t !== '__drizzle_migrations').sort());
-    expect(emptied).toHaveLength(11);
+    expect(emptied).toHaveLength(13);
     expect(await emptyDirtyTables(all)).toEqual([]);
     // The reason the harness exists: emptying a full database is milliseconds, not seconds.
     expect(elapsed).toBeLessThan(2000);

@@ -6,10 +6,12 @@ import {
   conversations,
   corrections,
   invites,
+  lessonExercises,
   lessons,
   lessonVocab,
   messages,
   mistakes,
+  units,
   users,
   vocabCards,
 } from '../db/schema/index.ts';
@@ -203,5 +205,49 @@ export async function createAiCall(overrides: Partial<typeof aiCalls.$inferInser
       })
       .returning(),
     'ai call',
+  );
+}
+
+export async function createUnit(overrides: Partial<typeof units.$inferInsert> = {}) {
+  const n = next();
+  return first(
+    await db
+      .insert(units)
+      .values({
+        level: 'A1',
+        position: n,
+        code: `A1.${n}`,
+        title: `Unit ${n}`,
+        summary: 'I can do a made-up thing.',
+        ...overrides,
+      })
+      .returning(),
+    'unit',
+  );
+}
+
+// A `choose` exercise unless the caller passes its own data.
+export async function createExercise(
+  lessonId: string,
+  overrides: Partial<typeof lessonExercises.$inferInsert> = {},
+) {
+  const n = next();
+  return first(
+    await db
+      .insert(lessonExercises)
+      .values({
+        lessonId,
+        position: n,
+        type: 'choose',
+        data: {
+          type: 'choose',
+          prompt: 'Which one is "book"?',
+          options: ['كِتَابٌ', 'بَابٌ'],
+          answer: 0,
+        },
+        ...overrides,
+      })
+      .returning(),
+    'lesson exercise',
   );
 }

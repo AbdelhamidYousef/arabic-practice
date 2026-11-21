@@ -15,6 +15,8 @@ export const lessonVocab = pgTable(
     // normalizeArabic(arabic) from @arabic/shared, computed in code (never by the database), so a
     // learner's unvoweled word can be matched against the lesson list.
     arabicPlain: text('arabic_plain').notNull(),
+    // Latin-letter pronunciation (scheme in docs/plan/03-conventions.md).
+    translit: text('translit').notNull().default(''),
     english: text('english').notNull(),
     note: text('note'),
     position: integer('position').notNull().default(0),

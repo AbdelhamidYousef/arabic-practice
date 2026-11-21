@@ -1,4 +1,4 @@
-import { CEFR_LEVELS } from '@arabic/shared';
+import { CEFR_LEVELS, LESSON_KINDS } from '@arabic/shared';
 import { pgEnum } from 'drizzle-orm/pg-core';
 
 // The values come from @arabic/shared so the database, the API's Zod schemas and the web all list
@@ -8,6 +8,8 @@ export const cefrLevel = pgEnum('cefr_level', CEFR_LEVELS);
 export const userRole = pgEnum('user_role', ['learner', 'teacher']);
 
 export const lessonStatus = pgEnum('lesson_status', ['draft', 'published']);
+
+export const lessonKind = pgEnum('lesson_kind', LESSON_KINDS);
 
 export const messageRole = pgEnum('message_role', ['learner', 'partner']);
 

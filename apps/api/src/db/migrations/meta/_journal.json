@@ -57,6 +57,13 @@
       "when": 1795256096873,
       "tag": "0007_level_a0",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1795256266895,
+      "tag": "0008_units_sections_exercises",
+      "breakpoints": true
     }
   ]
 }

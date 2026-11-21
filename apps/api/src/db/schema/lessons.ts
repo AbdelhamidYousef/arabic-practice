@@ -1,7 +1,9 @@
-import { index, integer, pgTable, text, uuid } from 'drizzle-orm/pg-core';
+import type { CultureTip, GrammarBlock } from '@arabic/shared';
+import { index, integer, jsonb, pgTable, text, uuid } from 'drizzle-orm/pg-core';
 
 import { createdAt, id, updatedAt } from './columns.ts';
-import { cefrLevel, lessonStatus } from './enums.ts';
+import { cefrLevel, lessonKind, lessonStatus } from './enums.ts';
+import { units } from './units.ts';
 import { users } from './users.ts';
 
 export const lessons = pgTable(
@@ -24,12 +26,19 @@ export const lessons = pgTable(
     scenario: text('scenario').notNull(),
     // The partner's first message, written by the teacher with full harakat.
     openingLine: text('opening_line').notNull(),
+    // Course lessons belong to a unit; teacher-made lessons have none. A deleted unit orphans its
+    // lessons instead of deleting them (and every learner's conversations with them).
+    unitId: uuid('unit_id').references(() => units.id, { onDelete: 'set null' }),
+    kind: lessonKind('kind').notNull().default('lesson'),
+    grammarNote: jsonb('grammar_note').$type<GrammarBlock[]>().notNull().default([]),
+    cultureTip: jsonb('culture_tip').$type<CultureTip | null>(),
     status: lessonStatus('status').notNull().default('draft'),
     position: integer('position').notNull().default(0),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
   (t) => [
+    index('lessons_unit_id_idx').on(t.unitId),
     index('lessons_teacher_status_level_position_idx').on(
       t.teacherId,
       t.status,
