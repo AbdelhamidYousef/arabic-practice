@@ -55,6 +55,7 @@ Run tests one package at a time (`pnpm -r --workspace-concurrency=1 test`); neve
   before sun letters (`as-salām`, `an-nūr`) and joined with a hyphen. Case endings are left out (the
   form you say in a pause: `bāb`, not `bābun`), except the `-an` of tanwin fatha, which is heard
   (`shukran`). Fixed phrases are written as they are said (`as-salāmu ʿalaykum`).
+  Tā marbūṭa (ة) at a pause is `-a` (`qahwa`, `madīna`); after a long ā it is `-āh` (`ḥayāh`).
 
 ## Testing rules
 - Unit: shared helpers, prompt builders, scorer, budget maths.
