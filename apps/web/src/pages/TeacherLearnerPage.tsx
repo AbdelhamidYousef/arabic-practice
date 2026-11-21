@@ -103,7 +103,7 @@ function LearnerView({ data }: { data: TeacherLearnerDetailResponse }) {
             {recentMistakes.length === 0 ? (
               <p className="text-muted">{t('progress.noMistakes')}</p>
             ) : (
-              <RecentMistakes items={recentMistakes} />
+              <RecentMistakes items={recentMistakes} linkLessons={false} />
             )}
           </div>
         </section>

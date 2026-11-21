@@ -29,6 +29,7 @@ const progress = {
       explanation: 'After a preposition the noun takes the genitive.',
       createdAt: '2026-11-20T10:00:00.000Z',
       lessonTitle: 'At school',
+      lessonSlug: 'at-school',
     },
   ],
 };
@@ -49,7 +50,10 @@ describe('progress page', () => {
     expect(screen.getByText('ذهبت إلى المدرسةُ')).toHaveAttribute('lang', 'ar');
     expect(screen.getByText('ذهبت إلى المدرسةِ')).toBeVisible();
     expect(screen.getByText(/After a preposition/)).toBeVisible();
-    expect(screen.getByText(/At school/)).toBeVisible();
+    expect(screen.getByRole('link', { name: 'At school' })).toHaveAttribute(
+      'href',
+      '/lessons/at-school',
+    );
   });
 
   it('shows a friendly empty state for someone who has not practised', async () => {

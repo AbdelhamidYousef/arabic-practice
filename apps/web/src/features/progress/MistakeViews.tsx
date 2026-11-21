@@ -1,4 +1,5 @@
 import type { MistakeTypeCount, RecentMistake } from '@arabic/shared';
+import { Link } from 'react-router-dom';
 
 import { ArabicText } from '../../components/ui/ArabicText';
 import { Badge } from '../../components/ui/Badge';
@@ -32,7 +33,14 @@ export function MistakeBars({ items }: { items: MistakeTypeCount[] }) {
 }
 
 // "original → correction", then why. Arabic goes through ArabicText (lang, dir, font).
-export function RecentMistakes({ items }: { items: RecentMistake[] }) {
+// `linkLessons` is off on the teacher's view of a learner: a draft lesson has no learner page.
+export function RecentMistakes({
+  items,
+  linkLessons = true,
+}: {
+  items: RecentMistake[];
+  linkLessons?: boolean;
+}) {
   const { t } = useT();
   return (
     <ul className="divide-y divide-line rounded-ui border border-line bg-surface">
@@ -41,7 +49,17 @@ export function RecentMistakes({ items }: { items: RecentMistake[] }) {
           <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
             <Badge tone="accent">{t(mistakeTypeKey(m.type))}</Badge>
             <span className="text-sm text-muted">
-              {m.lessonTitle} · {formatDate(m.createdAt)}
+              {linkLessons ? (
+                <Link
+                  to={`/lessons/${m.lessonSlug}`}
+                  className="font-medium text-primary underline underline-offset-4"
+                >
+                  {m.lessonTitle}
+                </Link>
+              ) : (
+                m.lessonTitle
+              )}{' '}
+              · {formatDate(m.createdAt)}
             </span>
           </div>
           <p className="flex flex-wrap items-baseline gap-x-3 text-lg">

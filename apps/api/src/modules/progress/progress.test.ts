@@ -19,7 +19,13 @@ interface ProgressBody {
   totals: { conversations: number; turns: number; mistakes: number };
   mistakesByType: { type: string; count: number }[];
   weeks: { weekStart: string; turns: number; mistakes: number; mistakesPerTurn: number }[];
-  recentMistakes: { id: string; type: string; lessonTitle: string; createdAt: string }[];
+  recentMistakes: {
+    id: string;
+    type: string;
+    lessonTitle: string;
+    lessonSlug: string;
+    createdAt: string;
+  }[];
 }
 
 const daysAgo = (n: number) => new Date(Date.now() - n * 24 * 3600 * 1000);
@@ -64,6 +70,7 @@ describe('GET /progress', () => {
     expect(current).toMatchObject({ turns: 4, mistakes: 3, mistakesPerTurn: 0.75 });
     expect(body.recentMistakes).toHaveLength(3);
     expect(body.recentMistakes[0]?.lessonTitle).toBe('At the bakery');
+    expect(body.recentMistakes[0]?.lessonSlug).toBe(lesson.slug);
   });
 
   it('puts older activity in its own week and ignores activity older than eight weeks', async () => {

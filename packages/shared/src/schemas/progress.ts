@@ -27,6 +27,8 @@ export const RecentMistakeSchema = z.object({
   explanation: z.string(),
   createdAt: z.string(),
   lessonTitle: z.string(),
+  // The lesson's URL slug, so a list can link to it.
+  lessonSlug: z.string(),
 });
 export type RecentMistake = z.infer<typeof RecentMistakeSchema>;
 
