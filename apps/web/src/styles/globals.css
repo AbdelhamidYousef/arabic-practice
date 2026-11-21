@@ -78,10 +78,16 @@
   font-weight: var(--weight-medium);
 }
 
-/* Arabic text (components/ui/ArabicText.tsx). */
+/* Arabic text (components/ui/ArabicText.tsx). The default size is layered, so a size utility
+   (`text-3xl`) on an ArabicText wins; the tall line is unlayered and always wins, so harakat never
+   touch the neighbouring line whatever size the caller picks. */
+@layer components {
+  .arabic {
+    font-size: calc(1em * var(--arabic-scale));
+  }
+}
 .arabic {
   font-family: var(--font-arabic);
-  font-size: calc(1em * var(--arabic-scale));
   line-height: var(--arabic-line);
   font-weight: var(--weight-body);
 }
