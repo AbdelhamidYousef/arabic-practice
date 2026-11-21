@@ -4,7 +4,7 @@ import helmet from 'helmet';
 import type { Logger } from 'pino';
 import { pinoHttp } from 'pino-http';
 
-import type { AiStatus } from './ai-status.ts';
+import type { AiRuntime } from './ai/index.ts';
 import type { Database } from './db/client.ts';
 import { createHealthRouter } from './lib/health.ts';
 import { createCsrfCheck } from './middleware/csrf.ts';
@@ -23,8 +23,8 @@ export interface AppDeps {
   logger: Logger;
   /** The database handle; tests can pass one that fails to exercise an outage. */
   db: Pick<Database, 'execute'>;
-  /** Which AI adapter answers and whether it is switched on (the full provider arrives in phase 3). */
-  ai: AiStatus;
+  /** The AI layer: status for /health plus the guarded, recorded gateway routes call. Tests inject the fake. */
+  ai: AiRuntime;
   // Required (no defaults) so nobody can build a production app with test-grade settings by omission.
   config: AppConfig;
 }

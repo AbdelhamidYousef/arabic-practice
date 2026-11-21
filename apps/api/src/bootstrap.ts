@@ -1,5 +1,5 @@
+import { createAiRuntime } from './ai/index.ts';
 import { createApp } from './app.ts';
-import { resolveAiProvider } from './config/ai-provider.ts';
 import { env } from './config/env.ts';
 import { db } from './db/client.ts';
 import { createLogger } from './lib/logger.ts';
@@ -14,7 +14,7 @@ export function bootstrap() {
   const app = createApp({
     logger,
     db,
-    ai: { provider: resolveAiProvider(env), enabled: env.AI_ENABLED },
+    ai: createAiRuntime(env, db, logger),
     config: {
       nodeEnv: env.NODE_ENV,
       webOrigin: env.WEB_ORIGIN,
