@@ -2,20 +2,15 @@ import { z } from 'zod';
 
 import { cefrLevelSchema } from '../cefr.ts';
 
+import { mistakeTypeSchema } from './progress.ts';
+
 // Practice: conversations, the turn stream and gloss (docs/plan/02-api-contract.md). The same
 // schemas validate responses on the API (outside production) and parse events in the browser.
 
 export const MAX_TURN_CHARS = 500;
 
-export const MistakeTypeSchema = z.enum([
-  'grammar',
-  'vocabulary',
-  'harakat',
-  'spelling',
-  'word_order',
-  'register',
-]);
-export type MistakeType = z.infer<typeof MistakeTypeSchema>;
+// One list of mistake types for the whole app (defined with the progress schemas, matching the DB enum).
+export const MistakeTypeSchema = mistakeTypeSchema;
 
 export const MistakeSchema = z.object({
   id: z.string(),
