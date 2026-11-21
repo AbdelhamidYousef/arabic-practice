@@ -24,6 +24,8 @@ const limits = (over: Partial<BudgetLimits> = {}): BudgetLimits => ({
   tier: 'free',
   turnsPerLearnerPerDay: 3,
   turnsPerGuestPerDay: 1,
+  glossPerLearnerPerDay: 3,
+  glossPerGuestPerDay: 1,
   callsPerModelPerDay: 5,
   monthlyBudgetUsd: 0,
   ...over,
@@ -111,6 +113,38 @@ describe('turns per user', () => {
     const { gw } = setup();
     const u = await createUser();
     await seed(Array.from({ length: 3 }, () => ({ userId: u.id })));
+    await expect(call(gw, u.id, 'gloss')).resolves.toBeDefined();
+  });
+});
+
+describe('gloss per user', () => {
+  it('allows the last gloss, refuses the next with AI_LIMIT_USER, and uses the smaller guest allowance', async () => {
+    const { gw, fake } = setup();
+    const u = await createUser();
+    await seed(Array.from({ length: 2 }, () => ({ userId: u.id, purpose: 'gloss' as const })));
+    await expect(call(gw, u.id, 'gloss')).resolves.toBeDefined(); // 3rd of 3
+    await expect(call(gw, u.id, 'gloss')).rejects.toMatchObject({
+      code: 'AI_LIMIT_USER',
+      status: 429,
+    });
+    expect(fake.requests).toHaveLength(1);
+
+    const g = await createUser({ isGuest: true });
+    await seed([{ userId: g.id, purpose: 'gloss' }]);
+    await expect(call(gw, g.id, 'gloss', true)).rejects.toMatchObject({ code: 'AI_LIMIT_USER' });
+  });
+
+  it('counts only this user’s glosses today, and not turns or refused calls', async () => {
+    const { gw } = setup();
+    const u = await createUser();
+    const other = await createUser();
+    await seed([
+      { userId: u.id, purpose: 'reply' },
+      { userId: u.id, purpose: 'correction' },
+      { userId: other.id, purpose: 'gloss' },
+      { userId: u.id, purpose: 'gloss', status: 'limited' },
+      { userId: u.id, purpose: 'gloss', createdAt: new Date('2026-11-20T23:59:59Z') },
+    ]);
     await expect(call(gw, u.id, 'gloss')).resolves.toBeDefined();
   });
 });

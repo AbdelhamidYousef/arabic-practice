@@ -67,6 +67,9 @@ const baseSchema = z.object({
   // Daily caps count rows in `ai_calls`; the monthly budget sums their cost.
   AI_DAILY_TURNS_LEARNER: count(60),
   AI_DAILY_TURNS_GUEST: count(20),
+  // Glosses ("translate") per user per day. A gloss is a billed call but not a turn, so it is capped on its own.
+  AI_DAILY_GLOSS_LEARNER: count(60),
+  AI_DAILY_GLOSS_GUEST: count(20),
   // The free quota is per model (500 requests a day each for the Flash-Lite models); 450 leaves headroom.
   AI_DAILY_CALLS_PER_MODEL: count(450),
   AI_MONTHLY_BUDGET_USD: unsetIfEmpty(z.coerce.number().min(0).default(0)),

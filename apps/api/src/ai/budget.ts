@@ -24,6 +24,9 @@ export interface BudgetLimits {
   /** A turn is one learner message: one correction call + one reply call. */
   turnsPerLearnerPerDay: number;
   turnsPerGuestPerDay: number;
+  /** Glosses ("translate") per user per UTC day: a billed call that is not a turn, so it has its own cap. */
+  glossPerLearnerPerDay: number;
+  glossPerGuestPerDay: number;
   /** Provider calls per model per UTC day; the free quota is per model. */
   callsPerModelPerDay: number;
   /** Monthly spend ceiling in USD; only meaningful on the paid tier (the free tier costs 0). */
@@ -81,6 +84,31 @@ export function createGuardedGateway({
         throw new AppError(
           ErrorCode.AI_LIMIT_USER,
           'You have reached today’s practice limit, come back tomorrow',
+          { limit, used },
+        );
+      }
+    }
+
+    // 1b. Glosses per user today. Gloss shares the per-model cap below with the turns, so without a
+    //     cap of its own one person pressing "translate" on fresh messages could empty it for everybody.
+    if (ctx.userId && purpose === 'gloss') {
+      const limit = ctx.isGuest ? limits.glossPerGuestPerDay : limits.glossPerLearnerPerDay;
+      const [row] = await db
+        .select({ n: count() })
+        .from(aiCalls)
+        .where(
+          and(
+            eq(aiCalls.userId, ctx.userId),
+            eq(aiCalls.purpose, 'gloss'),
+            counted,
+            gte(aiCalls.createdAt, dayStart),
+          ),
+        );
+      const used = row?.n ?? 0;
+      if (used >= limit) {
+        throw new AppError(
+          ErrorCode.AI_LIMIT_USER,
+          'You have reached today’s translation limit, come back tomorrow',
           { limit, used },
         );
       }

@@ -39,6 +39,8 @@ type AiEnv = Pick<
   | 'AI_MODEL_GLOSS'
   | 'AI_DAILY_TURNS_LEARNER'
   | 'AI_DAILY_TURNS_GUEST'
+  | 'AI_DAILY_GLOSS_LEARNER'
+  | 'AI_DAILY_GLOSS_GUEST'
   | 'AI_DAILY_CALLS_PER_MODEL'
   | 'AI_MONTHLY_BUDGET_USD'
 >;
@@ -86,6 +88,8 @@ export function wrapProvider(
     | 'AI_ENABLED'
     | 'AI_DAILY_TURNS_LEARNER'
     | 'AI_DAILY_TURNS_GUEST'
+    | 'AI_DAILY_GLOSS_LEARNER'
+    | 'AI_DAILY_GLOSS_GUEST'
     | 'AI_DAILY_CALLS_PER_MODEL'
     | 'AI_MONTHLY_BUDGET_USD'
   >,
@@ -106,6 +110,8 @@ export function wrapProvider(
       tier: env.AI_TIER,
       turnsPerLearnerPerDay: env.AI_DAILY_TURNS_LEARNER,
       turnsPerGuestPerDay: env.AI_DAILY_TURNS_GUEST,
+      glossPerLearnerPerDay: env.AI_DAILY_GLOSS_LEARNER,
+      glossPerGuestPerDay: env.AI_DAILY_GLOSS_GUEST,
       callsPerModelPerDay: env.AI_DAILY_CALLS_PER_MODEL,
       monthlyBudgetUsd: env.AI_MONTHLY_BUDGET_USD,
     },

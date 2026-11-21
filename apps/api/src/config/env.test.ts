@@ -20,6 +20,8 @@ describe('defaults', () => {
       AI_ENABLED: true,
       AI_DAILY_TURNS_LEARNER: 60,
       AI_DAILY_TURNS_GUEST: 20,
+      AI_DAILY_GLOSS_LEARNER: 60,
+      AI_DAILY_GLOSS_GUEST: 20,
       AI_DAILY_CALLS_PER_MODEL: 450,
       AI_MONTHLY_BUDGET_USD: 0,
       INVITES_ENABLED: false,

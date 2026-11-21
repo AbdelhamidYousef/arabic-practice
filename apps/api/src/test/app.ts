@@ -17,6 +17,8 @@ export function makeTestAi<P extends FakeProvider = FakeProvider>(
     AI_ENABLED: boolean;
     AI_DAILY_TURNS_LEARNER: number;
     AI_DAILY_TURNS_GUEST: number;
+    AI_DAILY_GLOSS_LEARNER: number;
+    AI_DAILY_GLOSS_GUEST: number;
     AI_DAILY_CALLS_PER_MODEL: number;
   }> = {},
   // A subclass of the fake that scripts something the plain fake cannot (a mid-stream failure, a slow call).
@@ -27,6 +29,8 @@ export function makeTestAi<P extends FakeProvider = FakeProvider>(
     AI_ENABLED: true,
     AI_DAILY_TURNS_LEARNER: 60,
     AI_DAILY_TURNS_GUEST: 20,
+    AI_DAILY_GLOSS_LEARNER: 60,
+    AI_DAILY_GLOSS_GUEST: 20,
     AI_DAILY_CALLS_PER_MODEL: 450,
     AI_MONTHLY_BUDGET_USD: 0,
     ...limits,
