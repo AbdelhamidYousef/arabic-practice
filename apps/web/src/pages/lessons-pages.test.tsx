@@ -101,6 +101,22 @@ const detail = {
   ],
 };
 
+const conversation = {
+  id: 'c10',
+  lessonId: 'l1',
+  turnCount: 0,
+  lastMessageAt: '2026-11-21T10:00:00.000Z',
+  createdAt: '2026-11-21T10:00:00.000Z',
+};
+const opening = {
+  id: 'm1',
+  role: 'partner',
+  text: 'مَرْحَبًا',
+  glossEn: null,
+  levelMetrics: null,
+  createdAt: '2026-11-21T10:00:00.000Z',
+};
+
 describe('lesson page', () => {
   const api = {
     ...signedIn,
@@ -137,14 +153,23 @@ describe('lesson page', () => {
     const calls = stubApi({
       ...api,
       'POST /conversations': () =>
+        Response.json(
+          {
+            conversation: { ...conversation, id: 'c10' },
+            messages: [{ ...opening, id: 'm1' }],
+          },
+          { status: 201 },
+        ),
+      'GET /conversations/c10': () =>
         Response.json({
-          conversation: { id: 'c10', lessonId: 'l1' },
-          messages: [{ id: 'm1', role: 'partner' }],
+          conversation: { ...conversation, id: 'c10' },
+          lesson: { id: 'l1', slug: 'greetings', title: 'Greetings', level: 'A1' },
+          messages: [{ ...opening, id: 'm1', correction: null }],
         }),
     });
     const router = renderAt('/lessons/greetings');
     await userEvent.click(await screen.findByRole('button', { name: en['lesson.start'] }));
-    await screen.findByRole('heading', { level: 1, name: en['page.practice'] });
+    await screen.findByLabelText(en['chat.composer.label']);
     expect(router.state.location.pathname).toBe('/practice/c10');
     expect(calls.find((c) => c.key === 'POST /conversations')?.body).toEqual({ lessonId: 'l1' });
   });

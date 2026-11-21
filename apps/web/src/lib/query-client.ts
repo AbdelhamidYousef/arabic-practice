@@ -19,6 +19,8 @@ export const keys = {
   sessionExpired: ['session-expired'] as const,
   lessons: ['lessons'] as const,
   lesson: (slug: string) => ['lessons', slug] as const,
+  conversation: (id: string) => ['conversation', id] as const,
+  gloss: (messageId: string) => ['gloss', messageId] as const,
   invite: (code: string) => ['invite', code] as const,
 };
 

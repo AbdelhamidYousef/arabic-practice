@@ -259,3 +259,7 @@ Learn: setting a field's value from code does not tell React; writing with `setR
 1. Why does `--limit 18` take evenly spaced cases instead of the first 18, and what would the first 18 have hidden?
 2. A model returns `isCorrect: true` with an empty mistakes list for a sentence that has a Latin word. Which two numbers in the report move, and which one does not?
 3. Why is a 503 retried by the runner but not counted as a case failure, while a schema miss twice in a row is?
+## Phase 8, step 8.3 (chat)
+- What: the practice page `/practice/:conversationId` (message list, streaming reply, correction cards with word diff, translate, harakat toggle, composer with the Arabic keyboard, limit and retry errors), the shared `diffWords` helper, strict web schemas for conversations, gloss and turn events.
+- Why: the turn stream is the centre of the product, so the rules for its event order live in one pure module (`features/practice/turn.ts`) that is tested without a browser, and the component tests feed a hand-driven stream so they can look at the page between two events.
+- Learn: a POST stream cannot use `EventSource`; `fetch` + a reader gives the same events plus an `AbortSignal`, and aborting is how Stop works. A live region that holds streamed text announces every chunk, so the page announces one string, once, when the reply is complete.

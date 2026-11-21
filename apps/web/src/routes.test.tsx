@@ -105,7 +105,6 @@ describe('routes', () => {
     ['/login', en['page.login']],
     ['/register', en['page.register']],
     ['/lessons', en['page.lessons']],
-    ['/practice/c1', en['page.practice']],
     ['/progress', en['page.progress']],
     ['/review', en['page.review']],
     ['/teacher', en['page.teacher']],
