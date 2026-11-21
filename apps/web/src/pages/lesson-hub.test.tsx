@@ -177,3 +177,25 @@ describe('words step', () => {
     await vi.waitFor(() => expect(router.state.location.pathname).toBe('/lessons/a1-greetings'));
   });
 });
+
+describe('practice step', () => {
+  it('posts the practice score with the local day and moves to the next step', async () => {
+    const calls = stubApi({
+      ...signedIn,
+      'GET /lessons/a1-greetings': () => Response.json(courseDetail()),
+      'POST /lessons/a1-greetings/progress': progressOk,
+    });
+    const router = renderAt('/lessons/a1-greetings/learn/practice');
+    await userEvent.click(await screen.findByRole('radio', { name: 'مَرْحَبًا' }));
+    await userEvent.click(screen.getByRole('button', { name: en['exercise.check'] }));
+    await userEvent.click(screen.getByRole('button', { name: en['practice.finish'] }));
+    await vi.waitFor(() =>
+      expect(router.state.location.pathname).toBe('/lessons/a1-greetings/learn/grammar'),
+    );
+    expect(calls.find((c) => c.key === 'POST /lessons/a1-greetings/progress')?.body).toEqual({
+      step: 'practice',
+      score: 100,
+      day: localDay(),
+    });
+  });
+});

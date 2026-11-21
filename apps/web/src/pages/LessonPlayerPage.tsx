@@ -9,6 +9,7 @@ import { Icon } from '../components/ui/Icon';
 import { useRecordStep } from '../features/course/queries';
 import { STEP_META, learnPath, stepsOf } from '../features/course/steps';
 import { WordsStep } from '../features/course/WordsStep';
+import { ExercisePlayer } from '../features/exercises/ExercisePlayer';
 import { useLesson } from '../features/lessons/queries';
 import { useT } from '../i18n';
 
@@ -93,6 +94,15 @@ function Player({ data, step }: { data: LessonDetailResponse; step: string }) {
 
       <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6 sm:py-10">
         {current === 'words' && <WordsStep {...stepProps} />}
+        {current === 'practice' && (
+          <ExercisePlayer
+            exercises={data.exercises}
+            seed={lesson.slug}
+            onFinish={(score) => complete(score)}
+            onProgress={onProgress}
+            saving={record.isPending}
+          />
+        )}
         {record.isError && (
           <Alert tone="danger" className="mt-4">
             {t('player.saveError')}
