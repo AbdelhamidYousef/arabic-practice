@@ -24,6 +24,9 @@ const count = (fallback: number) => unsetIfEmpty(z.coerce.number().int().min(0).
 
 const baseSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  // Set by Vercel itself ("1") on every deployment. Read only to refuse a deployed app that is not
+  // in production mode, see the rules below.
+  VERCEL: unsetIfEmpty(z.string().optional()),
   PORT: unsetIfEmpty(z.coerce.number().int().positive().default(3002)),
   DATABASE_URL: z.url(),
   // Only the test harness needs it; optional so the dev server boots without it.
@@ -101,6 +104,11 @@ export const envSchema = baseSchema.superRefine((e, ctx) => {
     ctx.addIssue({ code: 'custom', path: [path], message });
   const production = e.NODE_ENV === 'production';
 
+  // On Vercel every production rule above must apply. A deployment whose NODE_ENV was forgotten or
+  // set to development would skip them all (fake AI, http origin, local database), so it cannot boot.
+  if (e.VERCEL !== undefined && !production) {
+    fail('NODE_ENV', 'must be "production" when running on Vercel (VERCEL is set)');
+  }
   // The Origin check (CSRF) compares against it: left at the localhost default, every browser
   // request in production would be refused, and Secure cookies need https anyway.
   if (production && !e.WEB_ORIGIN.startsWith('https://')) {

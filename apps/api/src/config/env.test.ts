@@ -191,6 +191,20 @@ describe('production rules', () => {
   });
 });
 
+describe('running on Vercel', () => {
+  it('refuses to boot unless NODE_ENV is production', () => {
+    expect(problems({ ...base, VERCEL: '1' })).toEqual(['NODE_ENV']);
+    expect(problems({ ...base, VERCEL: '1', NODE_ENV: 'development' })).toEqual(['NODE_ENV']);
+    expect(problems({ ...base, VERCEL: '1', NODE_ENV: 'test' })).toEqual(['NODE_ENV']);
+    expect(problems({ ...production, VERCEL: '1' })).toEqual([]);
+  });
+
+  it('does not apply when VERCEL is unset or empty', () => {
+    expect(problems({ ...base, VERCEL: '' })).toEqual([]);
+    expect(problems(base)).toEqual([]);
+  });
+});
+
 describe('rules that apply everywhere', () => {
   it('requires a key when the gemini adapter is asked for explicitly', () => {
     expect(problems({ ...base, AI_PROVIDER: 'gemini' })).toEqual(['GEMINI_API_KEY']);
