@@ -4,6 +4,7 @@ import {
   LlmBadOutput,
   LlmFailed,
   LlmRateLimited,
+  LlmUnavailable,
   type ChatMessage,
   type JsonRequest,
   type LlmProvider,
@@ -26,6 +27,8 @@ export interface GeminiOptions {
   /** Whole-call limits. A stream gets longer because it lasts as long as the reply is written. */
   jsonTimeoutMs?: number;
   streamTimeoutMs?: number;
+  /** Pause before the one retry of a 500/503 (plus up to 50% jitter). Tests set it to 0. */
+  retryBackoffMs?: number;
 }
 
 interface Part {
@@ -71,6 +74,7 @@ export class GeminiProvider implements LlmProvider {
   private readonly baseUrl: string;
   private readonly jsonTimeoutMs: number;
   private readonly streamTimeoutMs: number;
+  private readonly retryBackoffMs: number;
 
   constructor(options: GeminiOptions) {
     this.apiKey = options.apiKey;
@@ -78,6 +82,7 @@ export class GeminiProvider implements LlmProvider {
     this.baseUrl = options.baseUrl ?? BASE_URL;
     this.jsonTimeoutMs = options.jsonTimeoutMs ?? 20_000;
     this.streamTimeoutMs = options.streamTimeoutMs ?? 40_000;
+    this.retryBackoffMs = options.retryBackoffMs ?? 800;
   }
 
   async generateJson<T>(request: JsonRequest<T>): Promise<{ data: T; usage: Usage }> {
@@ -95,6 +100,7 @@ export class GeminiProvider implements LlmProvider {
         body,
         request.signal,
         this.jsonTimeoutMs,
+        request.onFailedAttempt,
       );
       const json = await readJson(res);
       const { text, usage } = this.extract(json);
@@ -135,6 +141,7 @@ export class GeminiProvider implements LlmProvider {
       this.body(request),
       request.signal,
       this.streamTimeoutMs,
+      request.onFailedAttempt,
     );
     if (!res.body) throw new LlmFailed('NO_BODY', 'Gemini returned an empty stream');
 
@@ -189,7 +196,47 @@ export class GeminiProvider implements LlmProvider {
     };
   }
 
+  /**
+   * One POST, with one retry when the provider answers 500/503 ("high demand"): those are usually
+   * gone a second later. For a stream this covers only the START (the HTTP answer); once bytes
+   * flow a failure is never retried, because the learner may already have seen part of a reply.
+   * The first failed attempt is reported through `onFailedAttempt` so the ledger counts it.
+   */
   private async post(
+    path: string,
+    body: unknown,
+    callerSignal: AbortSignal | undefined,
+    timeoutMs: number,
+    onFailedAttempt?: (code: string) => void,
+  ): Promise<Response> {
+    try {
+      return await this.postOnce(path, body, callerSignal, timeoutMs);
+    } catch (e) {
+      if (!(e instanceof LlmUnavailable)) throw e;
+      onFailedAttempt?.(e.code);
+      await this.backoff(callerSignal);
+      return this.postOnce(path, body, callerSignal, timeoutMs);
+    }
+  }
+
+  private async backoff(signal: AbortSignal | undefined): Promise<void> {
+    const ms = this.retryBackoffMs * (1 + Math.random() * 0.5);
+    if (ms <= 0) return;
+    await new Promise<void>((resolve, reject) => {
+      if (signal?.aborted) return reject(new LlmFailed('ABORTED', 'Call aborted'));
+      const timer = setTimeout(() => {
+        signal?.removeEventListener('abort', onAbort);
+        resolve();
+      }, ms);
+      const onAbort = () => {
+        clearTimeout(timer);
+        reject(new LlmFailed('ABORTED', 'Call aborted'));
+      };
+      signal?.addEventListener('abort', onAbort, { once: true });
+    });
+  }
+
+  private async postOnce(
     path: string,
     body: unknown,
     callerSignal: AbortSignal | undefined,
@@ -271,12 +318,16 @@ function errorFrom(
   status: number,
   error: GenerateContentResponse['error'],
   retryAfter?: string | null,
-): LlmRateLimited | LlmFailed {
+): LlmRateLimited | LlmUnavailable | LlmFailed {
   const message = error?.message ?? `Gemini answered HTTP ${status}`;
   if (status === 429) {
     // retry-after may be absent; then the caller just backs off by its own rule.
     const seconds = retryAfter ? Number(retryAfter) : NaN;
     return new LlmRateLimited(message, Number.isFinite(seconds) ? seconds * 1000 : undefined);
+  }
+  // 500 / 503: the provider is struggling, not refusing us. Temporary (AI_BUSY), retried once by post().
+  if (status === 500 || status === 503) {
+    return new LlmUnavailable(`HTTP_${status}`, `${error?.status ?? 'ERROR'}: ${message}`);
   }
   return new LlmFailed(`HTTP_${status}`, `${error?.status ?? 'ERROR'}: ${message}`);
 }

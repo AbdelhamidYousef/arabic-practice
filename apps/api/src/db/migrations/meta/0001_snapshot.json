@@ -84,12 +84,8 @@
           "name": "invites_teacher_id_users_id_fk",
           "tableFrom": "invites",
           "tableTo": "users",
-          "columnsFrom": [
-            "teacher_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["teacher_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -99,9 +95,7 @@
         "invites_code_hash_unique": {
           "name": "invites_code_hash_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "code_hash"
-          ]
+          "columns": ["code_hash"]
         }
       },
       "policies": {},
@@ -184,12 +178,8 @@
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -325,12 +315,8 @@
           "name": "users_teacher_id_users_id_fk",
           "tableFrom": "users",
           "tableTo": "users",
-          "columnsFrom": [
-            "teacher_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["teacher_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -340,9 +326,7 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -359,22 +343,12 @@
     "public.cefr_level": {
       "name": "cefr_level",
       "schema": "public",
-      "values": [
-        "A1",
-        "A2",
-        "B1",
-        "B2",
-        "C1",
-        "C2"
-      ]
+      "values": ["A1", "A2", "B1", "B2", "C1", "C2"]
     },
     "public.user_role": {
       "name": "user_role",
       "schema": "public",
-      "values": [
-        "learner",
-        "teacher"
-      ]
+      "values": ["learner", "teacher"]
     }
   },
   "schemas": {},

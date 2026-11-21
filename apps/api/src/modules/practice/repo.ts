@@ -27,6 +27,34 @@ export async function findOwnedConversation(userId: string, conversationId: stri
   return row;
 }
 
+/** A turn that started longer ago than this is treated as dead (a crashed instance), not as running. */
+export const TURN_LOCK_SECONDS = 90;
+
+/**
+ * The per-conversation turn guard: one atomic UPDATE claims the conversation, so two requests can
+ * never both win, whichever serverless instance they land on. False = a turn is already running.
+ */
+export async function acquireTurn(conversationId: string): Promise<boolean> {
+  const rows = await db
+    .update(conversations)
+    .set({ turnStartedAt: sql`now()` })
+    .where(
+      and(
+        eq(conversations.id, conversationId),
+        sql`(${conversations.turnStartedAt} is null or ${conversations.turnStartedAt} < now() - make_interval(secs => ${TURN_LOCK_SECONDS}))`,
+      ),
+    )
+    .returning({ id: conversations.id });
+  return rows.length > 0;
+}
+
+export async function releaseTurn(conversationId: string): Promise<void> {
+  await db
+    .update(conversations)
+    .set({ turnStartedAt: null })
+    .where(eq(conversations.id, conversationId));
+}
+
 export async function listMessages(conversationId: string) {
   // id as a tie-break only keeps the order stable if two rows ever share a timestamp.
   return db

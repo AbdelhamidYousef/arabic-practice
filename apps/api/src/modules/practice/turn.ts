@@ -54,7 +54,7 @@ export async function runTurn(opts: {
   text: string;
   ai: AiRuntime;
 }): Promise<void> {
-  const { req, res, user, conversationId, text, ai } = opts;
+  const { res, user, conversationId } = opts;
 
   // Closing the connection before we finished writing means the learner left: cancel both provider
   // calls. (`res`, not `req`: a request's own 'close' also fires once its body has been read.)
@@ -66,6 +66,36 @@ export async function runTurn(opts: {
 
   const found = await repo.findOwnedConversation(user.id, conversationId);
   if (!found) throw notFound('Conversation not found');
+
+  // Two turns at once would interleave the history and double-bill both calls: a second one is
+  // refused here, before any AI call. The claim is released once the turn is over, on every path.
+  if (!(await repo.acquireTurn(conversationId))) {
+    throw new AppError(
+      ErrorCode.TURN_IN_PROGRESS,
+      'Wait for the reply to finish before sending the next message',
+    );
+  }
+  let released = false;
+  const release = async () => {
+    if (released) return;
+    released = true;
+    await repo.releaseTurn(conversationId);
+  };
+  try {
+    await serveTurn({ ...opts, found, signal, release });
+  } finally {
+    await release();
+  }
+}
+
+async function serveTurn(
+  opts: Parameters<typeof runTurn>[0] & {
+    found: NonNullable<Awaited<ReturnType<typeof repo.findOwnedConversation>>>;
+    signal: AbortSignal;
+    release: () => Promise<void>;
+  },
+): Promise<void> {
+  const { req, res, user, conversationId, text, ai, found, signal, release } = opts;
   const { lesson } = found;
   const [history, vocab] = await Promise.all([
     repo.listMessages(conversationId),
@@ -196,6 +226,7 @@ export async function runTurn(opts: {
 
   if (signal.aborted) {
     await correctionTask;
+    await release();
     res.end();
     return;
   }
@@ -229,6 +260,9 @@ export async function runTurn(opts: {
 
   // `done` goes last: by then the correction has either arrived or failed, so the client can stop waiting.
   await correctionTask;
+  // Free the conversation BEFORE the last event: the web may send the next message the moment it
+  // sees `done`, and that request must not find the guard still set.
+  await release();
   if (partner && usage) {
     send('done', { message: toMessageDto(partner), usage });
   } else {

@@ -10,6 +10,7 @@ import {
   LlmBadOutput,
   LlmFailed,
   LlmRateLimited,
+  LlmUnavailable,
   type JsonRequest,
   type LlmProvider,
   type LlmPurpose,
@@ -73,6 +74,13 @@ export async function recordCall(db: Pick<Database, 'insert'>, r: CallRecord): P
 
 /** Provider error -> the API error the client sees, plus the short code stored in the ledger. */
 export function describeFailure(e: unknown): { code: string; error: Error } {
+  if (e instanceof LlmUnavailable) {
+    // Checked before LlmRateLimited (its parent): the ledger keeps the real status, e.g. HTTP_503.
+    return {
+      code: e.code,
+      error: new AppError(ErrorCode.AI_BUSY, 'The AI is busy, try again shortly'),
+    };
+  }
   if (e instanceof LlmRateLimited) {
     return {
       code: 'RATE_LIMITED',
@@ -120,12 +128,38 @@ export function createLedgeredGateway({
     }
   };
 
+  // The adapter retries a 500/503 once by itself. It tells us about the attempt that failed, so the
+  // ledger (and the daily cap that counts its rows) sees every real provider call, not only the last.
+  const trackAttempts = <R extends { purpose: LlmPurpose; model: string }>(
+    ctx: AiCallContext,
+    request: R,
+  ) => {
+    const pending: Promise<void>[] = [];
+    const tracked: R = {
+      ...request,
+      onFailedAttempt: (code: string) => {
+        pending.push(
+          write({
+            ctx,
+            purpose: request.purpose,
+            model: request.model,
+            status: 'error',
+            errorCode: code,
+          }),
+        );
+      },
+    };
+    return { tracked, settled: () => Promise.all(pending).then(() => undefined) };
+  };
+
   return {
     provider: provider.name,
 
-    async generateJson(ctx, request) {
+    async generateJson(ctx, original) {
+      const { tracked: request, settled } = trackAttempts(ctx, original);
       try {
         const result = await provider.generateJson(request);
+        await settled();
         await write({
           ctx,
           purpose: request.purpose,
@@ -135,6 +169,7 @@ export function createLedgeredGateway({
         });
         return result;
       } catch (e) {
+        await settled();
         const { code, error } = describeFailure(e);
         await write({
           ctx,
@@ -147,13 +182,16 @@ export function createLedgeredGateway({
       }
     },
 
-    async streamText(ctx, request) {
+    async streamText(ctx, original) {
+      const { tracked: request, settled } = trackAttempts(ctx, original);
       const iterator = provider.streamText(request)[Symbol.asyncIterator]();
       const base = { ctx, purpose: request.purpose, model: request.model };
       let first: IteratorResult<StreamEvent>;
       try {
         first = await iterator.next();
+        await settled();
       } catch (e) {
+        await settled();
         const { code, error } = describeFailure(e);
         await write({ ...base, status: 'error', errorCode: code });
         throw error;

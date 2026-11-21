@@ -3,11 +3,17 @@ import { describe, expect, it } from 'vitest';
 
 import { fakeCorrect } from '../fake.ts';
 import { toGeminiSchema } from '../gemini.ts';
+import { measureReply } from '../level-metrics.ts';
 
 import { buildCorrectionPrompt, correctionSchema } from './correction.ts';
 import { buildGlossPrompt } from './gloss.ts';
 import { MAX_VOCAB_IN_PROMPT, type LessonContext } from './lesson-context.ts';
-import { buildReplyPrompt, MAX_HISTORY_MESSAGES, trimHistory } from './reply.ts';
+import {
+  buildReplyPrompt,
+  MAX_HISTORY_MESSAGES,
+  REPLY_MAX_OUTPUT_TOKENS,
+  trimHistory,
+} from './reply.ts';
 
 const lesson: LessonContext = {
   title: 'At the café',
@@ -85,6 +91,64 @@ describe('reply prompt', () => {
   });
 });
 
+describe('reply prompt: level control', () => {
+  const sys = (level: 'A1' | 'A2' | 'B1' | 'B2') =>
+    buildReplyPrompt({ lesson, level, history: [] }).system;
+
+  it('spells out a hard sentence cap and a compliant example at A1 and A2 only', () => {
+    expect(sys('A1')).toContain('The cap is HARD: 2 sentences is the maximum, never 3');
+    expect(sys('A1')).toContain('Example of a compliant reply (2 sentences');
+    expect(sys('A2')).toContain('The cap is HARD: 3 sentences is the maximum, never 4');
+    expect(sys('B1')).not.toContain('The cap is HARD');
+    expect(sys('B2')).not.toContain('Example of a compliant reply');
+  });
+
+  it('the examples really are within their level (the prompt must not teach a violation)', () => {
+    for (const level of ['A1', 'A2'] as const) {
+      const quoted = /«([^»]+)»/.exec(sys(level))?.[1] ?? '';
+      expect(quoted).not.toBe('');
+      const m = measureReply({ reply: quoted, level, lessonVocab: [] });
+      expect(m.violations).toEqual([]);
+      expect(m.withinLevel).toBe(true);
+    }
+  });
+
+  it('asks for case endings on every word at A1 to B1', () => {
+    for (const level of ['A1', 'A2', 'B1'] as const) {
+      expect(sys(level)).toContain('case ending');
+      expect(sys(level)).toContain('on EVERY noun, adjective and verb');
+    }
+    expect(sys('B2')).not.toContain('on EVERY noun');
+  });
+
+  it('gives a smaller output budget to lower levels', () => {
+    const levels = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'] as const;
+    const budgets = levels.map((l) => REPLY_MAX_OUTPUT_TOKENS[l]);
+    expect([...budgets].sort((a, b) => a - b)).toEqual(budgets);
+    for (const l of levels) {
+      expect(buildReplyPrompt({ lesson, level: l, history: [] }).maxOutputTokens).toBe(
+        REPLY_MAX_OUTPUT_TOKENS[l],
+      );
+    }
+  });
+
+  it('sends the opening line as a model turn after the fixed user marker, learner text last', () => {
+    const { messages } = buildReplyPrompt({
+      lesson,
+      level: 'A1',
+      history: [
+        { role: 'model', text: 'مَرْحَبًا! مَا اسْمُكَ؟' },
+        { role: 'user', text: 'اسمي سارة' },
+      ],
+    });
+    expect(messages).toEqual([
+      { role: 'user', text: '(The learner has joined the conversation.)' },
+      { role: 'model', text: 'مَرْحَبًا! مَا اسْمُكَ؟' },
+      { role: 'user', text: 'اسمي سارة' },
+    ]);
+  });
+});
+
 describe('trimHistory', () => {
   const chat = (n: number) =>
     Array.from({ length: n }, (_, i) => ({
@@ -124,6 +188,16 @@ describe('correction prompt', () => {
     expect(system).toContain('Do NOT flag a correct sentence for style');
     expect(system).toContain('FULL harakat');
     expect(system).toContain('ENGLISH');
+  });
+
+  it('types vowel-mark-only errors as harakat and any Latin word as a spelling mistake', () => {
+    const { system } = buildCorrectionPrompt({ level: 'A1', learnerText: 'x' });
+    expect(system).toContain('its type is "harakat", even though a grammar rule explains it');
+    expect(system).toContain('Use "grammar" only when a word, a particle');
+    expect(system).toContain('written in Latin script inside an Arabic sentence');
+    expect(system).toContain('is a "spelling" mistake and the message is NOT correct');
+    // The older guard stays: no harakat written means no harakat mistakes.
+    expect(system).toContain('Never penalise a learner for writing no harakat');
   });
 
   it('includes the lesson vocab when a lesson is given', () => {

@@ -15,12 +15,14 @@ export const ErrorCode = {
   AI_LIMIT_USER: 'AI_LIMIT_USER',
   AI_LIMIT_GLOBAL: 'AI_LIMIT_GLOBAL',
   AI_DISABLED: 'AI_DISABLED',
-  // The provider answered 429: busy, try again shortly.
+  // The provider answered 429, or 500/503 twice in a row ("high demand"): busy, try again shortly.
   AI_BUSY: 'AI_BUSY',
   // The provider failed or returned something we could not parse, even after one retry.
   AI_FAILED: 'AI_FAILED',
   // The seeded demo teacher the guest and demo sign-ins depend on is missing (the seed was not run).
   DEMO_UNAVAILABLE: 'DEMO_UNAVAILABLE',
+  // A second turn was sent in a conversation that is still answering the first one.
+  TURN_IN_PROGRESS: 'TURN_IN_PROGRESS',
   INTERNAL: 'INTERNAL',
 } as const;
 
@@ -41,5 +43,6 @@ export const errorStatus: Record<ErrorCode, number> = {
   AI_BUSY: 503,
   AI_FAILED: 502,
   DEMO_UNAVAILABLE: 503,
+  TURN_IN_PROGRESS: 409,
   INTERNAL: 500,
 };
