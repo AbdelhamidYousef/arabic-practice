@@ -14,12 +14,14 @@ import {
   demoUnavailable,
   unauthenticated,
   unprocessable,
+  wrongPassword,
 } from '../../lib/errors.ts';
 import { hash, verify, verifyAgainstDummy } from '../../lib/password.ts';
 
 import {
   createSession,
   deleteSession,
+  deleteSessionsOf,
   purgeExpiredSessions,
   sha256,
   type AuthUser,
@@ -75,6 +77,27 @@ export async function login(
 
 export async function logout(token: string | null): Promise<void> {
   if (token) await deleteSession(token);
+}
+
+// Needs the current password. The other sessions are ended only after the new hash is stored, so a
+// failure never leaves the old password with no sessions. The caller's own session stays: they just
+// proved who they are.
+export async function changePassword(
+  user: AuthUser,
+  currentToken: string | null,
+  input: { currentPassword: string; newPassword: string },
+): Promise<void> {
+  const [row] = await db
+    .select({ passwordHash: users.passwordHash })
+    .from(users)
+    .where(eq(users.id, user.id));
+  const ok = row?.passwordHash
+    ? await verify(row.passwordHash, input.currentPassword)
+    : await verifyAgainstDummy(input.currentPassword);
+  if (!ok) throw wrongPassword();
+  const passwordHash = await hash(input.newPassword);
+  await db.update(users).set({ passwordHash }).where(eq(users.id, user.id));
+  await deleteSessionsOf(user.id, currentToken);
 }
 
 const DAY_MS = 24 * 3600 * 1000;

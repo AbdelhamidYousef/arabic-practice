@@ -467,3 +467,10 @@ The first version of the piped-stdin path rejected every password: closing the r
 fires `close` synchronously, before the promise was resolved. Learn: with events that fire inside
 your own call (`rl.close()`), settle the promise first.
 
+### 21.2: change password
+`POST /auth/password` checks the current password with argon2, stores the new hash, then deletes every
+session of that user except the one making the request, so a stolen laptop is signed out but the person
+typing is not. The settings page validates the new password with the same shared schema before sending.
+A wrong current password has its own 403 code: with a 401 the web would sign the person out for a typo.
+Learn: an HTTP status carries meaning for generic client code (401 = "log in again"), so pick codes for
+what the client will do with them, not only for what happened.

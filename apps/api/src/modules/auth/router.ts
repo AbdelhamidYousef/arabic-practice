@@ -1,4 +1,5 @@
 import {
+  ChangePasswordSchema,
   InviteCodeSchema,
   InviteInfoSchema,
   LoginSchema,
@@ -9,12 +10,13 @@ import { Router as ExpressRouter, type RequestHandler, type Router } from 'expre
 import { z } from 'zod';
 
 import { clearSessionCookie, readSessionCookie, setSessionCookie } from '../../lib/cookies.ts';
-import { invitesClosed } from '../../lib/errors.ts';
+import { forbidden, invitesClosed } from '../../lib/errors.ts';
 import { respond, valid, validate } from '../../lib/validate.ts';
-import { requireUser } from '../../middleware/auth.ts';
+import { forbidReadOnly, requireUser } from '../../middleware/auth.ts';
 import {
   createAuthRateLimiter,
   createIpRateLimiter,
+  createUserRateLimiter,
   type RateLimitOptions,
 } from '../../middleware/rate-limit.ts';
 
@@ -123,6 +125,24 @@ export function createAuthRouter(opts: AuthRouterOptions): Router {
     res.setHeader('Cache-Control', 'no-store');
     respond(res, UserResponseSchema, { user: toUserDto(req.user) });
   });
+
+  // A signed-in person with a password (not a guest, not the read-only demo). The per-user limit
+  // stops someone with a stolen session from guessing the current password.
+  const changePassword = { body: ChangePasswordSchema };
+  router.post(
+    '/auth/password',
+    requireUser,
+    forbidReadOnly,
+    createUserRateLimiter(opts.authRateLimit),
+    validate(changePassword),
+    async (req, res) => {
+      const { body } = valid(req, changePassword);
+      if (!req.user) throw new Error('requireUser let an anonymous request through');
+      if (req.user.isGuest) throw forbidden('Guests have no password to change');
+      await service.changePassword(req.user, req.sessionToken, body);
+      res.status(204).end();
+    },
+  );
 
   return router;
 }

@@ -40,6 +40,7 @@ export const routes: RouteObject[] = [
         children: [
           { path: 'progress', ...page(() => import('./pages/ProgressPage')) },
           { path: 'review', ...page(() => import('./pages/ReviewPage')) },
+          { path: 'settings', ...page(() => import('./pages/SettingsPage')) },
         ],
       },
       // Teacher pages: a visitor goes to the sign-in, a learner to the lessons.

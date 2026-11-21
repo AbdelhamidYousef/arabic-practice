@@ -70,6 +70,13 @@ export const RegisterSchema = z.object({
 });
 export type RegisterInput = z.input<typeof RegisterSchema>;
 
+// Changing a password needs the current one (a stolen session alone must not be enough).
+export const ChangePasswordSchema = z.object({
+  currentPassword: z.string().min(1).max(PASSWORD_MAX_LENGTH),
+  newPassword: NewPasswordSchema,
+});
+export type ChangePasswordInput = z.input<typeof ChangePasswordSchema>;
+
 // `valid` is false for an unknown, used-up or expired code. The teacher's name is only given for a
 // valid code, so the endpoint does not reveal who teaches here to someone guessing.
 export const InviteInfoSchema = z.object({

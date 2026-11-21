@@ -17,17 +17,22 @@ export function navFor(user: User | null | undefined): NavItem[] {
       { to: '/login', label: 'nav.signIn' },
     ];
   }
+  // Guests have no password and the demo teacher is read-only: neither has anything to set.
+  const account: NavItem[] =
+    user.isGuest || user.readOnly ? [] : [{ to: '/settings', label: 'nav.settings' }];
   if (user.role === 'teacher') {
     return [
       { to: '/teacher/lessons', label: 'nav.lessons' },
       { to: '/teacher', label: 'nav.learners' },
       { to: '/teacher/invites', label: 'nav.invites' },
       { to: '/teacher/usage', label: 'nav.usage' },
+      ...account,
     ];
   }
   return [
     { to: '/lessons', label: 'nav.course' },
     { to: '/review', label: 'nav.review' },
     { to: '/progress', label: 'nav.progress' },
+    ...account,
   ];
 }

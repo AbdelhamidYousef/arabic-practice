@@ -16,6 +16,10 @@ Mutations need a matching `Origin`. Ids that are missing or belong to someone el
 - `POST /auth/demo-teacher` → `{ user }`: signs in as the read-only demo teacher
 - `GET /auth/invites/:code` → `{ teacherName, valid }`
 - `POST /auth/register` `{ code, email, password, displayName }` → `{ user }`. 403 `INVITES_CLOSED` while `AI_TIER=free`.
+- `POST /auth/password` `{ currentPassword, newPassword }` → 204 (phase 21). Signed in, not a guest, not the
+  read-only demo. Keeps this session and deletes the user's other sessions. 403 `WRONG_PASSWORD` for a wrong
+  current password (not 401: the web reads a 401 as "signed out"); 400 for a weak new password; rate-limited
+  per user (the auth limit).
 - (phase 21, script, not HTTP) `pnpm --filter @arabic/api teacher:create <email>` creates a teacher; see README.
 
 ## Lessons (learner)

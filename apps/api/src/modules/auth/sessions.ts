@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto';
 
 import type { CefrLevel } from '@arabic/shared';
-import { and, eq, gt, lt } from 'drizzle-orm';
+import { and, eq, gt, lt, ne } from 'drizzle-orm';
 
 import { db } from '../../db/client.ts';
 import { sessions, users } from '../../db/schema/index.ts';
@@ -102,6 +102,24 @@ export async function purgeExpiredSessions(): Promise<number> {
   const deleted = await db
     .delete(sessions)
     .where(lt(sessions.expiresAt, new Date()))
+    .returning({ idHash: sessions.idHash });
+  return deleted.length;
+}
+
+// Every session of a user except one (the caller's own): after a password change the other devices
+// must sign in again. Pass null to end all of them (a password reset).
+export async function deleteSessionsOf(
+  userId: string,
+  exceptToken: string | null,
+): Promise<number> {
+  const deleted = await db
+    .delete(sessions)
+    .where(
+      and(
+        eq(sessions.userId, userId),
+        ...(exceptToken ? [ne(sessions.idHash, sha256(exceptToken))] : []),
+      ),
+    )
     .returning({ idHash: sessions.idHash });
   return deleted.length;
 }

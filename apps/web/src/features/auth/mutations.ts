@@ -1,6 +1,13 @@
 import { useMutation } from '@tanstack/react-query';
 
-import { login, logout, register, startDemoTeacher, startGuest } from '../../api/auth';
+import {
+  changePassword,
+  login,
+  logout,
+  register,
+  startDemoTeacher,
+  startGuest,
+} from '../../api/auth';
 
 import { useSetMe } from './queries';
 
@@ -28,3 +35,6 @@ export function useLogout() {
     onSuccess: () => setMe(null),
   });
 }
+
+// The session stays (the API keeps this one and ends the others), so nothing is cached differently.
+export const useChangePassword = () => useMutation({ mutationFn: changePassword });

@@ -47,3 +47,8 @@ export const invitesClosed = (message = 'Sign-up by invitation is closed') =>
 // The demo teacher row is missing, so guests and the demo sign-in cannot work: run `pnpm db:seed`.
 export const demoUnavailable = (message = 'The demo is not set up on this server') =>
   new AppError(ErrorCode.DEMO_UNAVAILABLE, message);
+
+// The current password typed to confirm a sensitive action was wrong. Its own code (403), because a
+// 401 would make the web believe the session ended.
+export const wrongPassword = (message = 'The password is not correct') =>
+  new AppError(ErrorCode.WRONG_PASSWORD, message);

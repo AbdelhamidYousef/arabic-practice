@@ -287,4 +287,6 @@ teaching content, privacy, money); the rest are technical and covered by tests.
 
 ## Phase 21 (accounts and teacher tools)
 - 2026-11-21 · REVIEW · `teacher:create <email> [--name]` takes the password from a hidden TTY prompt (asked twice), or one line on piped stdin; the password rule is the register flow's `NewPasswordSchema`, the display name defaults to the email's local part · a command line leaks into shell history and `ps`; reusing the schema keeps one rule · a `--password` flag (leaks) · never
-
+- 2026-11-21 · REVIEW · A wrong current password answers 403 with a new code `WRONG_PASSWORD`, not 401 · the web treats any 401 for a signed-in person as "your session ended" and signs them out, which would punish a typo · reusing `UNAUTHENTICATED` (that is how login does it, but there nobody is signed in yet) · never
+- 2026-11-21 · REVIEW · Change password is a per-user rate limit (the auth limit, 10 per 15 minutes) and refuses guests (no password) and the read-only demo teacher · a stolen session could otherwise guess the current password at full speed; a guest or demo row has nothing to change · IP key (shared school networks) · never
+- 2026-11-21 · REVIEW · The settings page lives at `/settings`, linked from the header for signed-in non-guest, non-demo accounts (learners and teachers); guests are redirected to the lessons · the header's nav list is the one place a link is added · an account dropdown (a new widget for one link) · when the page has more than three sections
