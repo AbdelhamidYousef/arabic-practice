@@ -1,5 +1,5 @@
 import type { TeacherUsageResponse } from '@arabic/shared';
-import { and, count, desc, eq, gte, ne, or, sql, sum } from 'drizzle-orm';
+import { and, count, desc, eq, gte, lt, ne, or, sql, sum } from 'drizzle-orm';
 
 import { db } from '../../db/client.ts';
 import { aiCalls, users } from '../../db/schema/index.ts';
@@ -15,13 +15,24 @@ const day = sql<string>`to_char(${aiCalls.createdAt} at time zone 'utc', 'YYYY-M
 
 // A "call" is a provider call. `limited` rows are requests we refused ourselves (a cap or the kill
 // switch): they cost nothing, so they are counted apart and never count towards a cap.
-const providerCall = ne(aiCalls.status, 'limited');
+// A `pending` row is a call still running: it has no tokens yet, so it is left out until it settles,
+// unless it is older than 5 minutes (its instance died), when it counts as the error it became.
+const PENDING_STALE_MS = 5 * 60_000;
+const providerCallAt = (now: Date) =>
+  and(
+    ne(aiCalls.status, 'limited'),
+    or(
+      ne(aiCalls.status, 'pending'),
+      lt(aiCalls.createdAt, new Date(now.getTime() - PENDING_STALE_MS)),
+    ),
+  );
 
 // Both usage figures and cap checks count the same way: sums come back from SQL as strings or null.
 const total = (n: string | null) => Number(n ?? 0);
 
 export async function getUsage(teacher: AuthUser, now = new Date()): Promise<TeacherUsageResponse> {
   const todayKey = utcDay(now);
+  const providerCall = providerCallAt(now);
   const since = new Date(Date.parse(`${todayKey}T00:00:00Z`) - (DAYS - 1) * DAY_MS);
 
   // Ownership: calls made by me or by someone whose teacher is me. The join also drops ledger rows

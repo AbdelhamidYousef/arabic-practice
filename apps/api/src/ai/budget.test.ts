@@ -24,6 +24,8 @@ const limits = (over: Partial<BudgetLimits> = {}): BudgetLimits => ({
   tier: 'free',
   turnsPerLearnerPerDay: 3,
   turnsPerGuestPerDay: 1,
+  glossPerLearnerPerDay: 3,
+  glossPerGuestPerDay: 1,
   callsPerModelPerDay: 5,
   monthlyBudgetUsd: 0,
   ...over,
@@ -115,6 +117,38 @@ describe('turns per user', () => {
   });
 });
 
+describe('gloss per user', () => {
+  it('allows the last gloss, refuses the next with AI_LIMIT_USER, and uses the smaller guest allowance', async () => {
+    const { gw, fake } = setup();
+    const u = await createUser();
+    await seed(Array.from({ length: 2 }, () => ({ userId: u.id, purpose: 'gloss' as const })));
+    await expect(call(gw, u.id, 'gloss')).resolves.toBeDefined(); // 3rd of 3
+    await expect(call(gw, u.id, 'gloss')).rejects.toMatchObject({
+      code: 'AI_LIMIT_USER',
+      status: 429,
+    });
+    expect(fake.requests).toHaveLength(1);
+
+    const g = await createUser({ isGuest: true });
+    await seed([{ userId: g.id, purpose: 'gloss' }]);
+    await expect(call(gw, g.id, 'gloss', true)).rejects.toMatchObject({ code: 'AI_LIMIT_USER' });
+  });
+
+  it('counts only this user’s glosses today, and not turns or refused calls', async () => {
+    const { gw } = setup();
+    const u = await createUser();
+    const other = await createUser();
+    await seed([
+      { userId: u.id, purpose: 'reply' },
+      { userId: u.id, purpose: 'correction' },
+      { userId: other.id, purpose: 'gloss' },
+      { userId: u.id, purpose: 'gloss', status: 'limited' },
+      { userId: u.id, purpose: 'gloss', createdAt: new Date('2026-11-20T23:59:59Z') },
+    ]);
+    await expect(call(gw, u.id, 'gloss')).resolves.toBeDefined();
+  });
+});
+
 describe('calls per model', () => {
   it('refuses at the cap with AI_LIMIT_GLOBAL, and counts only that model', async () => {
     const { gw } = setup();
@@ -177,5 +211,113 @@ describe('refusals are recorded', () => {
     const rows = await db.select().from(aiCalls);
     expect(rows.filter((r) => r.status === 'limited')).toHaveLength(2);
     expect(rows.filter((r) => r.status === 'ok')).toHaveLength(1);
+  });
+});
+
+describe('pending rows (the cap no longer races)', () => {
+  it('writes a pending row BEFORE the provider is called, then settles that same row', async () => {
+    const { gw, fake } = setup();
+    const u = await createUser();
+    fake.delay(30);
+    const running = call(gw, u.id, 'gloss');
+    await new Promise((r) => setTimeout(r, 10));
+    const during = await db.select().from(aiCalls);
+    expect(during).toMatchObject([{ status: 'pending', purpose: 'gloss', inputTokens: 0 }]);
+    await running;
+    const after = await db.select().from(aiCalls);
+    expect(after).toHaveLength(1);
+    expect(after[0]).toMatchObject({ id: during[0]?.id, status: 'ok' });
+    expect(after[0]?.inputTokens).toBeGreaterThan(0);
+    expect(after[0]?.outputTokens).toBeGreaterThan(0);
+  });
+
+  it('settles the pending row as error when the provider fails', async () => {
+    const { gw, fake } = setup();
+    const u = await createUser();
+    fake.failNext();
+    await expect(call(gw, u.id, 'gloss')).rejects.toBeDefined();
+    expect(await db.select().from(aiCalls)).toMatchObject([
+      { status: 'error', errorCode: 'FAKE_FAILURE' },
+    ]);
+  });
+
+  it('settles a streamed call too: ok when done, error when abandoned', async () => {
+    const { gw } = setup();
+    const u = await createUser();
+    const stream = await gw.streamText({ userId: u.id }, { ...base, purpose: 'reply' });
+    for await (const event of stream) void event;
+    const abandoned = await gw.streamText({ userId: u.id }, { ...base, purpose: 'reply' });
+    for await (const event of abandoned) {
+      void event;
+      break;
+    }
+    const rows = await db.select().from(aiCalls).orderBy(aiCalls.createdAt);
+    expect(rows.map((r) => r.status).sort()).toEqual(['error', 'ok']);
+    expect(rows.find((r) => r.status === 'error')?.errorCode).toBe('ABORTED');
+  });
+
+  it('two parallel turns at the limit: only one passes', async () => {
+    const { gw, fake } = setup({ callsPerModelPerDay: 50 });
+    const u = await createUser();
+    // 2 turns used, limit 3: each real turn leaves a correction row and a reply row.
+    await seed([
+      { userId: u.id },
+      { userId: u.id },
+      { userId: u.id, purpose: 'correction' },
+      { userId: u.id, purpose: 'correction' },
+    ]);
+    const results = await Promise.allSettled([
+      call(gw, u.id, 'correction'),
+      call(gw, u.id, 'correction'),
+    ]);
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+    const refused = results.find((r) => r.status === 'rejected');
+    expect(refused).toMatchObject({ reason: { code: 'AI_LIMIT_USER' } });
+    expect(fake.requests).toHaveLength(1);
+    // The turn that passed is not refused at its reply: its correction is its own pending row.
+    await expect(
+      gw.streamText({ userId: u.id }, { ...base, purpose: 'reply' }),
+    ).resolves.toBeDefined();
+  });
+
+  it('parallel replies at the limit: only one passes', async () => {
+    const { gw } = setup();
+    const u = await createUser();
+    await seed([{ userId: u.id }, { userId: u.id }]);
+    const results = await Promise.allSettled(
+      [0, 1, 2].map(() => gw.streamText({ userId: u.id }, { ...base, purpose: 'reply' })),
+    );
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(1);
+  });
+
+  it('parallel calls at the per-model cap and at the per-user gloss cap: only the free slots pass', async () => {
+    const { gw } = setup({ callsPerModelPerDay: 5, glossPerLearnerPerDay: 10 });
+    const u = await createUser();
+    await seed(Array.from({ length: 3 }, () => ({ purpose: 'gloss' as const })));
+    const model = await Promise.allSettled([1, 2, 3, 4].map(() => call(gw, u.id, 'gloss')));
+    expect(model.filter((r) => r.status === 'fulfilled')).toHaveLength(2);
+
+    const second = setup({ callsPerModelPerDay: 100, glossPerLearnerPerDay: 2 });
+    const v = await createUser();
+    const user = await Promise.allSettled([1, 2, 3, 4].map(() => call(second.gw, v.id, 'gloss')));
+    expect(user.filter((r) => r.status === 'fulfilled')).toHaveLength(2);
+  });
+
+  it('counts pending rows, and a pending row older than 5 minutes still counts (the call may have happened)', async () => {
+    const { gw } = setup({ callsPerModelPerDay: 2 });
+    const u = await createUser();
+    await seed([
+      { purpose: 'gloss', status: 'pending' },
+      { purpose: 'gloss', status: 'pending', createdAt: new Date(NOW.getTime() - 10 * 60_000) },
+    ]);
+    await expect(call(gw, u.id, 'gloss')).rejects.toMatchObject({ code: 'AI_LIMIT_GLOBAL' });
+  });
+
+  it('a failed correction does not use a turn up', async () => {
+    const { gw, fake } = setup({ turnsPerLearnerPerDay: 1 });
+    const u = await createUser();
+    fake.failNext();
+    await expect(call(gw, u.id, 'correction')).rejects.toBeDefined();
+    await expect(call(gw, u.id, 'correction')).resolves.toBeDefined();
   });
 });

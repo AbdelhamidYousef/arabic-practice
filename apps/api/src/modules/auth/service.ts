@@ -1,12 +1,20 @@
-import { randomBytes } from 'node:crypto';
+import { createHmac, randomBytes } from 'node:crypto';
 
-import { and, eq, gt, inArray, lt, sql } from 'drizzle-orm';
+import { ErrorCode } from '@arabic/shared';
+import { and, count, eq, gt, gte, inArray, lt, sql } from 'drizzle-orm';
+import { ipKeyGenerator } from 'express-rate-limit';
 
 import { db } from '../../db/client.ts';
 import { invites, users } from '../../db/schema/index.ts';
 import { DEMO_TEACHER } from '../../db/seed/users.ts';
 import { uniqueViolation } from '../../lib/db-errors.ts';
-import { conflict, demoUnavailable, unauthenticated, unprocessable } from '../../lib/errors.ts';
+import {
+  AppError,
+  conflict,
+  demoUnavailable,
+  unauthenticated,
+  unprocessable,
+} from '../../lib/errors.ts';
 import { hash, verify, verifyAgainstDummy } from '../../lib/password.ts';
 
 import {
@@ -69,6 +77,7 @@ export async function logout(token: string | null): Promise<void> {
   if (token) await deleteSession(token);
 }
 
+const DAY_MS = 24 * 3600 * 1000;
 export const GUEST_TTL_MS = 7 * 24 * 3600 * 1000;
 // A request must stay cheap: the cleanup deletes at most this many guests, the rest wait for the next one.
 export const GUEST_CLEANUP_BATCH = 200;
@@ -98,20 +107,86 @@ export async function deleteStaleGuests(now = new Date()): Promise<number> {
   return deleted.length;
 }
 
-export async function createGuest(previousToken: string | null): Promise<Issued> {
+export interface GuestLimits {
+  /** Guests one network (by hashed IP) may create per hour. */
+  perIpPerHour: number;
+  /** Guests created in the last 24 hours, in total. */
+  perDay: number;
+  /** Secret pepper for the IP hash (IP_HASH_SALT). */
+  ipHashSalt: string;
+}
+
+// Only used where IP_HASH_SALT is unset, which the config allows outside production only.
+export const DEV_IP_HASH_SALT = 'development-only-ip-hash-salt';
+export const DEFAULT_GUEST_LIMITS: GuestLimits = {
+  perIpPerHour: 10,
+  perDay: 300,
+  ipHashSalt: DEV_IP_HASH_SALT,
+};
+
+// A keyed hash (HMAC-SHA-256) of the client IP: enough to count guests per network, useless for
+// finding out who visited, and useless to anyone who gets the table without the salt. IPv6 clients
+// are grouped by /56 (as the rate limiter does) so rotating addresses in one network does not dodge it.
+export const hashIp = (ip: string, salt: string): string =>
+  createHmac('sha256', salt).update(ipKeyGenerator(ip)).digest('hex');
+
+// Fixed key for the advisory lock that serialises guest creation (see createGuest).
+const GUEST_LOCK = 7_251_001;
+
+// The in-memory limiter on the route is only a first line: each serverless instance has its own
+// memory, so the real limits live in the database, counted on the guest rows themselves.
+export async function createGuest(
+  previousToken: string | null,
+  ip: string,
+  limits: GuestLimits = DEFAULT_GUEST_LIMITS,
+  now = new Date(),
+): Promise<Issued> {
   const teacherId = await findDemoTeacherId();
   await deleteStaleGuests();
-  const [user] = await db
-    .insert(users)
-    .values({
-      displayName: `Guest ${randomBytes(2).toString('hex').toUpperCase()}`,
-      role: 'learner',
-      isGuest: true,
-      teacherId,
-      level: 'A1',
-    })
-    .returning(userColumns);
-  if (!user) throw new Error('guest insert returned no row');
+  const ipHash = hashIp(ip, limits.ipHashSalt);
+  const user = await db.transaction(async (tx) => {
+    // One lock for the count-then-insert, so parallel sign-ins cannot all pass the same count.
+    await tx.execute(sql`select pg_advisory_xact_lock(${GUEST_LOCK})`);
+    const [fromIp] = await tx
+      .select({ n: count() })
+      .from(users)
+      .where(
+        and(
+          eq(users.isGuest, true),
+          eq(users.createdIpHash, ipHash),
+          gte(users.createdAt, new Date(now.getTime() - 3600_000)),
+        ),
+      );
+    if ((fromIp?.n ?? 0) >= limits.perIpPerHour) {
+      throw new AppError(
+        ErrorCode.GUEST_LIMIT,
+        'Too many guest sessions from this network, try again later',
+      );
+    }
+    const [today] = await tx
+      .select({ n: count() })
+      .from(users)
+      .where(and(eq(users.isGuest, true), gte(users.createdAt, new Date(now.getTime() - DAY_MS))));
+    if ((today?.n ?? 0) >= limits.perDay) {
+      throw new AppError(
+        ErrorCode.GUEST_LIMIT,
+        'The demo has had a lot of visitors today, try again later',
+      );
+    }
+    const [created] = await tx
+      .insert(users)
+      .values({
+        displayName: `Guest ${randomBytes(2).toString('hex').toUpperCase()}`,
+        role: 'learner',
+        isGuest: true,
+        teacherId,
+        level: 'A1',
+        createdIpHash: ipHash,
+      })
+      .returning(userColumns);
+    if (!created) throw new Error('guest insert returned no row');
+    return created;
+  });
   return issueFreshSession(user, previousToken);
 }
 

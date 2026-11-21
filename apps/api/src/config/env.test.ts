@@ -20,8 +20,12 @@ describe('defaults', () => {
       AI_ENABLED: true,
       AI_DAILY_TURNS_LEARNER: 60,
       AI_DAILY_TURNS_GUEST: 20,
+      AI_DAILY_GLOSS_LEARNER: 60,
+      AI_DAILY_GLOSS_GUEST: 20,
       AI_DAILY_CALLS_PER_MODEL: 450,
       AI_MONTHLY_BUDGET_USD: 0,
+      CONVERSATIONS_PER_DAY_GUEST: 10,
+      CONVERSATIONS_PER_DAY_LEARNER: 40,
       INVITES_ENABLED: false,
     });
     expect(e.AI_PROVIDER).toBeUndefined();
@@ -49,6 +53,27 @@ describe('defaults', () => {
     expect(e.INVITES_ENABLED).toBe(false);
     expect(e.SEED_TEACHER_PASSWORD).toBeUndefined();
     expect(e.PORT).toBe(3002);
+  });
+});
+
+describe('guest limits config', () => {
+  it('defaults GUESTS_PER_DAY to 300 and leaves IP_HASH_SALT unset outside production', () => {
+    const e = envSchema.parse(base);
+    expect(e.GUESTS_PER_DAY).toBe(300);
+    expect(e.IP_HASH_SALT).toBeUndefined();
+  });
+
+  it('requires IP_HASH_SALT in production and rejects a short one', () => {
+    const prod = {
+      ...base,
+      NODE_ENV: 'production',
+      WEB_ORIGIN: 'https://app.example.com',
+      DATABASE_URL: 'postgres://u:p@db.example.com/db',
+      AI_ENABLED: 'false',
+    };
+    expect(problems(prod)).toEqual(['IP_HASH_SALT']);
+    expect(problems({ ...prod, IP_HASH_SALT: 'too-short' })).toEqual(['IP_HASH_SALT']);
+    expect(problems({ ...prod, IP_HASH_SALT: 'x'.repeat(24) })).toEqual([]);
   });
 });
 
@@ -101,6 +126,7 @@ const production = {
   NODE_ENV: 'production',
   WEB_ORIGIN: 'https://arabic-practice.example.app',
   GEMINI_API_KEY: 'AIza-example-key-0000',
+  IP_HASH_SALT: 'a-random-salt-0123456789',
 };
 
 describe('production rules', () => {
@@ -162,6 +188,20 @@ describe('production rules', () => {
     };
     expect(problems(local)).toEqual([]);
     expect(problems({ ...local, NODE_ENV: 'test' })).toEqual([]);
+  });
+});
+
+describe('running on Vercel', () => {
+  it('refuses to boot unless NODE_ENV is production', () => {
+    expect(problems({ ...base, VERCEL: '1' })).toEqual(['NODE_ENV']);
+    expect(problems({ ...base, VERCEL: '1', NODE_ENV: 'development' })).toEqual(['NODE_ENV']);
+    expect(problems({ ...base, VERCEL: '1', NODE_ENV: 'test' })).toEqual(['NODE_ENV']);
+    expect(problems({ ...production, VERCEL: '1' })).toEqual([]);
+  });
+
+  it('does not apply when VERCEL is unset or empty', () => {
+    expect(problems({ ...base, VERCEL: '' })).toEqual([]);
+    expect(problems(base)).toEqual([]);
   });
 });
 

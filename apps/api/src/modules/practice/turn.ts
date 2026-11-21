@@ -9,6 +9,7 @@ import { buildReplyPrompt } from '../../ai/prompts/reply.ts';
 import type { ChatMessage } from '../../ai/provider.ts';
 import type { AiCallContext } from '../../ai/usage.ts';
 import { AppError, notFound } from '../../lib/errors.ts';
+import { scrubError } from '../../lib/scrub-error.ts';
 import type { AuthUser } from '../auth/sessions.ts';
 
 import { toCorrectionDto, toMessageDto } from './dto.ts';
@@ -161,7 +162,8 @@ async function serveTurn(
   };
   const fail = (e: unknown, scope: ErrorEvent['scope']) => {
     const data = errorData(e, scope);
-    if (data.code === ErrorCode.INTERNAL) req.log.error({ err: e, scope }, 'turn failed');
+    if (data.code === ErrorCode.INTERNAL)
+      req.log.error({ err: scrubError(e), scope }, 'turn failed');
     else req.log.info({ code: data.code, scope }, 'turn part failed');
     send('error', data);
   };

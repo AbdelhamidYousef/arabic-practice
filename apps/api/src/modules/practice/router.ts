@@ -22,9 +22,15 @@ export interface PracticeRouterOptions {
   ai: AiRuntime;
   /** Per learner, on top of the daily caps: the free tier allows 15 requests a minute per model for everybody. */
   turnRateLimit: RateLimitOptions;
+  /** New conversations per user per UTC day: a guest gets the smaller number. */
+  conversationsPerDay: { guest: number; learner: number };
 }
 
-export function createPracticeRouter({ ai, turnRateLimit }: PracticeRouterOptions): Router {
+export function createPracticeRouter({
+  ai,
+  turnRateLimit,
+  conversationsPerDay,
+}: PracticeRouterOptions): Router {
   const router = ExpressRouter();
 
   router.post(
@@ -39,7 +45,7 @@ export function createPracticeRouter({ ai, turnRateLimit }: PracticeRouterOption
       respond(
         res,
         StartConversationResponseSchema,
-        await service.startConversation(req.user, body.lessonId),
+        await service.startConversation(req.user, body.lessonId, conversationsPerDay),
       );
     },
   );

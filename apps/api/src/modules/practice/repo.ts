@@ -1,4 +1,5 @@
-import { and, asc, eq, isNull, sql } from 'drizzle-orm';
+import { ErrorCode } from '@arabic/shared';
+import { and, asc, count, eq, gte, isNull, sql } from 'drizzle-orm';
 
 import { db, type Tx } from '../../db/client.ts';
 import {
@@ -8,8 +9,10 @@ import {
   lessonVocab,
   messages,
   mistakes,
+  users,
 } from '../../db/schema/index.ts';
 import type { LevelMetrics } from '../../db/schema/messages.ts';
+import { AppError } from '../../lib/errors.ts';
 
 function first<T>(rows: T[], what: string): T {
   const row = rows[0];
@@ -90,12 +93,30 @@ export async function listCorrections(conversationId: string) {
   return { correctionRows, mistakeRows: mistakeRows.map((r) => r.mistake) };
 }
 
+const startOfUtcDay = (d = new Date()) =>
+  new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+
 export async function createConversationWithOpening(
   userId: string,
   lessonId: string,
   openingLine: string,
+  maxPerDay: number,
 ) {
   return db.transaction(async (tx) => {
+    // The user's row is the lock: two parallel requests queue here, so the count below is exact and
+    // both cannot slip under the cap. (A fresh transaction in this one connection sees the other's insert.)
+    await tx.select({ id: users.id }).from(users).where(eq(users.id, userId)).for('update');
+    const [today] = await tx
+      .select({ n: count() })
+      .from(conversations)
+      .where(and(eq(conversations.userId, userId), gte(conversations.createdAt, startOfUtcDay())));
+    if ((today?.n ?? 0) >= maxPerDay) {
+      throw new AppError(
+        ErrorCode.CONVERSATION_LIMIT,
+        'You have started enough conversations today, come back tomorrow',
+        { limit: maxPerDay },
+      );
+    }
     const conversation = first(
       await tx.insert(conversations).values({ userId, lessonId }).returning(),
       'conversation',

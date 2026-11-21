@@ -24,6 +24,10 @@ export const ErrorCode = {
   // A second turn was sent in a conversation that is still answering the first one.
   TURN_IN_PROGRESS: 'TURN_IN_PROGRESS',
   INTERNAL: 'INTERNAL',
+  // Security limits (phase 12): too many new conversations for one user in a day, and too many guest
+  // sign-ins from one network or in total.
+  CONVERSATION_LIMIT: 'CONVERSATION_LIMIT',
+  GUEST_LIMIT: 'GUEST_LIMIT',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
@@ -45,4 +49,6 @@ export const errorStatus: Record<ErrorCode, number> = {
   DEMO_UNAVAILABLE: 503,
   TURN_IN_PROGRESS: 409,
   INTERNAL: 500,
+  CONVERSATION_LIMIT: 429,
+  GUEST_LIMIT: 429,
 };

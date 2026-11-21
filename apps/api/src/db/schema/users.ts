@@ -32,6 +32,9 @@ export const users = pgTable(
     isGuest: boolean('is_guest').notNull().default(false),
     // The demo teacher: every mutation answers 403.
     readOnly: boolean('read_only').notNull().default(false),
+    // Guests only: keyed SHA-256 of the client IP at creation (never the IP itself), so the "guests per
+    // IP per hour" limit survives serverless instances that share no memory. See auth/service.ts.
+    createdIpHash: text('created_ip_hash'),
     lastSeenAt: timestamp('last_seen_at', { withTimezone: true }).notNull().defaultNow(),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -42,6 +45,9 @@ export const users = pgTable(
     index('users_guest_last_seen_idx')
       .on(t.lastSeenAt)
       .where(sql`${t.isGuest}`),
+    index('users_created_ip_hash_idx')
+      .on(t.createdIpHash, t.createdAt)
+      .where(sql`${t.createdIpHash} is not null`),
     // Everyone except a guest can log in, so needs an email and a password hash.
     check(
       'users_login_shape',

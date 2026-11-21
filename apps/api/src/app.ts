@@ -7,12 +7,15 @@ import { pinoHttp } from 'pino-http';
 import type { AiRuntime } from './ai/index.ts';
 import type { Database } from './db/client.ts';
 import { createHealthRouter } from './lib/health.ts';
+import { scrubError } from './lib/scrub-error.ts';
 import { createAttachUser } from './middleware/auth.ts';
 import { createCsrfCheck } from './middleware/csrf.ts';
 import { createErrorHandler, notFoundHandler } from './middleware/error.ts';
 import { createRateLimiter, type RateLimitOptions } from './middleware/rate-limit.ts';
 import { requestId } from './middleware/request-id.ts';
 import { createAuthRouter } from './modules/auth/router.ts';
+import { DEFAULT_GUEST_LIMITS } from './modules/auth/service.ts';
+import type { GuestLimits } from './modules/auth/service.ts';
 import { createLessonsRouter } from './modules/lessons/router.ts';
 import { createPracticeRouter } from './modules/practice/router.ts';
 import { createProgressRouter } from './modules/progress/router.ts';
@@ -27,12 +30,18 @@ export interface AppConfig {
   rateLimit: RateLimitOptions;
   /** Stricter limit per IP + email on login and register. */
   authRateLimit: RateLimitOptions;
+  /** Login attempts per IP in front of the IP+email limit (defaults to 20 per 15 minutes). */
+  loginIpRateLimit?: RateLimitOptions;
   /** Guest sign-ins per IP (defaults to 10 per hour); tests lower it. */
   guestRateLimit?: RateLimitOptions;
   /** Invite sign-up switch (INVITES_ENABLED); registration answers 403 INVITES_CLOSED while off. */
   invitesEnabled: boolean;
   /** Chat turns and glosses per learner (defaults to 10 per minute); tests lower it. */
   turnRateLimit?: RateLimitOptions;
+  /** Guest creation limits kept in the database (per hashed IP per hour, and a daily ceiling). */
+  guestLimits?: GuestLimits;
+  /** New conversations per user per UTC day (defaults 10 for a guest, 40 for a learner). */
+  conversationsPerDay?: { guest: number; learner: number };
 }
 
 export interface AppDeps {
@@ -65,6 +74,8 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
       logger,
       // Reuse the id set above instead of letting pino-http mint a second, different one.
       genReqId: (req) => req.id,
+      // pino-http would otherwise serialise errors with pino's own serializer, parameters and all.
+      serializers: { err: scrubError },
     }),
   );
   app.use(helmet());
@@ -88,6 +99,8 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
       authRateLimit: config.authRateLimit,
       invitesEnabled: config.invitesEnabled,
       guestRateLimit: config.guestRateLimit,
+      loginIpRateLimit: config.loginIpRateLimit,
+      guestLimits: config.guestLimits ?? DEFAULT_GUEST_LIMITS,
     }),
   );
 
@@ -100,6 +113,7 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
     createPracticeRouter({
       ai,
       turnRateLimit: config.turnRateLimit ?? { windowMs: 60_000, limit: 10 },
+      conversationsPerDay: config.conversationsPerDay ?? { guest: 10, learner: 40 },
     }),
   );
 

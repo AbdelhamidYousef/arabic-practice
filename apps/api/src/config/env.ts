@@ -24,6 +24,9 @@ const count = (fallback: number) => unsetIfEmpty(z.coerce.number().int().min(0).
 
 const baseSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  // Set by Vercel itself ("1") on every deployment. Read only to refuse a deployed app that is not
+  // in production mode, see the rules below.
+  VERCEL: unsetIfEmpty(z.string().optional()),
   PORT: unsetIfEmpty(z.coerce.number().int().positive().default(3002)),
   DATABASE_URL: z.url(),
   // Only the test harness needs it; optional so the dev server boots without it.
@@ -70,9 +73,24 @@ const baseSchema = z.object({
   // Daily caps count rows in `ai_calls`; the monthly budget sums their cost.
   AI_DAILY_TURNS_LEARNER: count(60),
   AI_DAILY_TURNS_GUEST: count(20),
+  // Glosses ("translate") per user per day. A gloss is a billed call but not a turn, so it is capped on its own.
+  AI_DAILY_GLOSS_LEARNER: count(60),
+  AI_DAILY_GLOSS_GUEST: count(20),
   // The free quota is per model (500 requests a day each for the Flash-Lite models); 450 leaves headroom.
   AI_DAILY_CALLS_PER_MODEL: count(450),
   AI_MONTHLY_BUDGET_USD: unsetIfEmpty(z.coerce.number().min(0).default(0)),
+
+  // New conversations per user per UTC day. Each one costs a row, and the turns it allows cost AI calls.
+  CONVERSATIONS_PER_DAY_GUEST: count(10),
+  CONVERSATIONS_PER_DAY_LEARNER: count(40),
+
+  // Guest sign-ins: a ceiling on guests created per rolling 24 hours, whatever their network.
+  GUESTS_PER_DAY: count(300),
+  // Secret pepper for the keyed hash of a guest's IP stored on its row (users.created_ip_hash).
+  // Required in production; unset elsewhere falls back to a fixed development value.
+  IP_HASH_SALT: unsetIfEmpty(
+    z.string().trim().min(16, 'must be at least 16 characters').optional(),
+  ),
 
   // Invite sign-up for real students. Production refuses `true` while AI_TIER=free.
   INVITES_ENABLED: flag('false'),
@@ -89,6 +107,11 @@ export const envSchema = baseSchema.superRefine((e, ctx) => {
     ctx.addIssue({ code: 'custom', path: [path], message });
   const production = e.NODE_ENV === 'production';
 
+  // On Vercel every production rule above must apply. A deployment whose NODE_ENV was forgotten or
+  // set to development would skip them all (fake AI, http origin, local database), so it cannot boot.
+  if (e.VERCEL !== undefined && !production) {
+    fail('NODE_ENV', 'must be "production" when running on Vercel (VERCEL is set)');
+  }
   // The Origin check (CSRF) compares against it: left at the localhost default, every browser
   // request in production would be refused, and Secure cookies need https anyway.
   if (production && !e.WEB_ORIGIN.startsWith('https://')) {
@@ -115,6 +138,10 @@ export const envSchema = baseSchema.superRefine((e, ctx) => {
       'INVITES_ENABLED',
       'cannot be true while AI_TIER=free: free-tier prompts may be used for training',
     );
+  }
+
+  if (production && e.IP_HASH_SALT === undefined) {
+    fail('IP_HASH_SALT', 'is required in production (a random string of 16+ characters)');
   }
 
   // Wherever it runs: asking for the gemini adapter without a key, and paid spend without a ceiling.

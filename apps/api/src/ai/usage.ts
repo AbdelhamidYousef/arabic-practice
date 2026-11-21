@@ -1,4 +1,5 @@
 import { ErrorCode } from '@arabic/shared';
+import { eq } from 'drizzle-orm';
 import type { Logger } from 'pino';
 
 import type { Database } from '../db/client.ts';
@@ -25,6 +26,8 @@ export interface AiCallContext {
   conversationId?: string | null;
   /** Guests get a smaller daily allowance than signed-in learners. */
   isGuest?: boolean;
+  /** Set by the budget guard, never by routes: the `pending` ledger row this call will settle. */
+  pendingId?: string;
 }
 
 /**
@@ -48,7 +51,7 @@ export interface CallRecord {
   provider: string;
   model: string;
   usage?: Usage;
-  status: 'ok' | 'error' | 'limited';
+  status: 'ok' | 'error' | 'limited' | 'pending';
   errorCode?: string;
   tier: AiTier;
   at?: Date;
@@ -70,6 +73,29 @@ export async function recordCall(db: Pick<Database, 'insert'>, r: CallRecord): P
     status: r.status,
     errorCode: r.errorCode ?? null,
   });
+}
+
+/**
+ * Turns the `pending` row written before the call into its outcome (ok/error), with tokens, latency
+ * and money. Written by id, so it is exactly one row per call whatever else happened meanwhile.
+ */
+export async function settleCall(
+  db: Pick<Database, 'update'>,
+  id: string,
+  r: Pick<CallRecord, 'usage' | 'status' | 'errorCode' | 'tier' | 'at'>,
+): Promise<void> {
+  const usage = r.usage;
+  await db
+    .update(aiCalls)
+    .set({
+      status: r.status,
+      inputTokens: usage?.inputTokens ?? 0,
+      outputTokens: usage?.outputTokens ?? 0,
+      latencyMs: usage?.latencyMs ?? 0,
+      costMicroUsd: usage ? costMicroUsd(usage, r.tier, r.at) : 0,
+      errorCode: r.errorCode ?? null,
+    })
+    .where(eq(aiCalls.id, id));
 }
 
 /** Provider error -> the API error the client sees, plus the short code stored in the ledger. */
@@ -102,7 +128,7 @@ export function describeFailure(e: unknown): { code: string; error: Error } {
 
 export interface LedgerOptions {
   provider: LlmProvider;
-  db: Pick<Database, 'insert'>;
+  db: Pick<Database, 'insert' | 'update'>;
   tier: AiTier;
   logger?: Logger;
   now?: () => Date;
@@ -117,9 +143,16 @@ export function createLedgeredGateway({
 }: LedgerOptions): LlmGateway {
   // A failed ledger write must not turn a good answer into an error for the learner: log it loudly.
   // (The cost is that a call can go uncounted; the per-model caps leave 10% headroom for that.)
-  const write = async (r: Omit<CallRecord, 'tier' | 'provider'>) => {
+  // `final` writes settle the call's own `pending` row (if the budget guard made one); the extra rows
+  // for failed attempts are always new rows.
+  const write = async (r: Omit<CallRecord, 'tier' | 'provider'>, final = false) => {
     try {
-      await recordCall(db, { ...r, provider: provider.name, tier, ...(now && { at: now() }) });
+      const at = now?.();
+      if (final && r.ctx.pendingId) {
+        await settleCall(db, r.ctx.pendingId, { ...r, tier, ...(at && { at }) });
+      } else {
+        await recordCall(db, { ...r, provider: provider.name, tier, ...(at && { at }) });
+      }
     } catch (e) {
       logger?.error(
         { err: e, purpose: r.purpose, model: r.model },
@@ -160,24 +193,30 @@ export function createLedgeredGateway({
       try {
         const result = await provider.generateJson(request);
         await settled();
-        await write({
-          ctx,
-          purpose: request.purpose,
-          model: request.model,
-          usage: result.usage,
-          status: 'ok',
-        });
+        await write(
+          {
+            ctx,
+            purpose: request.purpose,
+            model: request.model,
+            usage: result.usage,
+            status: 'ok',
+          },
+          true,
+        );
         return result;
       } catch (e) {
         await settled();
         const { code, error } = describeFailure(e);
-        await write({
-          ctx,
-          purpose: request.purpose,
-          model: request.model,
-          status: 'error',
-          errorCode: code,
-        });
+        await write(
+          {
+            ctx,
+            purpose: request.purpose,
+            model: request.model,
+            status: 'error',
+            errorCode: code,
+          },
+          true,
+        );
         throw error;
       }
     },
@@ -193,7 +232,7 @@ export function createLedgeredGateway({
       } catch (e) {
         await settled();
         const { code, error } = describeFailure(e);
-        await write({ ...base, status: 'error', errorCode: code });
+        await write({ ...base, status: 'error', errorCode: code }, true);
         throw error;
       }
 
@@ -205,7 +244,7 @@ export function createLedgeredGateway({
           while (!step.done) {
             if (step.value.type === 'done') {
               recorded = true;
-              await write({ ...base, usage: step.value.usage, status: 'ok' });
+              await write({ ...base, usage: step.value.usage, status: 'ok' }, true);
             }
             yield step.value;
             step = await iterator.next();
@@ -214,13 +253,13 @@ export function createLedgeredGateway({
           const { code, error } = describeFailure(e);
           if (!recorded) {
             recorded = true;
-            await write({ ...base, status: 'error', errorCode: code });
+            await write({ ...base, status: 'error', errorCode: code }, true);
           }
           throw error;
         } finally {
           if (!recorded) {
             // The consumer stopped early (learner left, abort): the provider call still happened.
-            await write({ ...base, status: 'error', errorCode: 'ABORTED' });
+            await write({ ...base, status: 'error', errorCode: 'ABORTED' }, true);
             await iterator.return?.();
           }
         }

@@ -7,6 +7,7 @@ import { bodyOf } from '../../test/http.ts';
 import { createSession } from '../auth/sessions.ts';
 
 import { readDailyCaps } from './caps.ts';
+import { getUsage } from './usage.service.ts';
 
 const { get } = api(makeTestApp());
 
@@ -30,6 +31,20 @@ interface UsageBody {
 
 const teacher = () => signedIn({ role: 'teacher', displayName: 'Ustadh Test' });
 const daysAgo = (n: number) => new Date(Date.now() - n * 24 * 3600 * 1000);
+
+describe('usage and pending ledger rows', () => {
+  it('leaves a running call out until it settles, and counts one older than 5 minutes as a call', async () => {
+    const t = await teacher();
+    const now = new Date('2026-11-21T12:00:00Z');
+    const at = (minutesAgo: number) => new Date(now.getTime() - minutesAgo * 60_000);
+    await createAiCall({ userId: t.user.id, status: 'ok', createdAt: at(1), inputTokens: 5 });
+    await createAiCall({ userId: t.user.id, status: 'pending', createdAt: at(1) });
+    await createAiCall({ userId: t.user.id, status: 'pending', createdAt: at(6) });
+    const usage = await getUsage(t.user, now);
+    expect(usage.days.at(-1)).toMatchObject({ date: '2026-11-21', calls: 2, inputTokens: 5 });
+    expect(usage.byPurpose.find((p) => p.purpose === 'reply')?.calls).toBe(2);
+  });
+});
 
 describe('GET /teacher/usage', () => {
   it('answers 401 to anonymous and 403 to a learner', async () => {

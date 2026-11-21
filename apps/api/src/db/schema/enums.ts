@@ -23,5 +23,7 @@ export const mistakeType = pgEnum('mistake_type', [
 export const aiPurpose = pgEnum('ai_purpose', ['correction', 'reply', 'gloss', 'eval']);
 
 // `limited` is a call we refused ourselves (a cap or the kill switch), recorded so the usage page
-// can show it; `error` is a provider failure.
-export const aiCallStatus = pgEnum('ai_call_status', ['ok', 'error', 'limited']);
+// can show it; `error` is a provider failure; `pending` is written BEFORE the provider is called (so
+// parallel calls see each other in the caps) and updated when the call ends. A pending row older than
+// 5 minutes is a call whose instance died: it still counts towards the caps and is shown as an error.
+export const aiCallStatus = pgEnum('ai_call_status', ['ok', 'error', 'limited', 'pending']);
