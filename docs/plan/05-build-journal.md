@@ -96,3 +96,10 @@ What was built per step and why, for the owner to read; three quiz questions at 
 1. Why is the request id validated before it is logged or echoed back in a response header?
 2. A hosting dashboard has `INVITES_ENABLED=true` and `AI_TIER=free` in production. What happens at boot, and which promise does that protect?
 3. Why does `/health` answer 503 for a database outage instead of 200 with `"db": "down"`, and why is it exempt from the rate limit?
+
+## Phase 4 — Auth
+
+- **4.1 Sessions and passwords.** `sid` cookie holds 32 random bytes, the database stores their SHA-256, expiry slides
+  to 30 days at most once a day, `last_seen_at` moves at most once an hour. `requireUser`, `requireRole`,
+  `forbidReadOnly` (403 `DEMO_READ_ONLY`) are exported for later phases. Learn: a sliding session that
+  writes on every request turns every page view into an UPDATE; compare timestamps first and write only when due.

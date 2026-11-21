@@ -19,6 +19,8 @@ export function bootstrap() {
       nodeEnv: env.NODE_ENV,
       webOrigin: env.WEB_ORIGIN,
       rateLimit: { windowMs: env.RATE_LIMIT_WINDOW_MS, limit: env.RATE_LIMIT_MAX },
+      authRateLimit: { windowMs: env.RATE_LIMIT_AUTH_WINDOW_MS, limit: env.RATE_LIMIT_AUTH_MAX },
+      invitesEnabled: env.INVITES_ENABLED,
     },
   });
   return { app, logger };
