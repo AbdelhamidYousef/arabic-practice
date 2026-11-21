@@ -19,3 +19,6 @@ test-results/
 
 # Untracked working notes (learnings, job briefs, screenshots)
 work/
+
+# Agent worktrees and local Claude state
+.claude/
