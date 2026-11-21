@@ -149,6 +149,33 @@ export const en = {
 
   'nav.signOut': 'Sign out',
 
+  'mistake.type.grammar': 'Grammar',
+  'mistake.type.vocabulary': 'Vocabulary',
+  'mistake.type.harakat': 'Short vowels',
+  'mistake.type.spelling': 'Spelling',
+  'mistake.type.word_order': 'Word order',
+  'mistake.type.register': 'Register',
+
+  'progress.lead': 'What you have practised and where the corrections cluster.',
+  'progress.empty.title': 'Nothing to show yet',
+  'progress.empty.body':
+    'Your progress appears here after your first practice conversation. Pick a lesson and write a few sentences.',
+  'progress.empty.action': 'Choose a lesson',
+  'progress.stat.conversations': {
+    zero: 'conversations',
+    one: 'conversation',
+    other: 'conversations',
+  },
+  'progress.stat.turns': { zero: 'turns', one: 'turn', other: 'turns' },
+  'progress.stat.mistakes': { zero: 'corrections', one: 'correction', other: 'corrections' },
+  'progress.byType': 'Corrections by type',
+  'progress.noMistakes': 'No corrections yet. Nicely done.',
+  'progress.weeks': 'Corrections per turn, by week',
+  'progress.weeks.hint': 'The last 8 weeks, the current week on the right. Lower is better.',
+  'progress.week.title': 'Week of {week}: {mistakes} corrections in {turns} turns',
+  'progress.recent': 'Recent corrections',
+  'progress.becomes': 'corrected to',
+
   'readOnly.banner': 'Demo teacher view — changes are switched off.',
   'readOnly.hint': 'Changes are switched off in the demo teacher view.',
   'readOnly.error': 'Changes are switched off in the demo teacher view, so nothing was saved.',
