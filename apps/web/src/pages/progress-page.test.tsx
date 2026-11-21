@@ -42,6 +42,10 @@ describe('progress page', () => {
     expect(screen.getByTestId('bar-grammar')).toHaveStyle({ width: '100%' });
     expect(screen.getByTestId('bar-harakat')).toHaveStyle({ width: '50%' });
     expect(within(screen.getByTestId('weeks')).getAllByRole('listitem')).toHaveLength(8);
+    // Week labels are short (two stacked lines) with the full date for screen readers.
+    const firstWeek = within(screen.getByTestId('weeks')).getAllByRole('listitem')[0]!;
+    expect(firstWeek).toHaveTextContent('Jan 1');
+    expect(within(firstWeek).getByText('Jan', { selector: '[aria-hidden] span' })).toBeVisible();
     expect(screen.getByText('ذهبت إلى المدرسةُ')).toHaveAttribute('lang', 'ar');
     expect(screen.getByText('ذهبت إلى المدرسةِ')).toBeVisible();
     expect(screen.getByText(/After a preposition/)).toBeVisible();

@@ -10,7 +10,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { MistakeBars, RecentMistakes } from '../features/progress/MistakeViews';
 import { useProgress } from '../features/progress/queries';
 import { useT } from '../i18n';
-import { formatDay, formatNumber } from '../lib/format';
+import { formatDay, formatDayNumber, formatMonthShort, formatNumber } from '../lib/format';
 
 export default function ProgressPage() {
   const { t } = useT();
@@ -107,8 +107,15 @@ function ProgressView({ data }: { data: ProgressResponse }) {
                       }}
                     />
                   </span>
-                  <span className="max-w-full truncate text-[0.7rem] text-muted">
-                    {formatDay(w.weekStart)}
+                  {/* Two short lines ("12" over "Oct") fit a column at 320 px; the full date is for
+                      screen readers (and the hover title on the item). */}
+                  <span className="sr-only">{formatDay(w.weekStart)}</span>
+                  <span
+                    aria-hidden="true"
+                    className="flex flex-col items-center text-[0.7rem] leading-tight text-muted"
+                  >
+                    <span>{formatDayNumber(w.weekStart)}</span>
+                    <span>{formatMonthShort(w.weekStart)}</span>
                   </span>
                 </li>
               ))}
