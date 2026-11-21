@@ -1,0 +1,10 @@
+// Adds DOM matchers such as toBeInTheDocument() to Vitest's expect.
+import '@testing-library/jest-dom/vitest';
+import { cleanup } from '@testing-library/react';
+import { afterEach, vi } from 'vitest';
+
+// Vitest globals are off, so Testing Library cannot register its own cleanup; do it here.
+afterEach(() => {
+  cleanup();
+  vi.unstubAllGlobals();
+});
