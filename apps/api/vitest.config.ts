@@ -1,7 +1,9 @@
-import { defineConfig } from 'vitest/config';
+import { configDefaults, defineConfig } from 'vitest/config';
 
 export default defineConfig({
   test: {
+    // Live tests call the real provider; they run only through `pnpm test:live` (vitest.live.config.ts).
+    exclude: [...configDefaults.exclude, '**/*.live.test.ts'],
     // Migrates the test database once before anything runs.
     globalSetup: ['./src/test/global-setup.ts'],
     // Empties the tables that hold rows before every test, in every file.

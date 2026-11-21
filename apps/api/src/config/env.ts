@@ -61,13 +61,14 @@ const baseSchema = z.object({
   AI_TIER: unsetIfEmpty(z.enum(['free', 'paid']).default('free')),
   // Kill switch: false makes every AI call answer AI_DISABLED without touching the provider.
   AI_ENABLED: flag('true'),
-  AI_MODEL_CORRECTION: unsetIfEmpty(z.string().trim().min(1).default('gemini-2.5-flash')),
-  AI_MODEL_REPLY: unsetIfEmpty(z.string().trim().min(1).default('gemini-2.5-flash')),
-  AI_MODEL_GLOSS: unsetIfEmpty(z.string().trim().min(1).default('gemini-2.5-flash-lite')),
+  AI_MODEL_CORRECTION: unsetIfEmpty(z.string().trim().min(1).default('gemini-3.5-flash-lite')),
+  AI_MODEL_REPLY: unsetIfEmpty(z.string().trim().min(1).default('gemini-3.1-flash-lite')),
+  AI_MODEL_GLOSS: unsetIfEmpty(z.string().trim().min(1).default('gemini-3.1-flash-lite')),
   // Daily caps count rows in `ai_calls`; the monthly budget sums their cost.
   AI_DAILY_TURNS_LEARNER: count(60),
   AI_DAILY_TURNS_GUEST: count(20),
-  AI_DAILY_CALLS_GLOBAL: count(400),
+  // The free quota is per model (500 requests a day each for the Flash-Lite models); 450 leaves headroom.
+  AI_DAILY_CALLS_PER_MODEL: count(450),
   AI_MONTHLY_BUDGET_USD: unsetIfEmpty(z.coerce.number().min(0).default(0)),
 
   // Invite sign-up for real students. Production refuses `true` while AI_TIER=free.
