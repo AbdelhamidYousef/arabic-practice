@@ -160,3 +160,22 @@ What was built per step and why, for the owner to read; three quiz questions at 
 1. Why is the contrast test fed by `tokens.css` itself rather than a copy of the colours inside the test?
 2. A network chunk ends between the `\r` and `\n` of a line ending. What does `readSse` do, and why?
 3. Why does a 401 from `/auth/me` become `null` while a 401 from any other call, for a signed-in person, clears the caches?
+
+## Phase 8 (lane learner-ui: steps 8.1, 8.2, 8.4)
+
+### 8.1 Landing, login, invite registration
+What/why: landing with the pitch, an illustrated example turn built from the real components (Badge, Card, ArabicText) and three actions; login and register forms validated with the shared Zod schemas before any request. Signed-in visitors skip the landing.
+Learn: validating in the browser with the same schema the server uses gives instant feedback and can never disagree about the rules.
+
+### 8.2 Lessons
+What/why: list grouped by level, lesson page with a harakat toggle that only changes how `ArabicText` renders (`hideHarakat`), and a start button that creates the conversation then navigates. `LoadState` is the one place for loading, error and 401 handling.
+Learn: a card that is one big click target is a normal link whose `::after` covers the card, so it stays a real link for keyboards and screen readers.
+
+### 8.4 Arabic keyboard
+What/why: a standalone component that types into any field ref, not wired to a chat yet. Every key is a button; marks are named by English labels.
+Learn: setting a field's value from code does not tell React; writing with `setRangeText` and firing an `input` event does, so the controlled state stays in sync.
+
+### Quiz (phase 8, steps 8.1-8.4 so far)
+1. Why does the keyboard dispatch an `input` event after changing the textarea?
+2. Why does the register page call the invite lookup before showing the form?
+3. What stops a keyboard key press from taking focus away from the textarea on a phone?
