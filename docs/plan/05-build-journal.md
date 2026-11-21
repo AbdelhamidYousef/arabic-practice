@@ -173,3 +173,8 @@ What was built per step and why, for the owner to read; three quiz questions at 
 1. Why does the progress endpoint fill empty weeks on the server instead of returning only weeks with data?
 2. A learner double-taps "I knew it" on one card. What stops the card from skipping a box, and where is it in the code?
 3. Why is the new due date based on the new box and not the old one?
+
+## Phase 10 — Teacher API (lane api2)
+- **10.1 Teacher lessons API.** CRUD with the whole lesson as one body; the vocab list is rewritten inside the
+  lesson's transaction, `arabic_plain` is computed in code, the slug is derived once and made unique by the index
+  with a retry. Learn: "check then insert" for a unique name is a race; let the unique index decide and retry the loser.

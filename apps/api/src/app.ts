@@ -16,6 +16,7 @@ import { createAuthRouter } from './modules/auth/router.ts';
 import { createLessonsRouter } from './modules/lessons/router.ts';
 import { createProgressRouter } from './modules/progress/router.ts';
 import { createReviewRouter } from './modules/review/router.ts';
+import { createTeacherRouter } from './modules/teacher/router.ts';
 
 export interface AppConfig {
   nodeEnv: 'development' | 'test' | 'production';
@@ -89,6 +90,7 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
   app.use('/api/v1', createLessonsRouter());
   app.use('/api/v1', createProgressRouter());
   app.use('/api/v1', createReviewRouter());
+  app.use('/api/v1', createTeacherRouter());
 
   // Order matters: unknown routes first, then the error handler that catches everything above.
   app.use(notFoundHandler);
