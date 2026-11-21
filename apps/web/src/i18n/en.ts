@@ -77,12 +77,12 @@ export const en = {
   'register.toStart': 'Go to the start page',
 
   'lessons.lead': 'Pick a lesson and practise it as a conversation.',
+  'load.error': 'We could not load this page. Check your connection and try again.',
+  'load.retry': 'Try again',
+
   'lessons.level': 'Level {level}',
   'lessons.empty.title': 'No lessons yet',
   'lessons.empty.body': 'Your teacher has not published a lesson yet. Check back soon.',
-  'lessons.loading': 'Loading lessons',
-  'lessons.error': 'We could not load the lessons.',
-  'lessons.retry': 'Try again',
   'lessons.practised': {
     zero: 'Not practised yet',
     one: 'Practised {count} time',
@@ -135,7 +135,6 @@ export const en = {
   'page.login': 'Sign in',
   'page.register': 'Create your account',
   'page.lessons': 'Lessons',
-  'page.lesson': 'Lesson',
   'page.practice': 'Practice',
   'page.progress': 'Your progress',
   'page.review': 'Review',
