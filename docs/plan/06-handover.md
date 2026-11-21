@@ -2,43 +2,72 @@
 
 Written by the build sessions for the owner and the next session. Newest state first.
 
-## Current state
-- 2026-11-21: plan written (00–03, phases 0–13).
-- 2026-11-21: **phase 0 done** (bootstrap). Gates green: typecheck, lint, format; tests shared 4,
-  api 2, web 2. Postgres runs from `docker compose up -d` on 127.0.0.1:5434. Nothing pushed.
+## Final state (2026-11-21, end of the unattended build)
 
-- 2026-11-21: **phase 1 done** (database). Migrations 0000 to 0003 (11 tables), test harness (DELETE in FK
-  order, ~ms per test), seed (12 lessons, 134 vocab items, 4 made-up learners, 8 conversations). Gates green:
-  typecheck, lint, format; tests shared 40, api 103, web 2. `pnpm db:reset` rebuilds the local database in
-  about a second. Nothing pushed.
+**Live:** https://arabic-practice-phi.vercel.app · **Repo:** https://github.com/AbdelhamidYousef/arabic-practice (public)
 
-- 2026-11-21: **phase 2 done** (API foundation). `createApp({ config, db, logger, ai })`, error envelope,
-  request ids and redacting logger, helmet, 16 kB JSON limit, Origin check, rate limits, health with a DB
-  ping and the AI status, production env rules (each tested). Gates green: typecheck, lint, format; tests
-  shared 40, api 175, web 2. Phases 0 to 2 built; nothing pushed; Postgres container left running on 5434.
+- **All phases 0–13 built**, merged to `main`, pushed. CI green on GitHub: typecheck, lint, format,
+  tests, Playwright e2e and the gitleaks scan.
+- **Tests:** shared 54, API 535, web 221, e2e 13 specs (about 15 s, fake AI provider, overflow checked at
+  390 and 1280 px on every route).
+- **Live check:** a guest practised a lesson in a real browser on the production URL. The real Gemini
+  turn finished in 4.3 s, the reply streamed in, the correction found both missing hamzas, no overflow at
+  390 or 1280 px. A streamed turn over curl showed the first words at about 1.1 s.
+- **Evals** (`apps/api/evals/reports/`, gemini-3.1-flash-lite, 41 correction and 10 reply cases):
+  - corrections: right verdicts 95% → 100%, false alarms 7% → 0%, type recall 89% → 96%;
+  - replies within the level rules: 80% → 100%.
 
-- 2026-11-21: **pushed** to https://github.com/AbdelhamidYousef/arabic-practice (public); CI green (check,
-  test, gitleaks). Gemini key on his personal Google (AI Studio project `arabic-practice`, free tier); Neon
-  project `arabic-practice` (`super-violet-75591213`, Frankfurt). Keys and URLs live only in `.env` and the
-  untracked `work/` folder. Eval case set written (41 corrections, 10 replies).
-- 2026-11-21: **wave 1 running** in three worktrees: lane `ai` (phase 3 + 5.1/5.3/5.4), lane `auth`
-  (phase 4 + 5.2), lane `web` (phase 7). Merge order ai, auth, web.
+  The prompts were tuned on these same cases, so these numbers are optimistic; a held-out set is next.
+- **Security:** an independent review found one high issue: any visitor could read guests' chats
+  through the demo teacher. It was fixed, pushed and verified live within the hour. The medium and low
+  findings are fixed too:
+  - quota abuse across serverless instances
+  - in-flight calls counted against the caps
+  - an IP limit on login
+  - personal data scrubbed from database error logs
+  - CSP and other security headers
+  - a read-only review POST
+  - a cached health probe
 
-- 2026-11-21: **wave 2 merged**: practice turn stream (phase 6), progress/review/teacher APIs (9.1, 9.3,
-  10.1, 10.2), evals (phase 11, 3 reports), chat UI (8.3 + keyboard), learner and teacher screens (9.2, 9.4,
-  10.3, 10.4), API polish (503 retry, one turn at a time per conversation, tighter A1/A2 reply prompt,
-  correction typing). Gates green: shared 54, api 497, web 220. Migration 0004 applied on Neon.
-- 2026-11-21: **live** at https://arabic-practice-phi.vercel.app (Vercel project `arabic-practice`, team
-  abdelhamedy33-7672, region fra1; `arabic-practice.vercel.app` belongs to someone else). A real guest turn
-  streamed through the Vercel Function: first words 1.07 s, correction 2.6 s. Vercel's GitHub app now has
-  access to this repo (pushes to main deploy). Vercel asked for 2FA setup: postponed with "remind me in 1 day".
-- Evals (gemini-3.1-flash-lite, 41 correction + 10 reply cases): corrections 100% right verdicts, 0 false
-  alarms, type recall 96%; replies 100% within level after the prompt fix (from 80%). Reports in
-  `apps/api/evals/reports/`.
+### Where things live
+- **Vercel:** project `arabic-practice`, team abdelhamedy33-7672, function region fra1; pushes to
+  `main` deploy. Env vars:
+  - `DATABASE_URL` (Neon pooled)
+  - `WEB_ORIGIN`
+  - `GEMINI_API_KEY`
+  - `AI_TIER=free`
+  - `LOG_LEVEL`
+  - `IP_HASH_SALT`
+
+  The rest use the code defaults (see `.env.example`).
+- **Neon:** project `arabic-practice` (`super-violet-75591213`, Frankfurt), migrations 0000–0006 applied,
+  seeded. Migrate from a shell with the direct URL **before** pushing code that needs a new migration.
+- **Gemini:** AI Studio project `arabic-practice` on his personal Google account, free tier, no billing.
+  Free limits read 2026-11-21: Flash-Lite 3.1 and 3.5 have 15 requests a minute and 500 a day each;
+  Flash has 5 a minute and 20 a day.
+- **Secrets:** they live only in Vercel, the local `.env` and the untracked `work/` folder
+  (`work/.gemini-key.txt`, `work/.neon.json`). They were never typed into chat or committed.
+
+### Known gaps (small, not blocking)
+- Missing final-letter harakat on replies isn't fully solved; the harakat ratio stays around 0.80.
+- `diffWords` doesn't highlight a change that is only hamza, ta marbuta or harakat, because it matches
+  after normalising. The mistakes list still names those fixes.
+- On phones, a lesson with many vocab items (40+) makes the editor and the lesson page long.
+- Not tested: iOS Safari with the on-screen phone keyboard, and a real screen reader.
+- The web has no dedicated message for the new `CONVERSATION_LIMIT` and `GUEST_LIMIT` errors; it shows
+  the generic error.
 
 ## Waiting on you
-- Read the Arabic in the seed (`apps/api/src/db/seed/lessons.ts` and `conversations.ts`): written by the build session, structurally checked, not proven correct.
-- The seed opening lines address the learner in the masculine (مَا اسْمُكَ). Fine for a demo; say if you want a neutral or feminine variant.
-- Read the eval cases (`apps/api/evals/cases.json`, one per line): the expected corrections are the session's judgement.
-- Vercel wants 2FA on your account (it asked during the deploy; I chose "remind me in 1 day"). Your call.
-- The free tier now runs correction and reply on one model (gemini-3.1-flash-lite: fewer 503s, same quality), so about 225 practice turns a day in total. Set `AI_MODEL_CORRECTION=gemini-3.5-flash-lite` in Vercel to double that, at the cost of occasional "busy" retries.
+- **Read the Arabic:** the 12 seed lessons (`apps/api/src/db/seed/lessons.ts`), the made-up demo chats
+  (`conversations.ts`) and the eval cases (`apps/api/evals/cases.json`, one per line). The opening lines
+  address the learner in the masculine (مَا اسْمُكَ).
+- **The decision index** at the top of `04-decisions-log.md`: ten items marked for your review.
+- **Vercel 2FA:** Vercel asked you to set up two-factor authentication during the deploy. I chose
+  "remind me in 1 day".
+- **Learnings:** the new entries for `work/learnings.md` are proposed in the session's final message
+  and not written yet (they need your OK).
+- **Real students** need a paid tier (your OK, a card, a spending cap). Then set `AI_TIER=paid`,
+  `AI_MONTHLY_BUDGET_USD` and `INVITES_ENABLED=true`. You also need a teacher login of your own:
+  production has only the read-only demo teacher, and a small "create teacher" script is not written
+  yet. It's the first step of that phase.
+- **Screen-reader pass and a native read of the UI copy:** yours, as on Pawsome.

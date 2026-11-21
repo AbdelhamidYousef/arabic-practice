@@ -5,7 +5,26 @@ Format: date · decision · why · alternatives rejected · revisit when. Groupe
 decisions that you need and mark them for my revision"). OWNER = his own call.
 
 ## Index: still needs his eye
-- Planning: teacher side in v1, demo without open sign-up, invites locked to the paid tier, scope.
+
+About 180 REVIEW lines below, grouped by phase. These are the ones worth your time first (taste,
+teaching content, privacy, money); the rest are technical and covered by tests.
+
+1. **Product shape** (Planning): teacher side in v1; the public demo is an anonymous guest learner plus
+   a read-only demo teacher, no open sign-up; invite sign-up cannot be switched on while `AI_TIER=free`.
+2. **Teaching content** (Phase 1, Phase 11): the 12 seed lessons and 134 vocab items, and the 41 eval
+   cases with their expected corrections. Written by the session; a native teacher's read is needed.
+3. **Models** (Phase 3, Phase 11): correction, reply and gloss all on `gemini-3.1-flash-lite` (quality
+   tied with 3.5-flash-lite, faster, no "high demand" errors), which means about 225 turns a day for the
+   whole demo. Split them again with `AI_MODEL_CORRECTION=gemini-3.5-flash-lite` for ~450.
+4. **Demo limits** (Phase 3, Phase 12 security hardening): guests get 20 turns, 20 translations and 10
+   new conversations a day; 10 new guests per network per hour; 300 guests a day site-wide.
+5. **Guest retention** (Phase 4): guests and their chats are deleted 7 days after their last visit.
+6. **Teacher lesson rules** (Phase 10): deleting a lesson learners have practised is refused (409); saving
+   a lesson replaces its vocabulary, which resets learners' flashcards for it.
+7. **Failed replies** (UI polish): a turn whose reply failed stays in the history, muted, "Not answered".
+8. **Look** (Phase 7): sand background, deep teal, amber for corrections; Inter + Noto Naskh Arabic.
+9. **Public URL** (Phase 13): `arabic-practice-phi.vercel.app`; a custom domain costs money, your call.
+10. **Security review** (Phase 12): the guest-privacy bug it found, fixed within the hour (see there).
 
 ## Planning
 - 2026-11-21 · OWNER · LLM: Gemini free tier first, behind one provider interface; paid only on his OK with a hard cap.

@@ -345,3 +345,31 @@ Learn: setting a field's value from code does not tell React; writing with `setR
 1. Two parallel requests each see 9 conversations used of 10. Which two things stop both from creating the tenth, and which of the two protects the AI calls?
 2. Why is a plain SHA-256 of an IPv4 address nearly as bad as storing the address, and what does the key change?
 3. Why does the migration that adds `pending` not also use it, and what would happen if it did?
+
+## Phase 13: deploy and README (lead session)
+
+### 13.1–13.4: GitHub, Gemini key, Neon, Vercel, live check
+The repo went public early (after phase 2) and Vercel was set up before the features were finished, so
+the riskiest platform question was answered while there was time to react: does a Server-Sent Events
+stream survive a Vercel Function? It does. A real turn on production sent the first words after about
+1.1 s and the correction at 2.6 s, event by event. Three surprises:
+- `arabic-practice.vercel.app` belongs to someone else, so Vercel named ours `arabic-practice-phi`. The
+  first `WEB_ORIGIN` was wrong, and the Origin check would have refused every sign-in. Checking the real
+  alias, then fixing one env var, solved it.
+- Vercel's GitHub app could only see Pawsome's repo. Adding this one needed GitHub's "sudo mode", which is
+  an emailed code.
+- The Gemini free tier is counted **per model**: Flash allows 20 calls a day, which is useless for an app,
+  while each Flash-Lite model allows 500.
+
+Learn: deploy the empty app early. The bugs a platform causes (domains, origins, streaming, secrets)
+don't depend on features, and they're cheaper to find before there are any.
+
+### 13.5: README
+The README is the case study: the problem, the level-control approach, the evals with an honest caveat
+(the prompts were tuned on the same cases), cost numbers, privacy rules, architecture and setup.
+
+### Quiz: Phase 13
+1. Why did the first deploy answer every sign-in with 403, although the health check was green?
+2. The free tier allows 500 calls a day per Flash-Lite model. Why does running correction and reply on
+   one model halve the number of practice turns a day, and what is the trade-off for splitting them?
+3. Why must a migration run on Neon before the push that needs it, and with which of the two URLs?
