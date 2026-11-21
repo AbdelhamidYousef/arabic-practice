@@ -17,7 +17,7 @@ const learner = {
   readOnly: false,
   email: null,
 };
-const teacher = { ...learner, id: 't1', displayName: 'Omar', role: 'teacher', level: null };
+const teacher = { ...learner, id: 't1', displayName: 'Omar', role: 'teacher', level: 'A1' };
 
 type Who = typeof learner | typeof teacher | null;
 
