@@ -17,6 +17,9 @@ export const keys = {
   health: ['health'] as const,
   // True once a request came back 401 while the page believed someone was signed in.
   sessionExpired: ['session-expired'] as const,
+  lessons: ['lessons'] as const,
+  lesson: (slug: string) => ['lessons', slug] as const,
+  invite: (code: string) => ['invite', code] as const,
 };
 
 // A 401 for someone the page believes is signed in means the session ended behind its back (it

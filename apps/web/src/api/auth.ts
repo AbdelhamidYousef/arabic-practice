@@ -1,4 +1,11 @@
-import { UserResponseSchema, type User } from '@arabic/shared';
+import {
+  InviteInfoSchema,
+  UserResponseSchema,
+  type InviteInfo,
+  type LoginInput,
+  type RegisterInput,
+  type User,
+} from '@arabic/shared';
 
 import { ApiError, apiFetch } from './client';
 
@@ -17,4 +24,44 @@ export async function fetchMe(signal?: AbortSignal): Promise<User | null> {
     if (error instanceof ApiError && error.status === 401) return null;
     throw error;
   }
+}
+
+export type { InviteInfo, LoginInput, RegisterInput } from '@arabic/shared';
+
+export async function login(input: LoginInput): Promise<User> {
+  const res = await apiFetch('/auth/login', {
+    method: 'POST',
+    body: input,
+    schema: UserResponseSchema,
+  });
+  return res.user;
+}
+
+export async function startGuest(): Promise<User> {
+  const res = await apiFetch('/auth/guest', { method: 'POST', schema: UserResponseSchema });
+  return res.user;
+}
+
+export async function startDemoTeacher(): Promise<User> {
+  const res = await apiFetch('/auth/demo-teacher', {
+    method: 'POST',
+    schema: UserResponseSchema,
+  });
+  return res.user;
+}
+
+export function fetchInvite(code: string, signal?: AbortSignal): Promise<InviteInfo> {
+  return apiFetch(`/auth/invites/${encodeURIComponent(code)}`, {
+    schema: InviteInfoSchema,
+    ...(signal && { signal }),
+  });
+}
+
+export async function register(input: RegisterInput): Promise<User> {
+  const res = await apiFetch('/auth/register', {
+    method: 'POST',
+    body: input,
+    schema: UserResponseSchema,
+  });
+  return res.user;
 }
