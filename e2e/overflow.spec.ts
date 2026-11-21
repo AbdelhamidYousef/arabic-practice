@@ -78,6 +78,12 @@ for (const width of WIDTHS) {
       for (const path of [
         '/lessons',
         '/lessons/greetings',
+        // A course lesson: the hub and every step of the player.
+        '/lessons/a1-greetings',
+        ...['words', 'practice', 'grammar', 'culture', 'talk', 'done'].map(
+          (step) => `/lessons/a1-greetings/learn/${step}`,
+        ),
+        '/lessons/a0-letters-alif-ba/learn/grammar',
         conversationPath,
         '/progress',
         '/review',

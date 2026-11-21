@@ -73,6 +73,8 @@ export const ExerciseSchema = z.discriminatedUnion('type', [
 ]);
 export type Exercise = z.infer<typeof ExerciseSchema>;
 export const EXERCISE_TYPES = ['choose', 'match', 'build', 'gap', 'listen'] as const;
+export const exerciseTypeSchema = z.enum(EXERCISE_TYPES);
+export type ExerciseType = z.infer<typeof exerciseTypeSchema>;
 
 export const GrammarBlockSchema = z.discriminatedUnion('type', [
   z.object({ type: z.literal('p'), text: z.string().min(1) }),

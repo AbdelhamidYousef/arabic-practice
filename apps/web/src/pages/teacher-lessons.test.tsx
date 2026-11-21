@@ -91,10 +91,11 @@ const lessonDetail = {
     position: 1,
     updatedAt: '2026-11-20T00:00:00.000Z',
     vocab: [
-      { id: 'a', arabic: 'قَهْوَة', english: 'coffee', note: null, position: 0 },
-      { id: 'b', arabic: 'شَاي', english: 'tea', note: 'hot', position: 1 },
-      { id: 'c', arabic: 'مَاء', english: 'water', note: null, position: 2 },
+      { id: 'a', arabic: 'قَهْوَة', translit: '', english: 'coffee', note: null, position: 0 },
+      { id: 'b', arabic: 'شَاي', translit: '', english: 'tea', note: 'hot', position: 1 },
+      { id: 'c', arabic: 'مَاء', translit: '', english: 'water', note: null, position: 2 },
     ],
+    course: { unit: null, kind: 'lesson', exercises: [], grammarBlocks: 0, cultureTitle: null },
   },
 };
 
@@ -279,5 +280,52 @@ describe('lesson editor', () => {
     });
     renderAt(`/teacher/lessons/${LESSON_ID}`);
     expect(await screen.findByRole('button', { name: en['load.retry'] })).toBeVisible();
+  });
+});
+
+describe('lesson editor: course content', () => {
+  const courseLessonDetail = {
+    lesson: {
+      ...lessonDetail.lesson,
+      vocab: [{ ...lessonDetail.lesson.vocab[0], translit: 'qahwa' }],
+      course: {
+        unit: { code: 'A1.1', title: 'Hello and who you are' },
+        kind: 'lesson',
+        exercises: [
+          { type: 'choose', count: 3 },
+          { type: 'match', count: 1 },
+        ],
+        grammarBlocks: 4,
+        cultureTitle: 'Greetings of light',
+      },
+    },
+  };
+
+  it('shows the course parts read-only: unit, exercises by type, grammar, culture, transliteration', async () => {
+    stubApi({
+      ...asTeacher,
+      [`GET /teacher/lessons/${LESSON_ID}`]: () => Response.json(courseLessonDetail),
+    });
+    renderAt(`/teacher/lessons/${LESSON_ID}`);
+    const section = within(await screen.findByRole('region', { name: en['tcourse.title'] }));
+    expect(section.getByText('Unit A1.1 · Hello and who you are')).toBeVisible();
+    expect(section.getByText(en['tcourse.fromFiles'])).toBeVisible();
+    expect(section.getByText('4 exercises')).toBeVisible();
+    expect(section.getByText('Choose × 3')).toBeVisible();
+    expect(section.getByText('Match × 1')).toBeVisible();
+    expect(section.getByText('4 blocks')).toBeVisible();
+    expect(section.getByText('Greetings of light')).toBeVisible();
+    expect(section.getByRole('columnheader', { name: en['tcourse.translit'] })).toBeVisible();
+    expect(section.getByText('qahwa')).toBeVisible();
+  });
+
+  it('shows nothing extra for a teacher-made lesson', async () => {
+    stubApi({
+      ...asTeacher,
+      [`GET /teacher/lessons/${LESSON_ID}`]: () => Response.json(lessonDetail),
+    });
+    renderAt(`/teacher/lessons/${LESSON_ID}`);
+    await screen.findByRole('heading', { level: 1, name: en['page.teacherLesson'] });
+    expect(screen.queryByRole('region', { name: en['tcourse.title'] })).not.toBeInTheDocument();
   });
 });

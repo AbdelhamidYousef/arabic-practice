@@ -577,5 +577,32 @@ export const en = {
   'finish.next': 'Next lesson',
   'finish.toCourse': 'Back to the course',
 
+  'tcourse.title': 'Course content',
+  'tcourse.unit': 'Unit {code} · {title}',
+  'tcourse.fromFiles':
+    'This is a course lesson. Its words, exercises, grammar and culture come from the course files, so changes made in this form are replaced the next time the course is loaded.',
+  'tcourse.exercises': {
+    zero: 'No exercises',
+    one: '{count} exercise',
+    other: '{count} exercises',
+  },
+  'tcourse.byType': 'Exercises by type',
+  'tcourse.type': '{type} × {count}',
+  'tcourse.grammarBlocks': { zero: 'None', one: '{count} block', other: '{count} blocks' },
+  'tcourse.none': 'None',
+  'tcourse.words': 'Words with transliteration',
+  'tcourse.translit': 'Transliteration',
+  'exercise.type.choose': 'Choose',
+  'exercise.type.match': 'Match',
+  'exercise.type.build': 'Build',
+  'exercise.type.gap': 'Gap',
+  'exercise.type.listen': 'Listen',
+
+  'progress.course': 'Lessons',
+  'progress.stat.xpTotal': 'XP in total',
+  'progress.levels': 'Lessons done per level',
+  'progress.levelDone': '{done} of {total}',
+  'progress.levelName': '{level} · {name}',
+
   'count.lessons': { zero: 'No lessons yet', one: '{count} lesson', other: '{count} lessons' },
 } as const;

@@ -416,3 +416,43 @@ the seed idempotent in the way the data demands (words keep their ids because re
    what could someone do if it accepted any date?
 3. Why does the seed upsert a lesson's words by their plain form but delete and re-insert its exercises?
 
+
+## Phase 17: lesson player and course path
+
+### 17.1: the course path
+`/lessons` is now the course: stats, level tabs, units and lessons with their state. The API was asked
+for two more fields (`steps`, `finished`) instead of guessing in the browser whether a lesson has a
+grammar note. Learn: when the UI needs a rule the server already applies (what "finished" means), send
+the answer, not the ingredients; two copies of a rule drift apart.
+
+### 17.2: the hub and the words step
+A course lesson's page lists its steps; the player is one route with the step in the URL, so the
+browser's back button and a reload both work, and the component stays mounted between steps (XP adds
+up for the finish screen). The flashcard is a real button with a live region for the back side.
+Learn: a route `handle` lets the layout react to the page (here: no header in the player) without the
+page reaching up into the layout.
+
+### 17.3: the exercise player
+Five exercise types share a small vocabulary: a fieldset of radios (choose, listen, gap), tiles
+(build), pairs (match), and one feedback line. Options are shuffled with a seeded generator, and the
+answer is compared by index into the original list. Learn: randomness in a UI should be a function
+of a seed, or re-renders reshuffle under the learner's finger and tests cannot predict anything.
+
+### 17.4: grammar, culture, talk and finish
+Mixed English and Arabic text is split into runs, each Arabic run getting lang/dir and the Arabic font.
+The talk step is recorded from the chat after the first finished reply. While checking the pages in a
+browser, every `Card className="p-5"` turned out to be 24 px: `cn` joins classes and Tailwind's CSS
+order decides, so `p-6` always won. Learn: class order in the attribute means nothing; the stylesheet
+order does. Measure computed styles when a spacing looks off.
+
+### 17.5: progress and the teacher view
+The progress page puts streak, XP and lessons per level above the conversation stats; the teacher
+lesson page shows the course parts read-only with a note that the content files win.
+Learn: a read-only view of data another system owns should say who owns it.
+
+### Quiz: Phase 17
+1. Why does the exercise player compare the learner's pick by its index into the original `options`
+   array, and what would break if it compared positions on screen instead?
+2. The words step lets Space flip the card from anywhere on the page instead of focusing the card
+   after each navigation. What in the layout made autofocus unreliable?
+3. Why is `finished` computed by the API and not in the browser from `stepsDone`?

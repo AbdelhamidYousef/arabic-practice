@@ -1,6 +1,7 @@
 import { z } from 'zod';
 
 import { cefrLevelSchema } from '../cefr.ts';
+import { exerciseTypeSchema, lessonKindSchema } from '../course.ts';
 
 export const lessonStatusSchema = z.enum(['draft', 'published']);
 export type LessonStatus = z.infer<typeof lessonStatusSchema>;
@@ -76,11 +77,22 @@ export const TeacherLessonDetailSchema = z.object({
     z.object({
       id: z.string(),
       arabic: z.string(),
+      // Empty for teacher-made words (the form has no transliteration field).
+      translit: z.string(),
       english: z.string(),
       note: z.string().nullable(),
       position: z.number().int(),
     }),
   ),
+  // The course parts, read-only here: course lessons come from content files (the seed overwrites
+  // edits), teacher-made lessons have none of them.
+  course: z.object({
+    unit: z.object({ code: z.string(), title: z.string() }).nullable(),
+    kind: lessonKindSchema,
+    exercises: z.array(z.object({ type: exerciseTypeSchema, count: z.number().int().positive() })),
+    grammarBlocks: z.number().int().nonnegative(),
+    cultureTitle: z.string().nullable(),
+  }),
 });
 export type TeacherLessonDetail = z.infer<typeof TeacherLessonDetailSchema>;
 

@@ -9,7 +9,9 @@ import {
   createCard,
   createConversation,
   createDemoTeacher,
+  createExercise,
   createLesson,
+  createUnit,
   createVocab,
 } from '../../test/factories.ts';
 import { bodyOf, errorOf } from '../../test/http.ts';
@@ -216,6 +218,50 @@ describe('GET /teacher/lessons/:id', () => {
     const body = res.body as { lesson: Detail & { scenario: string } };
     expect(body.lesson.scenario).toContain('friendly partner');
     expect(body.lesson.vocab.map((v) => v.english)).toEqual(['first', 'second']);
+  });
+
+  it('describes the course parts of a course lesson, and none for a teacher-made one', async () => {
+    const t = await teacher();
+    const unit = await createUnit({ code: 'A1.1', title: 'Hello' });
+    const lesson = await createLesson({
+      teacherId: t.user.id,
+      unitId: unit.id,
+      grammarNote: [{ type: 'p', text: 'x' }],
+      cultureTip: { title: 'Greetings of light', body: 'b' },
+    });
+    await createVocab(lesson.id, { translit: 'marḥaban' });
+    await createExercise(lesson.id);
+    await createExercise(lesson.id);
+    await createExercise(lesson.id, {
+      type: 'build',
+      data: { type: 'build', prompt: 'p', english: 'e', words: ['أَنَا', 'آدَمُ'], distractors: [] },
+    });
+    const body = bodyOf<{
+      lesson: Detail & { course: unknown; vocab: { translit: string }[] };
+    }>(await get(`/teacher/lessons/${lesson.id}`, t.cookie));
+    expect(body.lesson.vocab[0]?.translit).toBe('marḥaban');
+    expect(body.lesson.course).toEqual({
+      unit: { code: 'A1.1', title: 'Hello' },
+      kind: 'lesson',
+      exercises: [
+        { type: 'choose', count: 2 },
+        { type: 'build', count: 1 },
+      ],
+      grammarBlocks: 1,
+      cultureTitle: 'Greetings of light',
+    });
+
+    const own = await createLesson({ teacherId: t.user.id });
+    const plain = bodyOf<{ lesson: { course: unknown } }>(
+      await get(`/teacher/lessons/${own.id}`, t.cookie),
+    );
+    expect(plain.lesson.course).toEqual({
+      unit: null,
+      kind: 'lesson',
+      exercises: [],
+      grammarBlocks: 0,
+      cultureTitle: null,
+    });
   });
 
   it("answers 404 for another teacher's lesson, an unknown id, and 400 for a malformed id", async () => {

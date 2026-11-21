@@ -8,7 +8,16 @@ import { formatNumber } from '../../lib/format';
 
 // Streak, XP today and words learned: three small cards in one row at every width. On a phone the
 // icon sits above the number so three fit side by side at 390 px.
-export function StatsStrip({ stats, className }: { stats: CourseStats; className?: string }) {
+export function StatsStrip({
+  stats,
+  xp = 'today',
+  className,
+}: {
+  stats: CourseStats;
+  /** The course page shows today's XP, the progress page the total. */
+  xp?: 'today' | 'total';
+  className?: string;
+}) {
   const { t, tn } = useT();
   const items: { icon: IconName; value: number; label: string; chip: string }[] = [
     {
@@ -20,8 +29,8 @@ export function StatsStrip({ stats, className }: { stats: CourseStats; className
     },
     {
       icon: 'bolt',
-      value: stats.xpToday,
-      label: t('course.stat.xpToday'),
+      value: xp === 'today' ? stats.xpToday : stats.xpTotal,
+      label: xp === 'today' ? t('course.stat.xpToday') : t('progress.stat.xpTotal'),
       chip: 'bg-primary-soft text-primary',
     },
     {

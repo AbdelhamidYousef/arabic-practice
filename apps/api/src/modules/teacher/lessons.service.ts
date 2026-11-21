@@ -1,7 +1,9 @@
 import { randomUUID } from 'node:crypto';
 
 import {
+  EXERCISE_TYPES,
   normalizeArabic,
+  type ExerciseType,
   type TeacherLessonDetail,
   type TeacherLessonInput,
   type TeacherLessonListResponse,
@@ -11,7 +13,13 @@ import { and, asc, count, eq, like, or, sql } from 'drizzle-orm';
 import type { z } from 'zod';
 
 import { db } from '../../db/client.ts';
-import { conversations, lessons, lessonVocab } from '../../db/schema/index.ts';
+import {
+  conversations,
+  lessonExercises,
+  lessons,
+  lessonVocab,
+  units,
+} from '../../db/schema/index.ts';
 import { uniqueViolation } from '../../lib/db-errors.ts';
 import { conflict, notFound, unprocessable } from '../../lib/errors.ts';
 import type { AuthUser } from '../auth/sessions.ts';
@@ -77,17 +85,32 @@ async function loadDetail(
 ): Promise<TeacherLessonDetail> {
   const [lesson] = await reader.select().from(lessons).where(mine(teacher, id));
   if (!lesson) throw notFound('Lesson not found');
-  const vocab = await reader
-    .select({
-      id: lessonVocab.id,
-      arabic: lessonVocab.arabic,
-      english: lessonVocab.english,
-      note: lessonVocab.note,
-      position: lessonVocab.position,
-    })
-    .from(lessonVocab)
-    .where(eq(lessonVocab.lessonId, lesson.id))
-    .orderBy(asc(lessonVocab.position), asc(lessonVocab.createdAt));
+  const [vocab, exerciseCounts, unitRows] = await Promise.all([
+    reader
+      .select({
+        id: lessonVocab.id,
+        arabic: lessonVocab.arabic,
+        translit: lessonVocab.translit,
+        english: lessonVocab.english,
+        note: lessonVocab.note,
+        position: lessonVocab.position,
+      })
+      .from(lessonVocab)
+      .where(eq(lessonVocab.lessonId, lesson.id))
+      .orderBy(asc(lessonVocab.position), asc(lessonVocab.createdAt)),
+    reader
+      .select({ type: lessonExercises.type, n: count() })
+      .from(lessonExercises)
+      .where(eq(lessonExercises.lessonId, lesson.id))
+      .groupBy(lessonExercises.type),
+    lesson.unitId
+      ? reader
+          .select({ code: units.code, title: units.title })
+          .from(units)
+          .where(eq(units.id, lesson.unitId))
+      : Promise.resolve([]),
+  ]);
+  const order = (type: string) => EXERCISE_TYPES.indexOf(type as ExerciseType);
   return {
     id: lesson.id,
     slug: lesson.slug,
@@ -103,6 +126,16 @@ async function loadDetail(
     position: lesson.position,
     updatedAt: lesson.updatedAt.toISOString(),
     vocab,
+    course: {
+      unit: unitRows[0] ?? null,
+      kind: lesson.kind,
+      exercises: exerciseCounts
+        .filter((r) => order(r.type) >= 0)
+        .sort((a, b) => order(a.type) - order(b.type))
+        .map((r) => ({ type: r.type as ExerciseType, count: r.n })),
+      grammarBlocks: lesson.grammarNote.length,
+      cultureTitle: lesson.cultureTip?.title ?? null,
+    },
   };
 }
 

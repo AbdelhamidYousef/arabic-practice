@@ -1,5 +1,5 @@
 import { CEFR_LEVELS, cefrLabel, cefrLevelSchema, lessonStatusSchema } from '@arabic/shared';
-import { useState, type FormEvent } from 'react';
+import { useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 
 import { ApiError } from '../api/client';
@@ -13,6 +13,7 @@ import { Dialog } from '../components/ui/Dialog';
 import { Input } from '../components/ui/Input';
 import { Select } from '../components/ui/Select';
 import { Textarea } from '../components/ui/Textarea';
+import { CourseContent, hasCourseContent } from '../features/teacher/CourseContent';
 import {
   emptyForm,
   emptyGoal,
@@ -46,7 +47,12 @@ export default function TeacherLessonPage() {
       ) : (
         <LoadState query={query}>
           {({ lesson }) => (
-            <Editor key={lesson.id} lessonId={lesson.id} initial={formFromLesson(lesson)} />
+            <Editor
+              key={lesson.id}
+              lessonId={lesson.id}
+              initial={formFromLesson(lesson)}
+              extra={hasCourseContent(lesson) ? <CourseContent lesson={lesson} /> : null}
+            />
           )}
         </LoadState>
       )}
@@ -54,7 +60,16 @@ export default function TeacherLessonPage() {
   );
 }
 
-function Editor({ lessonId, initial }: { lessonId: string | null; initial: LessonForm }) {
+function Editor({
+  lessonId,
+  initial,
+  extra = null,
+}: {
+  lessonId: string | null;
+  initial: LessonForm;
+  /** Read-only course parts, shown under the heading. */
+  extra?: ReactNode;
+}) {
   const { t } = useT();
   const navigate = useNavigate();
   const readOnly = useReadOnly();
@@ -107,6 +122,7 @@ function Editor({ lessonId, initial }: { lessonId: string | null; initial: Lesso
     <>
       <Seo title={title} noindex />
       <h1 className="mt-3 text-3xl">{title}</h1>
+      {extra}
 
       <form onSubmit={onSubmit} noValidate className="mt-6 space-y-8">
         <fieldset disabled={readOnly} className="space-y-8">

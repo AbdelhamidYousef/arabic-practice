@@ -3,7 +3,8 @@ import userEvent from '@testing-library/user-event';
 import { describe, expect, it } from 'vitest';
 
 import { en } from '../i18n';
-import { jsonError, learner, renderAt, stubApi } from '../test-utils';
+import { course } from '../test/course-fixtures';
+import { courseKey, jsonError, learner, renderAt, stubApi } from '../test-utils';
 
 const signedIn = { 'GET /auth/me': () => Response.json({ user: learner }) };
 
@@ -91,5 +92,32 @@ describe('progress page', () => {
     stubApi({ ...signedIn, 'GET /progress': () => new Promise<Response>(() => {}) });
     renderAt('/progress');
     expect(await screen.findByRole('status')).toBeInTheDocument();
+  });
+});
+
+describe('progress page: lessons', () => {
+  it('shows the streak, the XP total and lessons done per level above the conversation stats', async () => {
+    stubApi({
+      ...signedIn,
+      'GET /progress': () => Response.json(progress),
+      [courseKey()]: () => Response.json(course),
+    });
+    renderAt('/progress');
+    const lessons = within(await screen.findByRole('region', { name: en['progress.course'] }));
+    expect(lessons.getByText('120')).toBeVisible();
+    expect(lessons.getByText(en['progress.stat.xpTotal'])).toBeVisible();
+    expect(lessons.getByText('day streak')).toBeVisible();
+    expect(lessons.getByText('A0 · Starter')).toBeVisible();
+    // A0: one finished of one; A1: none of two.
+    expect(lessons.getByText('1 of 1')).toBeVisible();
+    expect(lessons.getByText('0 of 2')).toBeVisible();
+    expect(await screen.findByText('conversations')).toBeVisible();
+  });
+
+  it('still shows the conversation stats when the course cannot load', async () => {
+    stubApi({ ...signedIn, 'GET /progress': () => Response.json(progress) });
+    renderAt('/progress');
+    expect(await screen.findByText('conversations')).toBeVisible();
+    expect(screen.queryByRole('region', { name: en['progress.course'] })).not.toBeInTheDocument();
   });
 });
