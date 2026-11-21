@@ -259,3 +259,51 @@ Learn: setting a field's value from code does not tell React; writing with `setR
 1. Why does `--limit 18` take evenly spaced cases instead of the first 18, and what would the first 18 have hidden?
 2. A model returns `isCorrect: true` with an empty mistakes list for a sentence that has a Latin word. Which two numbers in the report move, and which one does not?
 3. Why is a 503 retried by the runner but not counted as a case failure, while a schema miss twice in a row is?
+
+## Phase 12: api polish (lane api-polish)
+
+### 12.1 Retry a busy Gemini once (`fix(api): retry a busy Gemini once…`)
+- **What/why:** a 503 "high demand" was an `AI_FAILED`. The adapter now waits ~800 ms (+ jitter) and tries once more on 500/503, for JSON calls and for the moment a stream starts. A second failure is `AI_BUSY`. The failed first attempt gets its own ledger row, so the daily cap and the quota view stay honest.
+- **Learn:** retry only where it is safe. Before the first byte of a stream a retry is invisible; after it, the learner may already have read half a reply, so the call fails once instead.
+
+### 12.2 One turn at a time per conversation (`fix(api): refuse a second turn…`)
+- **What/why:** an atomic `UPDATE … WHERE turn_started_at IS NULL OR older than 90 s RETURNING id` is the lock, kept in the database because serverless instances share nothing else. Released before `done` so a fast client can send the next message at once. Migration 0004 (one nullable column).
+- **Learn:** a lock needs an expiry, or one crashed instance would freeze a conversation forever.
+
+### 12.3 Reply level control (`fix(api): tighten the A1/A2 reply prompt…`)
+- Reply eval, gemini-3.1-flash-lite, same 10 cases, thresholds unchanged:
+
+| | before | after |
+|---|---|---|
+| Within level | 80% | 100% (a first prompt version gave 90%) |
+| A1 within level | 0% (2 cases) | 100% |
+| Mean sentences | 2.5 | 2.1 |
+| Mean harakat ratio | 0.80 | 0.80 |
+| Lesson words per reply | 2.1 | 1.6 |
+
+- **Honest reading:** the sentence cap is fixed on these cases; 10 cases is small (one A1 case is 50 points), so treat 100% as "no longer failing", not "solved". The harakat ratio did not move (the metric counts marks on all letters, so a few missing case endings barely change it); lesson-word use dipped, within noise. `maxOutputTokens` is now per level (150 at A1 up to 900 at C2).
+- **Learn:** telling a model "at most 2" was not enough; telling it what to spend the two on (answer, question) worked. Examples inside the prompt are code too, so a test measures them.
+
+### 12.4 Correction typing (`fix(api): type vowel-mark-only errors "harakat"…`)
+- Full correction run, gemini-3.1-flash-lite, same 41 cases (the before is the Phase 11 report for the same model, see git history of the report file):
+
+| | before | after |
+|---|---|---|
+| Verdict accuracy | 95% | 100% |
+| False alarms (correct flagged) | 7% | 0% |
+| Detection | 96% | 100% |
+| Type recall | 89% | 96% |
+| Type precision | 84% | 88% |
+| mustContain | 90% | 90% |
+| Everything held | 85% | 93% |
+
+- **Honest reading:** har-01 and spell-02 now pass; har-02 (`الْمَدْرَسَةُ` after إِلَى) is still typed grammar, and prep-01 / voc-01 still miss mustContain (synonym swaps, not typing). The false alarm that disappeared (ok-09) was a model wobble, not something the prompt targets: one run each, so differences under ~5 points are noise.
+- **Learn:** when two labels overlap (a case ending is grammar and harakat), the prompt has to say which one wins, or the model picks at random.
+
+### 12.5 Reply history check
+- The opening line is a model turn after the fixed user marker, and learner text never reaches the system instruction; a prompt test now pins the exact message list.
+
+### Quiz (phase 12)
+1. Why is the first failed 503 written to the ledger as its own row, and which two things would be wrong if it were not?
+2. Why does the turn guard release the claim before sending `done`, and what does the 90-second expiry protect against?
+3. The reply eval went from 80% to 100% on 10 cases. Why is that not proof that the prompt is fixed?
