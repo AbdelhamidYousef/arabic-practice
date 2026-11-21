@@ -67,7 +67,8 @@ const baseSchema = z.object({
   // Daily caps count rows in `ai_calls`; the monthly budget sums their cost.
   AI_DAILY_TURNS_LEARNER: count(60),
   AI_DAILY_TURNS_GUEST: count(20),
-  AI_DAILY_CALLS_GLOBAL: count(400),
+  // The free quota is per model (500 requests a day each for the Flash-Lite models); 450 leaves headroom.
+  AI_DAILY_CALLS_PER_MODEL: count(450),
   AI_MONTHLY_BUDGET_USD: unsetIfEmpty(z.coerce.number().min(0).default(0)),
 
   // Invite sign-up for real students. Production refuses `true` while AI_TIER=free.

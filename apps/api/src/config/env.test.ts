@@ -20,7 +20,7 @@ describe('defaults', () => {
       AI_ENABLED: true,
       AI_DAILY_TURNS_LEARNER: 60,
       AI_DAILY_TURNS_GUEST: 20,
-      AI_DAILY_CALLS_GLOBAL: 400,
+      AI_DAILY_CALLS_PER_MODEL: 450,
       AI_MONTHLY_BUDGET_USD: 0,
       INVITES_ENABLED: false,
     });
@@ -68,13 +68,13 @@ describe('validation', () => {
       ...base,
       AI_ENABLED: 'false',
       INVITES_ENABLED: 'true',
-      AI_DAILY_CALLS_GLOBAL: '10',
+      AI_DAILY_CALLS_PER_MODEL: '10',
       AI_MONTHLY_BUDGET_USD: '2.5',
     });
     expect(e).toMatchObject({
       AI_ENABLED: false,
       INVITES_ENABLED: true,
-      AI_DAILY_CALLS_GLOBAL: 10,
+      AI_DAILY_CALLS_PER_MODEL: 10,
       AI_MONTHLY_BUDGET_USD: 2.5,
     });
   });
