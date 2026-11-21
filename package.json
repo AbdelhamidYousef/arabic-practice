@@ -17,6 +17,7 @@
     "test": "pnpm -r --if-present test",
     "test:live": "pnpm --filter @arabic/api test:live",
     "coverage": "pnpm -r --if-present coverage",
+    "audio:build": "pnpm --filter @arabic/api audio:build",
     "e2e": "pnpm --filter @arabic/web build && playwright test",
     "e2e:run": "playwright test",
     "db:migrate": "pnpm --filter @arabic/api db:migrate",

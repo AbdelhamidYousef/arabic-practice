@@ -15,6 +15,7 @@
     "db:seed": "tsx src/db/seed/index.ts",
     "db:reset": "tsx src/db/reset.ts",
     "db:migrate:deploy": "tsx scripts/deploy-migrate.ts",
+    "audio:build": "tsx scripts/audio-build.ts",
     "build": "tsx scripts/build.ts",
     "eval": "tsx src/evals/cli.ts"
   },

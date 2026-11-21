@@ -495,3 +495,14 @@ while tuning, and when it fails, move the lesson into the tuning set and write a
 2. What did the first live health probe after a quiet spell answer, and how did that change the
    uptime check?
 3. Why must a case that fails in the held-out set not lead straight to a prompt change?
+
+## Phase 24: audio with Piper
+
+### 24.1–24.2: sample and generator
+`pnpm audio:build` collects every line the app can speak (941 today), names each clip by a hash of
+its text, asks Piper only for the missing ones (one Python process, the voice loaded once), encodes
+32 kbps mono MP3, lets `audio/overrides/<key>.mp3` win, deletes clips no line uses and writes the
+manifest. The first sample came from Piper's CLI, which re-vowels Arabic by default; the generator
+turns that off, and the sample was made again the same way.
+Learn: a tool's defaults are decisions someone else made for a different case. Read them before
+judging the output; here the default would have silently replaced checked harakat.
