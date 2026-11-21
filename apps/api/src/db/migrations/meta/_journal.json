@@ -71,6 +71,13 @@
       "when": 1795256419393,
       "tag": "0009_lesson_progress",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1795295798188,
+      "tag": "0010_password_resets",
+      "breakpoints": true
     }
   ]
 }

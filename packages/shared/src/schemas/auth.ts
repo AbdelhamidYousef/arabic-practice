@@ -77,6 +77,21 @@ export const ChangePasswordSchema = z.object({
 });
 export type ChangePasswordInput = z.input<typeof ChangePasswordSchema>;
 
+// A reset token is 32 random bytes in base64url (43 characters); the bounds are loose, the database
+// lookup decides.
+export const ResetTokenSchema = z
+  .string()
+  .min(20)
+  .max(64)
+  .regex(/^[A-Za-z0-9_-]+$/);
+
+// `POST /auth/reset`: the link's token plus the new password, which follows the sign-up rule.
+export const ResetPasswordSchema = z.object({
+  token: ResetTokenSchema,
+  password: NewPasswordSchema,
+});
+export type ResetPasswordInput = z.input<typeof ResetPasswordSchema>;
+
 // `valid` is false for an unknown, used-up or expired code. The teacher's name is only given for a
 // valid code, so the endpoint does not reveal who teaches here to someone guessing.
 export const InviteInfoSchema = z.object({

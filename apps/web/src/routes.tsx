@@ -26,6 +26,7 @@ export const routes: RouteObject[] = [
       { index: true, ...page(() => import('./pages/HomePage')) },
       { path: 'login', ...page(() => import('./pages/LoginPage')) },
       { path: 'register', ...page(() => import('./pages/RegisterPage')) },
+      { path: 'reset/:token', ...page(() => import('./pages/ResetPasswordPage')) },
       { path: 'lessons', ...page(() => import('./pages/CoursePage')) },
       { path: 'lessons/:slug', ...page(() => import('./pages/LessonPage')) },
       {

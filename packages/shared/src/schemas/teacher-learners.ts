@@ -98,3 +98,11 @@ export const TeacherTranscriptResponseSchema = z.object({
   messages: z.array(TranscriptMessageSchema),
 });
 export type TeacherTranscriptResponse = z.infer<typeof TeacherTranscriptResponseSchema>;
+
+// `POST /teacher/learners/:id/reset-link`: the token is in this one response and never again.
+export const CreateResetLinkResponseSchema = z.object({
+  // Path on the web app, e.g. `/reset/<token>`; the web adds its own origin.
+  resetPath: z.string(),
+  expiresAt: z.string(),
+});
+export type CreateResetLinkResponse = z.infer<typeof CreateResetLinkResponseSchema>;

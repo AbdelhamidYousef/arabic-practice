@@ -1,12 +1,15 @@
+import { randomBytes } from 'node:crypto';
+
 import type {
   CefrLevel,
+  CreateResetLinkResponse,
   MistakeType,
   TeacherLearner,
   TeacherLearnerDetailResponse,
   TeacherLearnerListResponse,
   TeacherTranscriptResponse,
 } from '@arabic/shared';
-import { and, asc, count, desc, eq, gte, inArray, max } from 'drizzle-orm';
+import { and, asc, count, desc, eq, gte, inArray, isNull, max } from 'drizzle-orm';
 
 import { db } from '../../db/client.ts';
 import {
@@ -15,10 +18,11 @@ import {
   lessons,
   messages,
   mistakes,
+  passwordResets,
   users,
 } from '../../db/schema/index.ts';
 import { notFound } from '../../lib/errors.ts';
-import type { AuthUser } from '../auth/sessions.ts';
+import { sha256, type AuthUser } from '../auth/sessions.ts';
 import { mistakesByType, recentMistakes } from '../progress/service.ts';
 import { isoWeekStart } from '../progress/weeks.ts';
 
@@ -264,4 +268,38 @@ export async function getTranscript(
           : null,
     })),
   };
+}
+
+export const RESET_LINK_TTL_MS = 24 * 3600 * 1000;
+
+// A one-time link for one of MY learners (the same ownership rule as every query above: someone
+// else's learner, a teacher, a guest or a random id is the same 404). The learner has no email we
+// could send it to, so the teacher passes it on by chat. A new link replaces the unused older ones,
+// so there is only ever one live link per learner.
+export async function createResetLink(
+  teacher: AuthUser,
+  learnerId: string,
+  now = new Date(),
+): Promise<CreateResetLinkResponse> {
+  const token = randomBytes(32).toString('base64url');
+  const expiresAt = new Date(now.getTime() + RESET_LINK_TTL_MS);
+  await db.transaction(async (tx) => {
+    // Locks the learner's row (and proves ownership) so two parallel requests cannot both pass.
+    const [owned] = await tx
+      .select({ id: users.id })
+      .from(users)
+      .where(myLearner(teacher, learnerId))
+      .for('update');
+    if (!owned) throw notFound('Learner not found');
+    await tx
+      .delete(passwordResets)
+      .where(and(eq(passwordResets.userId, owned.id), isNull(passwordResets.usedAt)));
+    await tx.insert(passwordResets).values({
+      tokenHash: sha256(token),
+      userId: owned.id,
+      createdBy: teacher.id,
+      expiresAt,
+    });
+  });
+  return { resetPath: `/reset/${token}`, expiresAt: expiresAt.toISOString() };
 }

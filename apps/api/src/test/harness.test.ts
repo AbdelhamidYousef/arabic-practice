@@ -12,6 +12,7 @@ import {
   lessons,
   messages,
   mistakes,
+  passwordResets,
   sessions,
   users,
   vocabCards,
@@ -67,6 +68,11 @@ async function populateEverything() {
     teacherId: (await db.select().from(lessons))[0]?.teacherId ?? '',
     expiresAt: new Date(Date.now() + 1000),
   });
+  await db.insert(passwordResets).values({
+    tokenHash: 'r',
+    userId: conversation.userId,
+    expiresAt: new Date(Date.now() + 1000),
+  });
   await db.insert(aiCalls).values({
     userId: conversation.userId,
     purpose: 'reply',
@@ -96,7 +102,7 @@ describe('test harness', () => {
 
     // Every application table held a row; children come before the tables they point at.
     expect(emptied.sort()).toEqual(all.filter((t) => t !== '__drizzle_migrations').sort());
-    expect(emptied).toHaveLength(15);
+    expect(emptied).toHaveLength(16);
     expect(await emptyDirtyTables(all)).toEqual([]);
     // The reason the harness exists: emptying a full database is milliseconds, not seconds.
     expect(elapsed).toBeLessThan(2000);

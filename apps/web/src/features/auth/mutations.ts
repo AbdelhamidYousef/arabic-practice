@@ -5,6 +5,7 @@ import {
   login,
   logout,
   register,
+  resetPassword,
   startDemoTeacher,
   startGuest,
 } from '../../api/auth';
@@ -38,3 +39,7 @@ export function useLogout() {
 
 // The session stays (the API keeps this one and ends the others), so nothing is cached differently.
 export const useChangePassword = () => useMutation({ mutationFn: changePassword });
+
+// The link ends every session of that learner, so nothing here signs anyone in: the page offers the
+// sign-in form with the new password.
+export const useResetPassword = () => useMutation({ mutationFn: resetPassword });

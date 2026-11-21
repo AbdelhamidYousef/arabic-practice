@@ -474,3 +474,11 @@ typing is not. The settings page validates the new password with the same shared
 A wrong current password has its own 403 code: with a 401 the web would sign the person out for a typo.
 Learn: an HTTP status carries meaning for generic client code (401 = "log in again"), so pick codes for
 what the client will do with them, not only for what happened.
+
+### 21.3: teacher-issued reset links
+No email sender means no "forgot password" mail, so a teacher makes the link: `POST /teacher/learners/:id/reset-link`
+returns `/reset/<token>` once (32 random bytes, only the SHA-256 stored, 24 hours). The learner opens it, sets a
+password, and `POST /auth/reset` does three things in one transaction: claims the link with a conditional
+`UPDATE ... WHERE used_at IS NULL AND expires_at > now() RETURNING`, stores the new hash and deletes every session
+of that learner. Learn: let the database decide "has this been used?" in the same statement that marks it used; a
+SELECT followed by an UPDATE leaves a gap two requests can both walk through (the test fires both at once).

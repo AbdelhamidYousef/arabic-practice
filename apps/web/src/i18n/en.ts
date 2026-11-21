@@ -188,6 +188,13 @@ export const en = {
   'settings.password.submit': 'Change password',
   'settings.password.done': 'Your password is changed. Your other devices are signed out.',
 
+  'reset.lead': 'Your teacher gave you this link. Choose a new password to sign in with.',
+  'reset.submit': 'Set new password',
+  'reset.done': 'Your password is changed. Sign in with the new one.',
+  'reset.invalid.title': 'This reset link does not work',
+  'reset.invalid.body':
+    'It may have expired (a link lasts one day), been used already, or been replaced by a newer one. Ask your teacher for a new link.',
+
   'lessons.lead': 'Pick a lesson and practise it as a conversation.',
   'load.error': 'We could not load this page. Check your connection and try again.',
   'load.retry': 'Try again',
@@ -298,6 +305,7 @@ export const en = {
   'page.login': 'Sign in',
   'page.register': 'Create your account',
   'page.settings': 'Settings',
+  'page.reset': 'Choose a new password',
   'page.lessons': 'Lessons',
   'page.course': 'Course',
   'page.practice': 'Practice',
@@ -391,6 +399,16 @@ export const en = {
   'teacher.learner.conversations': 'Conversations',
   'teacher.learner.noConversations': 'No conversations yet.',
   'teacher.learner.readTranscript': 'Read transcript',
+  'teacher.reset.title': 'Password reset link',
+  'teacher.reset.lead':
+    'If this learner forgot their password, make a one-time link and send it to them in your chat. It lasts one day.',
+  'teacher.reset.create': 'Create reset link',
+  'teacher.reset.once':
+    "Copy the link now, you won't see it again. It works once and expires {when}. Using it signs the learner out everywhere.",
+  'teacher.reset.link': 'Reset link',
+  'teacher.reset.copy': 'Copy link',
+  'teacher.reset.copied': 'Copied.',
+  'teacher.reset.copyFailed': 'Could not copy. Select the link and copy it by hand.',
   'teacher.transcript.back': 'Back to {name}',
   'teacher.transcript.readOnly': 'Read-only transcript.',
   'teacher.transcript.empty': 'No messages in this conversation.',

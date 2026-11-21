@@ -39,6 +39,11 @@ Tables with `updated_at` use the `set_updated_at()` trigger from migration 0000.
 `max_uses int`, `used_count int default 0`, `expires_at`. A sign-up increments `used_count` with
 `UPDATE … WHERE used_count < max_uses AND expires_at > now() RETURNING` (no check-then-insert race).
 
+### password_resets (phase 21)
+`id`, `token_hash text unique` (SHA-256 of the link token), `user_id → users on delete cascade`,
+`created_by → users on delete set null` (the teacher), `expires_at` (24 h), `used_at null`, `created_at`.
+Spent with `UPDATE … WHERE used_at IS NULL AND expires_at > now() RETURNING`.
+
 ### lessons
 `id`, `teacher_id → users`, `slug unique`, `title`, `level cefr_level`, `topic`, `summary`,
 `goals text[]`, `grammar_focus text`, `scenario text` (what the partner plays: "You are a shopkeeper in

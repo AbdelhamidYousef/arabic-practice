@@ -12,3 +12,4 @@ export * from './units.ts';
 export * from './users.ts';
 export * from './vocab-cards.ts';
 export * from './lesson-progress.ts';
+export * from './password-resets.ts';

@@ -20,6 +20,9 @@ Mutations need a matching `Origin`. Ids that are missing or belong to someone el
   read-only demo. Keeps this session and deletes the user's other sessions. 403 `WRONG_PASSWORD` for a wrong
   current password (not 401: the web reads a 401 as "signed out"); 400 for a weak new password; rate-limited
   per user (the auth limit).
+- `POST /auth/reset` `{ token, password }` → 204 (phase 21). Public, rate-limited per IP. Spends a teacher-issued
+  link: sets the password, marks the link used and deletes ALL the learner's sessions in one transaction.
+  404 `NOT_FOUND` for an unknown, expired or already-used token (indistinguishable on purpose); 400 for a weak password.
 - (phase 21, script, not HTTP) `pnpm --filter @arabic/api teacher:create <email>` creates a teacher; see README.
 
 ## Lessons (learner)
@@ -67,6 +70,9 @@ Mutations need a matching `Origin`. Ids that are missing or belong to someone el
 - `GET /teacher/learners` → my learners with last activity, turns this week, top mistake types
 - `PATCH /teacher/learners/:id` `{ level }`
 - `GET /teacher/learners/:id` → learner, conversations, mistakes by type, recent mistakes
+- `POST /teacher/learners/:id/reset-link` → 201 `{ resetPath: '/reset/<token>', expiresAt }` (phase 21): a one-time
+  24 h link for one of my own non-guest learners (foreign id = 404), shown once; replaces the learner's unused older
+  link; 30 an hour per teacher; `DEMO_READ_ONLY` for the demo teacher.
 - `GET /teacher/conversations/:id` → full transcript with corrections
 - `GET /teacher/invites`, `POST /teacher/invites` `{ note, maxUses, expiresInDays }` → `{ invite, code }` (the code is shown once)
 - `GET /teacher/usage` → AI calls and tokens per day (30 days), by purpose and model, cost, today's cap status

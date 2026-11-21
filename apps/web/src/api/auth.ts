@@ -2,6 +2,7 @@ import {
   InviteInfoSchema,
   UserResponseSchema,
   type ChangePasswordInput,
+  type ResetPasswordInput,
   type InviteInfo,
   type LoginInput,
   type RegisterInput,
@@ -28,7 +29,13 @@ export async function fetchMe(signal?: AbortSignal): Promise<User | null> {
   }
 }
 
-export type { ChangePasswordInput, InviteInfo, LoginInput, RegisterInput } from '@arabic/shared';
+export type {
+  ChangePasswordInput,
+  InviteInfo,
+  LoginInput,
+  RegisterInput,
+  ResetPasswordInput,
+} from '@arabic/shared';
 
 export async function login(input: LoginInput): Promise<User> {
   const res = await apiFetch('/auth/login', {
@@ -70,6 +77,10 @@ export async function register(input: RegisterInput): Promise<User> {
 
 export async function changePassword(input: ChangePasswordInput): Promise<void> {
   await apiFetch('/auth/password', { method: 'POST', body: input, schema: z.unknown() });
+}
+
+export async function resetPassword(input: ResetPasswordInput): Promise<void> {
+  await apiFetch('/auth/reset', { method: 'POST', body: input, schema: z.unknown() });
 }
 
 export async function logout(): Promise<void> {

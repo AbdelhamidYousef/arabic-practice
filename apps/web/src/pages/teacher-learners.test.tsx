@@ -246,3 +246,41 @@ describe('transcript page', () => {
     expect(await screen.findByRole('button', { name: en['load.retry'] })).toBeVisible();
   });
 });
+
+describe('teacher learner page: reset link', () => {
+  const page = (extra: Handlers = {}, me = asTeacher) => {
+    stubApi({
+      ...me,
+      [`GET /teacher/learners/${LEARNER_ID}`]: () => Response.json(detail),
+      ...extra,
+    });
+    renderAt(`/teacher/learners/${LEARNER_ID}`);
+  };
+
+  it('creates a link, shows it once with its full address and expiry', async () => {
+    page({
+      [`POST /teacher/learners/${LEARNER_ID}/reset-link`]: () =>
+        Response.json(
+          { resetPath: '/reset/abc123', expiresAt: '2026-11-22T10:00:00.000Z' },
+          { status: 201 },
+        ),
+    });
+    await userEvent.click(await screen.findByRole('button', { name: en['teacher.reset.create'] }));
+    const link = await screen.findByLabelText(en['teacher.reset.link']);
+    expect(link).toHaveValue(`${window.location.origin}/reset/abc123`);
+    expect(screen.getByTestId('created-reset')).toHaveTextContent(/won't see it again/);
+  });
+
+  it('says so when the API refuses (rate limited)', async () => {
+    page({
+      [`POST /teacher/learners/${LEARNER_ID}/reset-link`]: () => jsonError('RATE_LIMITED', 429),
+    });
+    await userEvent.click(await screen.findByRole('button', { name: en['teacher.reset.create'] }));
+    expect(await screen.findByRole('alert')).toHaveTextContent(en['auth.error.rateLimited']);
+  });
+
+  it('is disabled for the read-only demo teacher', async () => {
+    page({}, asDemo);
+    expect(await screen.findByRole('button', { name: en['teacher.reset.create'] })).toBeDisabled();
+  });
+});
