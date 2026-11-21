@@ -7,8 +7,16 @@ export interface NavItem {
 }
 
 // What the header shows for whoever is looking. One table, so a new role or page is one line.
+// A visitor's items are sections of the landing page (`/#id`), then "Sign in".
 export function navFor(user: User | null | undefined): NavItem[] {
-  if (!user) return [{ to: '/login', label: 'nav.signIn' }];
+  if (!user) {
+    return [
+      { to: '/#levels', label: 'nav.levels' },
+      { to: '/#how', label: 'nav.how' },
+      { to: '/#teachers', label: 'nav.teachers' },
+      { to: '/login', label: 'nav.signIn' },
+    ];
+  }
   if (user.role === 'teacher') {
     return [
       { to: '/teacher/lessons', label: 'nav.lessons' },

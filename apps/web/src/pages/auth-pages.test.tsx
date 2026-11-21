@@ -21,7 +21,7 @@ describe('landing page', () => {
     expect(example.querySelectorAll('[lang="ar"]').length).toBeGreaterThanOrEqual(5);
   });
 
-  it('"Try it as a learner" starts a guest session and opens the lessons', async () => {
+  it("the hero's start button starts a guest session and opens the lessons", async () => {
     const calls = stubApi({
       'POST /auth/guest': () => Response.json({ user: { ...learner, isGuest: true, email: null } }),
       ...lessonsStub,

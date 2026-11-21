@@ -23,15 +23,66 @@ export const en = {
   'nav.usage': 'Usage',
   'nav.signIn': 'Sign in',
 
-  'home.title': 'Practice Arabic by talking',
-  'home.lead':
-    'Short conversations built around your own lessons, with gentle corrections that match your level.',
-  'home.greeting': 'Welcome back, {name}',
+  'nav.levels': 'Levels',
+  'nav.how': 'How it works',
+  'nav.teachers': 'For teachers',
+  'nav.startFree': 'Start free',
+  'nav.menuOpen': 'Open menu',
+  'nav.menuClose': 'Close menu',
 
-  'home.cta.guest': 'Try it as a learner',
+  'footer.tagline':
+    "Modern Standard Arabic from a working teacher's course: words, exercises, grammar, culture and a chat partner at your level.",
+  'footer.learn': 'Learn',
+  'footer.project': 'Project',
+  'footer.source': 'Source code',
+
+  'level.A0': 'Starter',
+  'level.A1': 'Beginner',
+  'level.A2': 'Elementary',
+
+  'exercise.check': 'Check',
+  'exercise.right': 'Right, well done!',
+  'exercise.wrong': 'Not quite. The answer is',
+  'exercise.listen': 'Listen',
+
+  'home.eyebrow': 'Modern Standard Arabic · from the very first letter',
+  'home.title': 'Learn Arabic, one real lesson at a time',
+  'home.lead':
+    "Words, quick exercises, grammar and culture from a teacher's course, then a chat partner who stays at your level.",
+  'home.greeting': 'Welcome back, {name}',
+  'home.cta.guest': 'Start learning, free',
   'home.cta.teacher': 'See the teacher view',
+  'home.trust': 'Free · No card · Works on your phone',
   'home.starting': 'Starting',
-  'home.turn.title': 'How a turn works',
+  'home.hero.cardLabel': 'Word 1 of 12',
+  'home.hero.wordMeaning': 'hello',
+  'home.hero.listen': 'Hear it',
+
+  'home.levels.title': 'Start where you are',
+  'home.levels.lead': "Can't read Arabic yet? Starter teaches the letters first.",
+  'home.levels.A0': 'Read and write all 28 letters, and say your first phrases.',
+  'home.levels.A1': 'Greet people, order, shop and find your way around a city.',
+  'home.levels.A2': 'Talk about your day, your plans and what happened.',
+
+  'home.steps.title': 'Every lesson in five steps',
+  'home.steps.words': 'Words',
+  'home.steps.words.body': 'Flashcards with sound and transliteration.',
+  'home.steps.practice': 'Practice',
+  'home.steps.practice.body': 'Quick exercises: choose, match, build.',
+  'home.steps.grammar': 'Grammar',
+  'home.steps.grammar.body': 'One short point, with examples.',
+  'home.steps.culture': 'Culture',
+  'home.steps.culture.body': 'How people really say it.',
+  'home.steps.talk': 'Talk',
+  'home.steps.talk.body': 'Chat it through with your AI partner.',
+
+  'home.try.title': 'Try one now',
+  'home.try.lead': 'No sign-up. This is a real exercise from the first lessons.',
+  'home.try.prompt': 'Which word means "thank you"?',
+
+  'home.turn.title': 'A partner who corrects you kindly',
+  'home.turn.lead':
+    'At the end of each lesson you can talk it through. Every message gets a correction and a short reason.',
   'home.turn.example': 'Example, made up for this page',
   'home.turn.step1': 'You write a sentence in Arabic.',
   'home.turn.step2': 'You get a correction with a short explanation in English.',
@@ -43,6 +94,22 @@ export const en = {
   'home.turn.mistakeType': 'Grammar',
   'home.turn.explanation':
     'After a preposition such as "to", the noun takes the genitive case: its last letter carries a kasra, not a damma.',
+
+  'home.teachers.title': 'Built by a teacher',
+  'home.teachers.lead':
+    "Teachers see each learner's lessons, mistakes and chats. Look around the demo class.",
+
+  'home.faq.title': 'Questions',
+  'home.faq.free.q': 'Is it free?',
+  'home.faq.free.a': 'Yes. Start as a guest with no email and no card.',
+  'home.faq.read.q': 'Do I need to read Arabic?',
+  'home.faq.read.a': 'No. The Starter level teaches the letters and sounds from zero.',
+  'home.faq.which.q': 'Which Arabic is this?',
+  'home.faq.which.a':
+    'Modern Standard Arabic: the Arabic of news, books and signs, understood across the Arab world.',
+  'home.faq.ai.q': 'Where do my chat messages go?',
+  'home.faq.ai.a':
+    "Chats are processed by Google's Gemini free tier, so please don't type personal information. Lessons and exercises use no AI.",
 
   'auth.email': 'Email',
   'auth.password': 'Password',

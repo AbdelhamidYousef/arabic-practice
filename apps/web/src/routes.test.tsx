@@ -131,11 +131,16 @@ describe('routes', () => {
 });
 
 describe('role-aware navigation', () => {
-  it('offers only "Sign in" to a visitor', async () => {
+  it('offers the landing sections and "Sign in" to a visitor', async () => {
     stubApi(null);
     renderAt('/');
     await screen.findByRole('heading', { level: 1, name: en['home.title'] });
-    expect(navLinks()).toEqual([en['nav.signIn']]);
+    expect(navLinks()).toEqual([
+      en['nav.levels'],
+      en['nav.how'],
+      en['nav.teachers'],
+      en['nav.signIn'],
+    ]);
   });
 
   it('offers Lessons, Review and Progress to a learner', async () => {

@@ -10,7 +10,7 @@ export const RIGHT_SENTENCE = 'مرحبا';
 
 export async function startAsGuest(page: Page): Promise<void> {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Try it as a learner' }).click();
+  await page.getByRole('button', { name: 'Start learning, free' }).click();
   await expect(page).toHaveURL(/\/lessons$/);
   await expect(page.getByRole('heading', { name: 'Lessons', level: 1 })).toBeVisible();
 }
