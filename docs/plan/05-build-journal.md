@@ -165,3 +165,11 @@ What was built per step and why, for the owner to read; three quiz questions at 
 - **9.1 Progress API.** One endpoint, seven small aggregate queries run in parallel, weeks bucketed in SQL and
   zero-filled in code. Learn: "per week" needs one definition of a week shared by the database and the code
   (ISO, Monday, UTC), otherwise a Sunday-night turn lands in different buckets on each side.
+- **9.3 Review API (Leitner).** `reviewCard` is a pure function (box, counters and due date in, new state out), so
+  the schedule is tested without a database; the service only locks the row and writes. Learn: seeding cards with
+  `INSERT … SELECT … ON CONFLICT DO NOTHING` makes "create what is missing" safe to call on every visit.
+
+### Quiz (phase 9, API part)
+1. Why does the progress endpoint fill empty weeks on the server instead of returning only weeks with data?
+2. A learner double-taps "I knew it" on one card. What stops the card from skipping a box, and where is it in the code?
+3. Why is the new due date based on the new box and not the old one?

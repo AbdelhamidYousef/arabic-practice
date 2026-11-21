@@ -15,6 +15,7 @@ import { requestId } from './middleware/request-id.ts';
 import { createAuthRouter } from './modules/auth/router.ts';
 import { createLessonsRouter } from './modules/lessons/router.ts';
 import { createProgressRouter } from './modules/progress/router.ts';
+import { createReviewRouter } from './modules/review/router.ts';
 
 export interface AppConfig {
   nodeEnv: 'development' | 'test' | 'production';
@@ -87,6 +88,7 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
 
   app.use('/api/v1', createLessonsRouter());
   app.use('/api/v1', createProgressRouter());
+  app.use('/api/v1', createReviewRouter());
 
   // Order matters: unknown routes first, then the error handler that catches everything above.
   app.use(notFoundHandler);
