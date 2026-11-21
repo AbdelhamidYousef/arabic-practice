@@ -37,6 +37,23 @@ export interface LevelRules {
 }
 
 export const levelRules: Record<CefrLevel, LevelRules> = {
+  A0: {
+    level: 'A0',
+    maxSentencesPerReply: 2,
+    maxWordsPerSentence: 4,
+    harakat: 'full',
+    minHarakatRatio: 0.55,
+    tenses: ['nominal sentences with no verb', 'fixed greetings and polite phrases'],
+    structures: [
+      'greetings and one-line answers of 2 to 4 words',
+      'simple yes/no questions',
+      'single words and short fixed phrases',
+    ],
+    vocabulary:
+      'only the words of the lesson and greetings-level words (hello, thanks, yes, no, name); nothing else, no idioms',
+    explanations:
+      'one very short sentence in plain English; no grammar terms at all; show the right form and say it back',
+  },
   A1: {
     level: 'A1',
     maxSentencesPerReply: 2,

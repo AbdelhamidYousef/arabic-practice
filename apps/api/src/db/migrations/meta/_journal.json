@@ -50,6 +50,13 @@
       "when": 1795248130829,
       "tag": "0006_ai_call_pending",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1795256096873,
+      "tag": "0007_level_a0",
+      "breakpoints": true
     }
   ]
 }

@@ -17,8 +17,9 @@ describe('level rules', () => {
     }
   });
 
-  it('requires full harakat at A1 to B1, ambiguous words at B2 and none from C1', () => {
+  it('requires full harakat at A0 to B1, ambiguous words at B2 and none from C1', () => {
     expect(CEFR_LEVELS.map((l) => getLevelRules(l).harakat)).toEqual([
+      'full',
       'full',
       'full',
       'full',
@@ -26,7 +27,7 @@ describe('level rules', () => {
       'none',
       'none',
     ]);
-    for (const l of ['A1', 'A2', 'B1'] as const)
+    for (const l of ['A0', 'A1', 'A2', 'B1'] as const)
       expect(getLevelRules(l).minHarakatRatio).toBeGreaterThan(0);
   });
 

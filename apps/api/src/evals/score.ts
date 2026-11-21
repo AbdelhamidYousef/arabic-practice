@@ -1,4 +1,4 @@
-import { normalizeArabic, type CefrLevel } from '@arabic/shared';
+import { CEFR_LEVELS, normalizeArabic, type CefrLevel } from '@arabic/shared';
 
 import { measureReply, type LevelMetrics } from '../ai/level-metrics.ts';
 import type { CorrectionResult } from '../ai/prompts/correction.ts';
@@ -151,7 +151,7 @@ export function aggregateCorrections(scores: CorrectionScore[]): CorrectionAggre
   };
 }
 
-const LEVELS: CefrLevel[] = ['A1', 'A2', 'B1', 'B2', 'C1', 'C2'];
+const LEVELS: readonly CefrLevel[] = CEFR_LEVELS;
 
 /** Levels present in the data, in CEFR order. */
 function levelsOf(levels: CefrLevel[]): CefrLevel[] {

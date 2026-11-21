@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
+import { cefrLevelSchema } from '@arabic/shared';
 import { z } from 'zod';
 
 import {
@@ -24,7 +25,7 @@ const caseFileSchema = z.object({
   corrections: z.array(
     z.object({
       id: z.string(),
-      level: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']),
+      level: cefrLevelSchema,
       lessonSlug: z.string(),
       text: z.string(),
       expected: z.object({
@@ -37,7 +38,7 @@ const caseFileSchema = z.object({
   replies: z.array(
     z.object({
       id: z.string(),
-      level: z.enum(['A1', 'A2', 'B1', 'B2', 'C1', 'C2']),
+      level: cefrLevelSchema,
       lessonSlug: z.string(),
       learnerText: z.string(),
     }),

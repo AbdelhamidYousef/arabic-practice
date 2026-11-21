@@ -20,6 +20,7 @@ export const MAX_HISTORY_MESSAGES = 12;
  * cannot ramble to 400 tokens at A1 (and cannot burn the free quota doing it).
  */
 export const REPLY_MAX_OUTPUT_TOKENS: Record<CefrLevel, number> = {
+  A0: 100,
   A1: 150,
   A2: 250,
   B1: 400,
@@ -31,6 +32,7 @@ export const REPLY_MAX_OUTPUT_TOKENS: Record<CefrLevel, number> = {
 // Short compliant replies the model can copy the SHAPE of. They are about greetings, not about any
 // lesson, so they do not leak vocabulary; the sentence count and word count are spelled out.
 const LENGTH_EXAMPLES: Partial<Record<CefrLevel, string>> = {
+  A0: 'Example of a compliant reply (2 sentences, 2 + 3 words, every word fully voweled): «أَهْلًا بِكَ. مَا اسْمُكَ؟»',
   A1: 'Example of a compliant reply (2 sentences, 3 + 2 words, every word fully voweled): «أَهْلًا بِكَ يَا صَدِيقِي. كَيْفَ حَالُكَ؟»',
   A2: 'Example of a compliant reply (3 sentences, 3 + 4 + 3 words, every word fully voweled): «مَرْحَبًا بِكِ. أَنَا بِخَيْرٍ الْيَوْمَ. مَاذَا تُرِيدِينَ؟»',
 };

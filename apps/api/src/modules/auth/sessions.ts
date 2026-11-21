@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
 
+import type { CefrLevel } from '@arabic/shared';
 import { and, eq, gt, lt } from 'drizzle-orm';
 
 import { db } from '../../db/client.ts';
@@ -24,7 +25,7 @@ export interface AuthUser {
   email: string | null;
   displayName: string;
   role: 'learner' | 'teacher';
-  level: 'A1' | 'A2' | 'B1' | 'B2' | 'C1' | 'C2';
+  level: CefrLevel;
   isGuest: boolean;
   readOnly: boolean;
   /** Internal only (lessons are scoped by it); never part of the user DTO. */
