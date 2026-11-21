@@ -61,7 +61,7 @@ export default function TeacherLessonsPage() {
                 <tbody>
                   {lessons.map((l) => (
                     <Tr key={l.id}>
-                      <Td className="max-w-72 break-words">
+                      <Td className="max-w-72 [overflow-wrap:anywhere]">
                         <Link
                           to={`/teacher/lessons/${l.id}`}
                           className="font-medium text-primary underline underline-offset-4"

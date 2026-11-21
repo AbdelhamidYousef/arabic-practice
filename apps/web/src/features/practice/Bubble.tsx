@@ -37,7 +37,7 @@ export function LearnerBubble({
         <ArabicText
           as="p"
           hideHarakat={hideHarakat}
-          className="whitespace-pre-wrap break-words text-lg"
+          className="whitespace-pre-wrap [overflow-wrap:anywhere] text-lg"
         >
           {text}
         </ArabicText>
@@ -86,7 +86,7 @@ export function PartnerBubble({
           <ArabicText
             as="p"
             hideHarakat={hideHarakat}
-            className="whitespace-pre-wrap break-words text-lg"
+            className="whitespace-pre-wrap [overflow-wrap:anywhere] text-lg"
           >
             {text}
           </ArabicText>
@@ -120,7 +120,7 @@ function Translate({ messageId, known }: { messageId: string; known: string | nu
             <p
               lang="en"
               aria-label={t('chat.translate.label')}
-              className="break-words border-t border-line pt-2"
+              className="[overflow-wrap:anywhere] border-t border-line pt-2"
             >
               {text}
             </p>

@@ -67,7 +67,7 @@ export default function TeacherInvitesPage() {
                     <tbody>
                       {invites.map((i) => (
                         <Tr key={i.id}>
-                          <Td className="max-w-56 break-words">
+                          <Td className="max-w-56 [overflow-wrap:anywhere]">
                             {i.note || <span className="text-muted">{t('invites.noNote')}</span>}
                           </Td>
                           <Td>

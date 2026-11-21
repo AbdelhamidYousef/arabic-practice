@@ -129,7 +129,7 @@ export function ChatView({ data }: { data: ConversationDetailResponse }) {
             {t('chat.backToLesson')}
           </Link>
           <div className="flex flex-wrap items-center gap-2">
-            <h1 className="min-w-0 break-words text-xl">{lesson.title}</h1>
+            <h1 className="min-w-0 [overflow-wrap:anywhere] text-xl">{lesson.title}</h1>
             <Badge tone="primary">{lesson.level}</Badge>
           </div>
         </div>

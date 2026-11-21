@@ -22,8 +22,8 @@
     line-height: 1.6;
     /* Last line of defence for "no horizontal scroll"; components should never be wider anyway. */
     overflow-x: clip;
-    /* A long unbroken word wraps instead of widening the page. */
-    overflow-wrap: break-word;
+    /* A long unbroken word wraps instead of widening the page. `anywhere` (not `break-word`) also lowers the min-content width, so grid and flex items shrink instead of overflowing. */
+    overflow-wrap: anywhere;
   }
 
   h1,

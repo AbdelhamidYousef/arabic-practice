@@ -50,7 +50,7 @@ function LessonView({ data }: { data: LessonDetailResponse }) {
             <Badge tone="primary">{lesson.level}</Badge>
             <span className="text-sm text-muted">{lesson.topic}</span>
           </div>
-          <h1 className="mt-2 break-words text-3xl">{lesson.title}</h1>
+          <h1 className="mt-2 [overflow-wrap:anywhere] text-3xl">{lesson.title}</h1>
         </div>
         <Button
           size="lg"

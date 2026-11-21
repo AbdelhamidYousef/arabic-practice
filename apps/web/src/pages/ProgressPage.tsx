@@ -57,7 +57,9 @@ function ProgressView({ data }: { data: ProgressResponse }) {
           <li key={s.label}>
             <Card className="p-3 sm:p-5">
               <p className="text-2xl tabular-nums sm:text-3xl">{formatNumber(s.value)}</p>
-              <p className="mt-1 break-words text-xs text-muted sm:text-sm">{s.label}</p>
+              <p className="mt-1 [overflow-wrap:anywhere] text-xs text-muted sm:text-sm">
+                {s.label}
+              </p>
             </Card>
           </li>
         ))}

@@ -72,7 +72,7 @@ function CorrectionResult({
     <div className={cn(cardClasses, 'border-accent bg-accent-soft text-ink')}>
       <p className="font-semibold text-accent-strong">{t('chat.correction.title')}</p>
       {/* Word by word so a changed word can be marked; the spaces keep the line breakable. */}
-      <p lang="ar" dir="rtl" className="arabic mt-1 break-words text-lg">
+      <p lang="ar" dir="rtl" className="arabic mt-1 [overflow-wrap:anywhere] text-lg">
         {words.map((word, index) => {
           const text = hideHarakat ? stripHarakat(word.text) : word.text;
           return (
@@ -112,7 +112,7 @@ function MistakeItem({ mistake, hideHarakat }: { mistake: Mistake; hideHarakat: 
         <Badge tone="accent" className="border border-accent-strong/30">
           {t(`mistake.${mistake.type}`)}
         </Badge>
-        <span className="min-w-0 break-words text-base">
+        <span className="min-w-0 [overflow-wrap:anywhere] text-base">
           <ArabicText hideHarakat={hideHarakat} className="text-muted line-through decoration-1">
             {mistake.original}
           </ArabicText>
