@@ -127,3 +127,11 @@ What was built per step and why, for the owner to read; three quiz questions at 
 1. Why does the database store the SHA-256 of the session id, and why is a fast hash enough here when passwords need argon2?
 2. Two people use the last use of an invite at the same moment. Which single statement decides who wins, and what happens to the loser's use count if their email is already taken?
 3. Why does login verify against a dummy hash when the email is unknown, and what would an attacker learn without it?
+
+## Phase 5 (lane auth) — Lessons API
+- **5.2 Learner lessons API.** `GET /lessons` lists the published lessons of my teacher grouped by level with my
+  conversation count (a LEFT JOIN whose condition holds both the lesson and my user id, so lessons nobody has
+  practised show 0 and other learners' conversations never count). `GET /lessons/:slug` adds the vocabulary in
+  position order and my five latest conversations. Missing, draft and other teachers' lessons are one 404.
+  Learn: put a filter on the joined table in the JOIN condition, not the WHERE, or the LEFT JOIN quietly becomes
+  an INNER JOIN and untouched lessons vanish from the list.
