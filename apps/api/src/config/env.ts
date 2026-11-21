@@ -74,6 +74,10 @@ const baseSchema = z.object({
   AI_DAILY_CALLS_PER_MODEL: count(450),
   AI_MONTHLY_BUDGET_USD: unsetIfEmpty(z.coerce.number().min(0).default(0)),
 
+  // New conversations per user per UTC day. Each one costs a row, and the turns it allows cost AI calls.
+  CONVERSATIONS_PER_DAY_GUEST: count(10),
+  CONVERSATIONS_PER_DAY_LEARNER: count(40),
+
   // Invite sign-up for real students. Production refuses `true` while AI_TIER=free.
   INVITES_ENABLED: flag('false'),
 

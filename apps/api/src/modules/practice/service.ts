@@ -20,6 +20,7 @@ const visibleTeacherId = (user: AuthUser) => (user.role === 'teacher' ? user.id 
 export async function startConversation(
   user: AuthUser,
   lessonId: string,
+  perDay: { guest: number; learner: number },
 ): Promise<StartConversationResponse> {
   const teacherId = visibleTeacherId(user);
   const lesson = teacherId ? await repo.findVisiblePublishedLesson(teacherId, lessonId) : undefined;
@@ -29,6 +30,7 @@ export async function startConversation(
     user.id,
     lesson.id,
     lesson.openingLine,
+    user.isGuest ? perDay.guest : perDay.learner,
   );
   return { conversation: toConversationDto(conversation), messages: [toMessageDto(opening)] };
 }

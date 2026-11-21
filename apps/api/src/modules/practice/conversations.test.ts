@@ -138,3 +138,51 @@ describe('GET /conversations/:id', () => {
     expect(await db.select().from(messages)).toHaveLength(1);
   });
 });
+
+describe('POST /conversations daily cap', () => {
+  const capped = api(makeTestApp({ config: { conversationsPerDay: { guest: 2, learner: 3 } } }));
+
+  it('refuses the next conversation with 429 CONVERSATION_LIMIT, and a guest gets the smaller cap', async () => {
+    const teacher = await createTeacher();
+    const lesson = await createLesson({ teacherId: teacher.id });
+    const guest = await signedIn({ teacherId: teacher.id, isGuest: true });
+    const learner = await signedIn({ teacherId: teacher.id });
+
+    for (let i = 0; i < 2; i++) {
+      expect(
+        (await capped.post('/conversations', { lessonId: lesson.id }, guest.cookie)).status,
+      ).toBe(201);
+    }
+    const refused = await capped.post('/conversations', { lessonId: lesson.id }, guest.cookie);
+    expect(refused.status).toBe(429);
+    expect(errorOf(refused).code).toBe('CONVERSATION_LIMIT');
+
+    for (let i = 0; i < 3; i++) {
+      expect(
+        (await capped.post('/conversations', { lessonId: lesson.id }, learner.cookie)).status,
+      ).toBe(201);
+    }
+    expect(
+      (await capped.post('/conversations', { lessonId: lesson.id }, learner.cookie)).status,
+    ).toBe(429);
+    expect(await db.select().from(conversations)).toHaveLength(5);
+  });
+
+  it('holds under parallel requests, and yesterday’s conversations do not count', async () => {
+    const teacher = await createTeacher();
+    const lesson = await createLesson({ teacherId: teacher.id });
+    const learner = await signedIn({ teacherId: teacher.id });
+    await createConversation({
+      userId: learner.user.id,
+      lessonId: lesson.id,
+      createdAt: new Date(Date.now() - 36 * 3600 * 1000),
+    });
+    const results = await Promise.all(
+      Array.from({ length: 6 }, () =>
+        capped.post('/conversations', { lessonId: lesson.id }, learner.cookie),
+      ),
+    );
+    expect(results.filter((r) => r.status === 201)).toHaveLength(3);
+    expect(results.filter((r) => r.status === 429)).toHaveLength(3);
+  });
+});

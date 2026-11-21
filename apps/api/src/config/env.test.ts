@@ -24,6 +24,8 @@ describe('defaults', () => {
       AI_DAILY_GLOSS_GUEST: 20,
       AI_DAILY_CALLS_PER_MODEL: 450,
       AI_MONTHLY_BUDGET_USD: 0,
+      CONVERSATIONS_PER_DAY_GUEST: 10,
+      CONVERSATIONS_PER_DAY_LEARNER: 40,
       INVITES_ENABLED: false,
     });
     expect(e.AI_PROVIDER).toBeUndefined();

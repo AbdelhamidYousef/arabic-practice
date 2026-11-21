@@ -32,6 +32,8 @@ export interface AppConfig {
   invitesEnabled: boolean;
   /** Chat turns and glosses per learner (defaults to 10 per minute); tests lower it. */
   turnRateLimit?: RateLimitOptions;
+  /** New conversations per user per UTC day (defaults 10 for a guest, 40 for a learner). */
+  conversationsPerDay?: { guest: number; learner: number };
 }
 
 export interface AppDeps {
@@ -99,6 +101,7 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
     createPracticeRouter({
       ai,
       turnRateLimit: config.turnRateLimit ?? { windowMs: 60_000, limit: 10 },
+      conversationsPerDay: config.conversationsPerDay ?? { guest: 10, learner: 40 },
     }),
   );
 

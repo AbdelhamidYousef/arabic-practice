@@ -21,6 +21,10 @@ export function bootstrap() {
       rateLimit: { windowMs: env.RATE_LIMIT_WINDOW_MS, limit: env.RATE_LIMIT_MAX },
       authRateLimit: { windowMs: env.RATE_LIMIT_AUTH_WINDOW_MS, limit: env.RATE_LIMIT_AUTH_MAX },
       invitesEnabled: env.INVITES_ENABLED,
+      conversationsPerDay: {
+        guest: env.CONVERSATIONS_PER_DAY_GUEST,
+        learner: env.CONVERSATIONS_PER_DAY_LEARNER,
+      },
     },
   });
   return { app, logger };
