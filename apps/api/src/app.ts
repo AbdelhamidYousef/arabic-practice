@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import express, { type Express } from 'express';
 import helmet from 'helmet';
 import type { Logger } from 'pino';
@@ -6,12 +7,16 @@ import { pinoHttp } from 'pino-http';
 import type { AiStatus } from './ai-status.ts';
 import type { Database } from './db/client.ts';
 import { createHealthRouter } from './lib/health.ts';
+import { createCsrfCheck } from './middleware/csrf.ts';
 import { createErrorHandler, notFoundHandler } from './middleware/error.ts';
+import { createRateLimiter, type RateLimitOptions } from './middleware/rate-limit.ts';
 import { requestId } from './middleware/request-id.ts';
 
 export interface AppConfig {
   nodeEnv: 'development' | 'test' | 'production';
   webOrigin: string;
+  /** General limit per client IP; stricter limits are applied per route by the auth module. */
+  rateLimit: RateLimitOptions;
 }
 
 export interface AppDeps {
@@ -47,6 +52,14 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
     }),
   );
   app.use(helmet());
+  app.use(createRateLimiter(config.rateLimit));
+  // Sessions are random ids kept in the database, so the cookie needs no signing secret.
+  app.use(cookieParser());
+  // 16 kB is far above any legitimate request here (a chat turn is at most 500 characters); it caps
+  // the memory a hostile body can cost.
+  app.use(express.json({ limit: '16kb' }));
+  // Only our own web origin may change anything; see middleware/csrf.ts.
+  app.use(createCsrfCheck({ webOrigin: config.webOrigin }));
 
   app.use('/api/v1', createHealthRouter({ db, ai }));
 

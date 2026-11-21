@@ -14,7 +14,11 @@ export function bootstrap() {
     logger,
     db,
     ai: { provider: env.AI_PROVIDER ?? 'fake', enabled: env.AI_ENABLED },
-    config: { nodeEnv: env.NODE_ENV, webOrigin: env.WEB_ORIGIN },
+    config: {
+      nodeEnv: env.NODE_ENV,
+      webOrigin: env.WEB_ORIGIN,
+      rateLimit: { windowMs: env.RATE_LIMIT_WINDOW_MS, limit: env.RATE_LIMIT_MAX },
+    },
   });
   return { app, logger };
 }

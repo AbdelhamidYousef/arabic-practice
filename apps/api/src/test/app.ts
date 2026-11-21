@@ -20,6 +20,12 @@ export function makeTestApp(
     logger: opts.logger ?? pino({ level: 'silent' }),
     db: opts.db ?? db,
     ai: opts.ai ?? { provider: 'fake', enabled: true },
-    config: { nodeEnv: 'test', webOrigin: TEST_ORIGIN, ...opts.config },
+    config: {
+      nodeEnv: 'test',
+      webOrigin: TEST_ORIGIN,
+      // Too high to trip by accident; the rate-limit tests override it.
+      rateLimit: { windowMs: 60_000, limit: 100_000 },
+      ...opts.config,
+    },
   });
 }
