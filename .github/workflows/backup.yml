@@ -1,0 +1,62 @@
+name: Backup
+
+# A weekly copy of the production database, kept as an encrypted workflow artifact for 7 days.
+# Why: Neon's free plan can restore only a few hours back, so a mistake noticed on Monday would be
+# beyond reach by then. The dump is small (about 10 MB of data in 2026-11).
+#
+# Secrets (repo Settings → Secrets and variables → Actions):
+#   DATABASE_URL_BACKUP  Neon's direct (unpooled) URL, read-only use
+#   BACKUP_PASSPHRASE    a long random passphrase; keep a copy outside GitHub, or the file is useless
+# Without them the job says so and skips, so the workflow is safe to merge first.
+#
+# Restore (locally):
+#   gpg --decrypt arabic-YYYY-MM-DD.dump.gpg > arabic.dump
+#   pg_restore --no-owner --clean --if-exists -d "$TARGET_URL" arabic.dump
+on:
+  schedule:
+    - cron: '23 3 * * 1' # Mondays 03:23 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dump:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      DATABASE_URL_BACKUP: ${{ secrets.DATABASE_URL_BACKUP }}
+      BACKUP_PASSPHRASE: ${{ secrets.BACKUP_PASSPHRASE }}
+    steps:
+      - name: Check secrets
+        id: secrets
+        run: |
+          if [ -z "$DATABASE_URL_BACKUP" ] || [ -z "$BACKUP_PASSPHRASE" ]; then
+            echo "::notice::Backup skipped: DATABASE_URL_BACKUP or BACKUP_PASSPHRASE is not set."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # pg_dump must be at least the server's major version (Neon runs Postgres 18), so it runs
+      # from the official image instead of the runner's older client.
+      - name: Dump
+        if: steps.secrets.outputs.ready == 'true'
+        run: |
+          name="arabic-$(date -u +%F).dump"
+          docker run --rm -e DATABASE_URL_BACKUP -v "$PWD:/out" postgres:18 \
+            sh -c 'pg_dump --format=custom --no-owner --no-privileges "$DATABASE_URL_BACKUP" -f /out/'"$name"
+          echo "$BACKUP_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback --passphrase-fd 0 \
+            --symmetric --cipher-algo AES256 -o "$name.gpg" "$name"
+          rm "$name"
+          ls -la "$name.gpg"
+          echo "file=$name.gpg" >> "$GITHUB_ENV"
+
+      - name: Keep
+        if: steps.secrets.outputs.ready == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.file }}
+          path: ${{ env.file }}
+          retention-days: 7
+          if-no-files-found: error

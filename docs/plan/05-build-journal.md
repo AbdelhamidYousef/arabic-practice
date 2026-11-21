@@ -456,3 +456,28 @@ Learn: a read-only view of data another system owns should say who owns it.
 2. The words step lets Space flip the card from anywhere on the page instead of focusing the card
    after each navigation. What in the layout made autofocus unreliable?
 3. Why is `finished` computed by the API and not in the browser from `stepsDone`?
+
+## Phase 23: ops and reliability
+
+### 23.1: migrate on production builds
+The Vercel build now ends with `db:migrate:deploy`. It runs only when `VERCEL_ENV=production`, uses
+Neon's direct URL (`DATABASE_URL_MIGRATE`, added to the Vercel project), and fails the build when
+that URL is missing. It sits after the builds, so a broken build never touches the database, and
+before promotion, so new code never runs on an old schema.
+Learn: migrations through a connection pooler fail in strange ways: drizzle takes an advisory lock and
+runs DDL in one transaction, and PgBouncer in transaction mode hands each statement to whatever
+server connection is free. Migrate over the direct URL; serve traffic over the pooled one.
+
+### 23.2: uptime check
+A scheduled workflow probes `/api/v1/health` every 30 minutes and keeps one `uptime` issue open
+while the app is down. The first live probe after a quiet spell answered `db: down` and the second, 3 s
+later, `ok`: that's Neon's free compute waking up. So the check tries three times before it
+raises an alarm.
+Learn: a monitor that cries wolf gets muted. Measure what "normal slow" looks like before choosing
+what counts as down.
+
+### 23.4: weekly backup
+Neon's free plan restores only 6 hours back. A weekly workflow dumps the database with the
+Postgres 18 image (pg_dump must be at least the server's version), encrypts it with a passphrase
+and keeps it as a 7-day artifact. Until the two secrets are set it skips with a notice.
+Learn: a backup you have never restored is a hope. The restore commands sit at the top of the workflow file.
