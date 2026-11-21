@@ -77,7 +77,7 @@ describe('course page', () => {
     stub();
     renderAt('/lessons');
     await screen.findByRole('tab', { name: 'A1 · Beginner' });
-    expect(screen.getAllByRole('tab').map((t) => t.textContent)).toEqual([
+    expect(screen.getAllByRole('tab').map((t) => t.getAttribute('aria-label'))).toEqual([
       'A0 · Starter',
       'A1 · Beginner',
     ]);

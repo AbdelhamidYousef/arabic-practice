@@ -507,7 +507,6 @@ export const en = {
   'course.stat.xpToday': 'XP today',
   'course.stat.words': { zero: 'words learned', one: 'word learned', other: 'words learned' },
   'course.levels': 'Levels',
-  'course.levelTab': '{level} · {name}',
   'course.unit': 'Unit {code}',
   'course.state.done': 'Done',
   'course.state.notStarted': 'Not started',

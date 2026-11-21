@@ -4,7 +4,9 @@ import { cn } from '../../lib/cn';
 
 export interface TabItem {
   id: string;
-  label: string;
+  label: ReactNode;
+  /** The name screen readers hear, when `label` is more than plain text. */
+  name?: string;
   /** Rendered only while the tab is selected. */
   panel: ReactNode;
 }
@@ -18,6 +20,8 @@ interface TabsProps {
   className?: string;
   /** Extra classes for the panel (the list is shared by every use). */
   panelClassName?: string;
+  /** Tabs share the width equally and may wrap, for a few short tabs that must all fit on a phone. */
+  fill?: boolean;
 }
 
 // The WAI-ARIA tabs pattern, by hand because the platform has no native one:
@@ -26,7 +30,15 @@ interface TabsProps {
 //    (automatic activation), Home/End jump to the ends, and the selection wraps around;
 //  - the panel is itself focusable (tabindex=0) so a keyboard user can scroll its content.
 // The list scrolls sideways inside its own box on a narrow screen instead of widening the page.
-export function Tabs({ label, tabs, selectedId, onSelect, className, panelClassName }: TabsProps) {
+export function Tabs({
+  label,
+  tabs,
+  selectedId,
+  onSelect,
+  className,
+  panelClassName,
+  fill = false,
+}: TabsProps) {
   const prefix = useId();
   const refs = useRef(new Map<string, HTMLButtonElement>());
   const selectedIndex = Math.max(
@@ -72,7 +84,10 @@ export function Tabs({ label, tabs, selectedId, onSelect, className, panelClassN
           role="tablist"
           aria-label={label}
           onKeyDown={onKeyDown}
-          className="flex min-w-max gap-1 border-b border-line"
+          className={cn(
+            'gap-1 border-b border-line',
+            fill ? 'grid auto-cols-fr grid-flow-col' : 'flex min-w-max',
+          )}
         >
           {tabs.map((tab) => {
             const isSelected = tab.id === selected.id;
@@ -86,12 +101,14 @@ export function Tabs({ label, tabs, selectedId, onSelect, className, panelClassN
                 type="button"
                 role="tab"
                 id={tabId(tab.id)}
+                aria-label={tab.name}
                 aria-selected={isSelected}
                 aria-controls={panelId(tab.id)}
                 tabIndex={isSelected ? 0 : -1}
                 onClick={() => onSelect(tab.id)}
                 className={cn(
-                  '-mb-px min-h-11 whitespace-nowrap border-b-2 px-4 font-medium hover:bg-primary-soft',
+                  '-mb-px min-h-11 border-b-2 font-medium hover:bg-primary-soft',
+                  fill ? 'px-2 py-1.5 text-center' : 'whitespace-nowrap px-4',
                   isSelected
                     ? 'border-primary text-primary'
                     : 'border-transparent text-muted hover:text-ink',

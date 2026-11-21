@@ -80,9 +80,16 @@ function CourseView({ data }: { data: CourseResponse }) {
             selectedId={selected}
             onSelect={setPicked}
             panelClassName="pt-6"
+            fill
             tabs={levels.map(({ level, units }) => ({
               id: level,
-              label: t('course.levelTab', { level, name: cefrLabel[level] }),
+              name: `${level} · ${cefrLabel[level]}`,
+              label: (
+                <>
+                  <span className="block text-lg">{level}</span>
+                  <span className="block text-xs font-normal">{cefrLabel[level]}</span>
+                </>
+              ),
               panel: (
                 <div className="space-y-10">
                   {units.map((unit) => (
