@@ -24,7 +24,8 @@ async function createMissingCards(userId: string): Promise<void> {
 }
 
 export async function getDueCards(user: AuthUser): Promise<ReviewDueResponse> {
-  await createMissingCards(user.id);
+  // The read-only demo account only looks: reading must not write rows for it.
+  if (!user.readOnly) await createMissingCards(user.id);
   // Read after the insert: new cards are due at the database's now(), which is later than a clock
   // value taken before the insert ran.
   const now = new Date();

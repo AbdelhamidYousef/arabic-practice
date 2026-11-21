@@ -169,3 +169,25 @@ describe('POST /review/:vocabId', () => {
     expect((await post(`/review/${vocabId}`, { correct: 'yes' }, learner.cookie)).status).toBe(400);
   });
 });
+
+describe('read-only accounts', () => {
+  it('may read the due list but it creates no cards, and answering is refused with 403', async () => {
+    const teacher = await createTeacher();
+    const viewer = await signedIn({ teacherId: teacher.id, readOnly: true });
+    const lesson = await createLesson({ teacherId: teacher.id });
+    const word = await createVocab(lesson.id, { position: 0 });
+    await createConversation({ userId: viewer.user.id, lessonId: lesson.id });
+
+    const due = await get('/review/due', viewer.cookie);
+    expect(due.status).toBe(200);
+    expect(bodyOf<DueBody>(due)).toEqual({ cards: [], totalDue: 0 });
+    expect(await db.select().from(vocabCards)).toHaveLength(0);
+
+    await createCard(viewer.user.id, word.id);
+    const answer = await post(`/review/${word.id}`, { correct: true }, viewer.cookie);
+    expect(answer.status).toBe(403);
+    expect(errorOf(answer).code).toBe('DEMO_READ_ONLY');
+    const [card] = await db.select().from(vocabCards).where(eq(vocabCards.vocabId, word.id));
+    expect(card).toMatchObject({ box: 1, reviews: 0 });
+  });
+});
