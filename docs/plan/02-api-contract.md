@@ -16,6 +16,7 @@ Mutations need a matching `Origin`. Ids that are missing or belong to someone el
 - `POST /auth/demo-teacher` → `{ user }`: signs in as the read-only demo teacher
 - `GET /auth/invites/:code` → `{ teacherName, valid }`
 - `POST /auth/register` `{ code, email, password, displayName }` → `{ user }`. 403 `INVITES_CLOSED` while `AI_TIER=free`.
+- (phase 21, script, not HTTP) `pnpm --filter @arabic/api teacher:create <email>` creates a teacher; see README.
 
 ## Lessons (learner)
 - `GET /lessons` → published lessons of my teacher, grouped by level, with my conversation count per lesson

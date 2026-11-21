@@ -456,3 +456,14 @@ Learn: a read-only view of data another system owns should say who owns it.
 2. The words step lets Space flip the card from anywhere on the page instead of focusing the card
    after each navigation. What in the layout made autofocus unreliable?
 3. Why is `finished` computed by the API and not in the browser from `stepsDone`?
+
+## Phase 21 (accounts and teacher tools)
+
+### 21.1: create-teacher script
+`pnpm --filter @arabic/api teacher:create <email>` makes a teacher account: the email and password
+go through the same schemas as registration, the password is typed at a hidden prompt (raw-mode
+stdin, never argv) and hashed with argon2id. Against Neon it needs the direct connection string.
+The first version of the piped-stdin path rejected every password: closing the readline interface
+fires `close` synchronously, before the promise was resolved. Learn: with events that fire inside
+your own call (`rl.close()`), settle the promise first.
+
