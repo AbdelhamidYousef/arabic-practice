@@ -1,0 +1,27 @@
+# Local services only. Production uses Neon (Postgres), never Docker.
+name: arabic
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    # Durability off on purpose: this database is throwaway (seed data and test rows), and fsync is
+    # what made the test suite slow. NEVER use these flags for a database that holds real data.
+    command: postgres -c fsync=off -c synchronous_commit=off -c full_page_writes=off
+    environment:
+      # Throwaway local credentials: the port is bound to 127.0.0.1 and holds only seed data.
+      POSTGRES_USER: arabic
+      POSTGRES_PASSWORD: arabic
+      POSTGRES_DB: arabic
+    ports:
+      - '127.0.0.1:5434:5432'
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init-test-db.sql:/docker-entrypoint-initdb.d/01-test-db.sql:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U arabic -d arabic']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:
