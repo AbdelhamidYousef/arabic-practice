@@ -1,6 +1,8 @@
 import react from '@vitejs/plugin-react-swc';
 import { defineConfig } from 'vitest/config';
 
+import { serviceWorker } from './sw-plugin';
+
 // The browser only ever talks to the web origin; Vite forwards /api to the API server. That keeps
 // requests same-origin, so session cookies work without CORS or SameSite workarounds. Both the dev
 // server and `vite preview` (the production build, used by the CI e2e) need it.
@@ -8,7 +10,7 @@ import { defineConfig } from 'vitest/config';
 const proxy = { '/api': process.env.API_PROXY_TARGET ?? 'http://localhost:3002' };
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), serviceWorker()],
   // One `.env` at the repo root for the API and the web (only VITE_-prefixed names reach the
   // browser bundle, so the secret keys in the same file are never exposed).
   envDir: '../..',

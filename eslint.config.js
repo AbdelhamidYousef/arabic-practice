@@ -81,4 +81,9 @@ export default tseslint.config(
     ...tseslint.configs.disableTypeChecked,
     languageOptions: { globals: globals.node, parserOptions: { projectService: false } },
   },
+  // The service worker runs in the worker scope; the build fills in __SW_SHELL_FILES__.
+  {
+    files: ['apps/web/sw/**/*.js'],
+    languageOptions: { globals: { ...globals.serviceworker, __SW_SHELL_FILES__: 'readonly' } },
+  },
 );

@@ -20,3 +20,12 @@ createRoot(root).render(
     </QueryClientProvider>
   </StrictMode>,
 );
+
+// Offline support (sw/sw.js). Production builds only: in dev, a worker caching files would serve
+// stale code between edits. Registered after load so it never competes with the first paint.
+// MODE, not PROD: the shared root .env sets NODE_ENV=development, which turns PROD off in local builds.
+if (import.meta.env.MODE === 'production' && 'serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => undefined);
+  });
+}

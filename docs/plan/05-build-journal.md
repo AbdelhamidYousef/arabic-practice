@@ -517,3 +517,17 @@ Learn: content-addressed file names make "cache forever" safe: a change is a new
 Note: `routes.test.tsx` "not-found page" failed once in a full run while another suite loaded the
 machine (load 13) and then passed 9 runs in a row. Suspect a cold lazy-route import exceeding the 1 s
 find timeout; not widened. Watch for it.
+
+## Phase 25: PWA
+
+### 25.2 (part 1): the offline shell
+A hand-written worker precaches the built app and serves it offline; clips and opened lessons are
+cached as they are used. Tested in Chromium against `vite preview`: worker activated, 48 files
+cached, and an offline reload renders the app (header, banner, routing). Two bugs found on the way:
+the worker never registered (the root `.env`'s NODE_ENV=development turns Vite's `PROD` off), and
+every offline asset request missed the cache (the server sends `Vary: Origin`, module script requests
+carry an Origin header and the precache requests didn't, so `ignoreVary` it is).
+Learn: Cache Storage matching follows HTTP's `Vary` rules. A cache that "has the file" can still
+miss it; check the request headers, not just the URL.
+Still to do after the accounts merge: queue progress made offline, say "offline" in the chat and the
+banner, the manifest and icons (25.1, after the design pick).
