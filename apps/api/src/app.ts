@@ -12,6 +12,7 @@ import { createCsrfCheck } from './middleware/csrf.ts';
 import { createErrorHandler, notFoundHandler } from './middleware/error.ts';
 import { createRateLimiter, type RateLimitOptions } from './middleware/rate-limit.ts';
 import { requestId } from './middleware/request-id.ts';
+import { createAuthRouter } from './modules/auth/router.ts';
 
 export interface AppConfig {
   nodeEnv: 'development' | 'test' | 'production';
@@ -70,6 +71,13 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
   app.use(createAttachUser({ secureCookies: config.nodeEnv === 'production' }));
 
   app.use('/api/v1', createHealthRouter({ db, ai }));
+  app.use(
+    '/api/v1',
+    createAuthRouter({
+      secureCookies: config.nodeEnv === 'production',
+      authRateLimit: config.authRateLimit,
+    }),
+  );
 
   // Order matters: unknown routes first, then the error handler that catches everything above.
   app.use(notFoundHandler);

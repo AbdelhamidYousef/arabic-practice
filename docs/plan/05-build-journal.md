@@ -103,3 +103,8 @@ What was built per step and why, for the owner to read; three quiz questions at 
   to 30 days at most once a day, `last_seen_at` moves at most once an hour. `requireUser`, `requireRole`,
   `forbidReadOnly` (403 `DEMO_READ_ONLY`) are exported for later phases. Learn: a sliding session that
   writes on every request turns every page view into an UPDATE; compare timestamps first and write only when due.
+- **4.2 Login, logout, me.** `POST /auth/login` is rate-limited per IP + email (before validation, so malformed
+  attempts count), verifies against a dummy hash when the email is unknown or the account has no password, and
+  replaces any session that arrived with the request. `GET /auth/me` returns the user DTO from a Zod schema in
+  `packages/shared`, built by an allow-list. Learn: "wrong password" and "no such user" must look identical in the
+  body and in the time taken, otherwise login becomes a way to list who has an account.
