@@ -16,7 +16,7 @@ import { ChooseExercise } from '../features/exercises/ChooseExercise';
 import { FAQ, HERO_WORD, LESSON_STEPS, LEVELS, SAMPLE_EXERCISE } from '../features/landing/content';
 import { EXAMPLE_TURN } from '../features/landing/example';
 import { useT } from '../i18n';
-import { speakArabic, useArabicVoice } from '../lib/speech';
+import { useArabicAudio } from '../lib/audio';
 
 // Sections sit under a sticky header, so in-page jumps leave room for it.
 const section = 'scroll-mt-20 py-14 sm:py-20';
@@ -29,7 +29,7 @@ export default function HomePage() {
   const { data: user } = useMe();
   const guest = useGuest();
   const demo = useDemoTeacher();
-  const hasVoice = useArabicVoice();
+  const player = useArabicAudio();
 
   // The header's "Levels" / "How it works" links are `/#id`: scroll to that section on arrival.
   useEffect(() => {
@@ -83,11 +83,11 @@ export default function HomePage() {
               </ArabicText>
               <p className="mt-2 text-lg text-muted">{HERO_WORD.translit}</p>
               <p className="mt-1 text-xl font-semibold">{t(HERO_WORD.meaningKey)}</p>
-              {hasVoice && (
+              {player.canPlay(HERO_WORD.arabic) && (
                 <Button
                   variant="secondary"
                   className="mt-6"
-                  onClick={() => speakArabic(HERO_WORD.arabic)}
+                  onClick={() => player.play(HERO_WORD.arabic)}
                 >
                   <Icon name="speaker" />
                   {t('home.hero.listen')}

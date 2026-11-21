@@ -506,3 +506,14 @@ manifest. The first sample came from Piper's CLI, which re-vowels Arabic by defa
 turns that off, and the sample was made again the same way.
 Learn: a tool's defaults are decisions someone else made for a different case. Read them before
 judging the output; here the default would have silently replaced checked harakat.
+
+### 24.3: the player (before the clips)
+`useArabicAudio()` replaces `useArabicVoice()` in the five places that play Arabic: `canPlay(text)` is
+true with a clip or a device voice, and `play(text)` prefers the clip and falls back to the voice
+(also when the clip fails to play). The manifest is fetched once; until the clips are generated it is
+missing and everything behaves as before. Clips get a one-year immutable cache because a clip's
+name changes when its text changes; the manifest keeps the default short cache.
+Learn: content-addressed file names make "cache forever" safe: a change is a new URL, never a stale one.
+Note: `routes.test.tsx` "not-found page" failed once in a full run while another suite loaded the
+machine (load 13) and then passed 9 runs in a row. Suspect a cold lazy-route import exceeding the 1 s
+find timeout; not widened. Watch for it.

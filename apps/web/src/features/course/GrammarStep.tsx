@@ -4,7 +4,7 @@ import { ArabicText } from '../../components/ui/ArabicText';
 import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { useT } from '../../i18n';
-import { speakArabic, useArabicVoice } from '../../lib/speech';
+import { useArabicAudio } from '../../lib/audio';
 
 import { MixedText } from './MixedText';
 import type { StepProps } from './step-props';
@@ -33,7 +33,7 @@ export function GrammarStep({ data, onComplete, saving }: StepProps) {
 
 function Block({ block }: { block: GrammarBlock }) {
   const { t } = useT();
-  const hasVoice = useArabicVoice();
+  const player = useArabicAudio();
   switch (block.type) {
     case 'p':
       return (
@@ -53,12 +53,12 @@ function Block({ block }: { block: GrammarBlock }) {
               <MixedText text={block.english} />
             </p>
           </div>
-          {hasVoice && (
+          {player.canPlay(block.arabic) && (
             <Button
               variant="secondary"
               size="icon"
               aria-label={t('exercise.listen')}
-              onClick={() => speakArabic(block.arabic)}
+              onClick={() => player.play(block.arabic)}
             >
               <Icon name="speaker" />
             </Button>

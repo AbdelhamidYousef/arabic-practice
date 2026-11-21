@@ -5,8 +5,8 @@ import { ArabicText } from '../../components/ui/ArabicText';
 import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { useT } from '../../i18n';
+import { useArabicAudio } from '../../lib/audio';
 import { cn } from '../../lib/cn';
-import { speakArabic, useArabicVoice } from '../../lib/speech';
 
 import type { StepProps } from './step-props';
 
@@ -17,7 +17,7 @@ import type { StepProps } from './step-props';
 export function WordsStep({ data, onComplete, onProgress, saving }: StepProps) {
   const { t } = useT();
   const words = data.vocab;
-  const hasVoice = useArabicVoice();
+  const player = useArabicAudio();
   const [index, setIndex] = useState(0);
   const [flipped, setFlipped] = useState(false);
   const word = words[index];
@@ -76,11 +76,11 @@ export function WordsStep({ data, onComplete, onProgress, saving }: StepProps) {
         {flipped ? t('words.flipBackHint') : t('words.flipHint')}
       </p>
 
-      {hasVoice && (
+      {player.canPlay(word.arabic) && (
         <Button
           variant="secondary"
           className="self-center"
-          onClick={() => speakArabic(word.arabic)}
+          onClick={() => player.play(word.arabic)}
         >
           <Icon name="speaker" />
           {t('words.listen')}

@@ -42,4 +42,13 @@ describe('apps/web/vercel.json security headers', () => {
     expect(header('Referrer-Policy')).toBe('strict-origin-when-cross-origin');
     expect(header('Permissions-Policy')).toBe('camera=(), microphone=(), geolocation=()');
   });
+
+  it('caches audio clips for a year (their name changes with their text) but not the manifest', () => {
+    const audio = config.headers.find((h) => h.source === '/audio/(.*)\\.mp3');
+    expect(audio?.headers).toContainEqual({
+      key: 'Cache-Control',
+      value: 'public, max-age=31536000, immutable',
+    });
+    expect(config.headers.some((h) => h.source.includes('manifest'))).toBe(false);
+  });
 });

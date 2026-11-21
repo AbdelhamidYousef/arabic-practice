@@ -2,7 +2,7 @@ import { ArabicText } from '../../components/ui/ArabicText';
 import { Button } from '../../components/ui/Button';
 import { Icon } from '../../components/ui/Icon';
 import { useT } from '../../i18n';
-import { speakArabic, useArabicVoice } from '../../lib/speech';
+import { useArabicAudio } from '../../lib/audio';
 
 import { OptionsExercise } from './OptionsExercise';
 
@@ -21,7 +21,7 @@ export interface ChooseExerciseProps {
 // Multiple choice: the homepage sample and the lesson player's `choose` exercise.
 export function ChooseExercise({ promptArabic, ...rest }: ChooseExerciseProps) {
   const { t } = useT();
-  const hasVoice = useArabicVoice();
+  const player = useArabicAudio();
   return (
     <OptionsExercise
       {...rest}
@@ -30,12 +30,12 @@ export function ChooseExercise({ promptArabic, ...rest }: ChooseExerciseProps) {
           ? () => (
               <div className="flex items-center justify-center gap-3">
                 <ArabicText className="text-3xl">{promptArabic}</ArabicText>
-                {hasVoice && (
+                {player.canPlay(promptArabic) && (
                   <Button
                     variant="secondary"
                     size="icon"
                     aria-label={t('exercise.listen')}
-                    onClick={() => speakArabic(promptArabic)}
+                    onClick={() => player.play(promptArabic)}
                   >
                     <Icon name="speaker" />
                   </Button>
