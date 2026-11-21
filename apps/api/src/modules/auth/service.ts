@@ -181,3 +181,16 @@ export async function register(
   });
   return issueFreshSession(user, previousToken);
 }
+
+// ---- demo teacher --------------------------------------------------------------------------------
+
+// A public endpoint must never open a writable account, so a seeded row that lost its read-only flag
+// (or its role) is treated as "not set up" instead of being signed into.
+export async function signInDemoTeacher(previousToken: string | null): Promise<Issued> {
+  const [user] = await db
+    .select(userColumns)
+    .from(users)
+    .where(eq(users.email, DEMO_TEACHER.email));
+  if (user?.role !== 'teacher' || !user.readOnly) throw demoUnavailable();
+  return issueFreshSession(user, previousToken);
+}

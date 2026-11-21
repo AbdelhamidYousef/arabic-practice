@@ -89,6 +89,13 @@ export function createAuthRouter(opts: AuthRouterOptions): Router {
     respond(res, UserResponseSchema, { user: toUserDto(user) });
   });
 
+  // Same shape and limit as the guest sign-in: public, no account, so keyed by IP.
+  router.post('/auth/demo-teacher', guestLimit, async (req, res) => {
+    const { user, token } = await service.signInDemoTeacher(readSessionCookie(req));
+    setSessionCookie(res, token, opts.secureCookies);
+    respond(res, UserResponseSchema, { user: toUserDto(user) });
+  });
+
   // Idempotent on purpose (no requireUser): a visitor whose session already expired still wants the
   // cookie gone and a success answer, and signing out twice must not be an error.
   router.post('/auth/logout', async (req, res) => {

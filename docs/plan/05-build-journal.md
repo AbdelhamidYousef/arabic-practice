@@ -117,3 +117,13 @@ What was built per step and why, for the owner to read; three quiz questions at 
   transaction that inserts the user, so a duplicate email rolls the use back and four parallel sign-ups for the last
   use produce exactly one account. Closed (the default) is 403 `INVITES_CLOSED`. Learn: "check then update" races;
   a conditional UPDATE lets the database decide who got the last seat.
+- **4.5 Demo teacher.** `POST /auth/demo-teacher` signs a visitor into the seeded teacher (per-IP limit). It refuses
+  with 503 if that row is missing, not a teacher or no longer read-only, so a public button can never open a writable
+  account. `forbidReadOnly` (403 `DEMO_READ_ONLY`) is tested on an example route and must go on every teacher
+  mutation in phase 10. Learn: a public sign-in endpoint is a privilege escalation if the account it points at can
+  change; check the property you rely on every time, not once at seed time.
+
+### Quiz (phase 4)
+1. Why does the database store the SHA-256 of the session id, and why is a fast hash enough here when passwords need argon2?
+2. Two people use the last use of an invite at the same moment. Which single statement decides who wins, and what happens to the loser's use count if their email is already taken?
+3. Why does login verify against a dummy hash when the email is unknown, and what would an attacker learn without it?
