@@ -61,7 +61,7 @@ const baseSchema = z.object({
   AI_TIER: unsetIfEmpty(z.enum(['free', 'paid']).default('free')),
   // Kill switch: false makes every AI call answer AI_DISABLED without touching the provider.
   AI_ENABLED: flag('true'),
-  AI_MODEL_CORRECTION: unsetIfEmpty(z.string().trim().min(1).default('gemini-3.5-flash-lite')),
+  AI_MODEL_CORRECTION: unsetIfEmpty(z.string().trim().min(1).default('gemini-3.1-flash-lite')),
   AI_MODEL_REPLY: unsetIfEmpty(z.string().trim().min(1).default('gemini-3.1-flash-lite')),
   AI_MODEL_GLOSS: unsetIfEmpty(z.string().trim().min(1).default('gemini-3.1-flash-lite')),
   // Daily caps count rows in `ai_calls`; the monthly budget sums their cost.
