@@ -1,5 +1,7 @@
 import { pino } from 'pino';
 
+import { scrubError } from './scrub-error.ts';
+
 export interface LoggerOptions {
   level: string;
   /** Human-readable output for local development; JSON everywhere else. */
@@ -17,7 +19,12 @@ const REDACT_PATHS = [
 ];
 
 export function createLogger({ level, pretty = false, destination }: LoggerOptions): pino.Logger {
-  const options: pino.LoggerOptions = { level, redact: REDACT_PATHS };
+  const options: pino.LoggerOptions = {
+    level,
+    redact: REDACT_PATHS,
+    // Every `{ err }` goes through here, so no call site has to remember to scrub.
+    serializers: { err: scrubError },
+  };
   if (destination) return pino(options, destination);
   // JSON in production because machines read it; pino-pretty only as a dev transport so it is
   // never loaded (or needed) in production.

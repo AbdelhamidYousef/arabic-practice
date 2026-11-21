@@ -7,6 +7,7 @@ import { pinoHttp } from 'pino-http';
 import type { AiRuntime } from './ai/index.ts';
 import type { Database } from './db/client.ts';
 import { createHealthRouter } from './lib/health.ts';
+import { scrubError } from './lib/scrub-error.ts';
 import { createAttachUser } from './middleware/auth.ts';
 import { createCsrfCheck } from './middleware/csrf.ts';
 import { createErrorHandler, notFoundHandler } from './middleware/error.ts';
@@ -72,6 +73,8 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
       logger,
       // Reuse the id set above instead of letting pino-http mint a second, different one.
       genReqId: (req) => req.id,
+      // pino-http would otherwise serialise errors with pino's own serializer, parameters and all.
+      serializers: { err: scrubError },
     }),
   );
   app.use(helmet());

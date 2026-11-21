@@ -3,6 +3,7 @@ import type { ErrorRequestHandler, RequestHandler } from 'express';
 import { z } from 'zod';
 
 import { AppError, notFound } from '../lib/errors.ts';
+import { scrubError } from '../lib/scrub-error.ts';
 
 // Anything routed nowhere ends here, so unknown URLs get the same JSON envelope as every other error.
 export const notFoundHandler: RequestHandler = (req, _res, next) => {
@@ -31,7 +32,7 @@ export function createErrorHandler(opts: { isProduction: boolean }): ErrorReques
   return (err: unknown, req, res, _next) => {
     if (res.headersSent) {
       // Too late to send a JSON body; let Express close the connection.
-      req.log.error({ err }, 'error after headers were sent');
+      req.log.error({ err: scrubError(err) }, 'error after headers were sent');
       res.end();
       return;
     }
@@ -68,7 +69,8 @@ export function createErrorHandler(opts: { isProduction: boolean }): ErrorReques
     }
 
     // Unknown failure: log the stack for us, tell the client nothing useful to an attacker.
-    req.log.error({ err }, 'unhandled error');
+    // Scrubbed here as well as in the logger: pino-http gives req.log its own `err` serializer.
+    req.log.error({ err: scrubError(err) }, 'unhandled error');
     const message =
       opts.isProduction || !(err instanceof Error) ? 'Internal server error' : err.message;
     res.status(500).json(body(ErrorCode.INTERNAL, message));
