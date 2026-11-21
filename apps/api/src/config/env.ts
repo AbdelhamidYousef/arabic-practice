@@ -22,7 +22,7 @@ const flag = (fallback: 'true' | 'false') =>
 
 const count = (fallback: number) => unsetIfEmpty(z.coerce.number().int().min(0).default(fallback));
 
-export const envSchema = z.object({
+const baseSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: unsetIfEmpty(z.coerce.number().int().positive().default(3002)),
   DATABASE_URL: z.url(),
@@ -76,6 +76,50 @@ export const envSchema = z.object({
   // Password of the local dev teacher (db:seed). Ignored in production, where the seed refuses to
   // create a login with a known password.
   SEED_TEACHER_PASSWORD: unsetIfEmpty(z.string().min(8).optional()),
+});
+
+// Rules that look at several variables at once. Each one turns a promise from the plan into a
+// refusal to boot, so a mistake in a hosting dashboard cannot quietly become an open door or a bill.
+export const envSchema = baseSchema.superRefine((e, ctx) => {
+  const fail = (path: keyof z.infer<typeof baseSchema>, message: string) =>
+    ctx.addIssue({ code: 'custom', path: [path], message });
+  const production = e.NODE_ENV === 'production';
+
+  // The Origin check (CSRF) compares against it: left at the localhost default, every browser
+  // request in production would be refused, and Secure cookies need https anyway.
+  if (production && !e.WEB_ORIGIN.startsWith('https://')) {
+    fail('WEB_ORIGIN', 'must be the https URL of the deployed web app in production');
+  }
+  // A production API pointed at a laptop database is a configuration slip, never a plan.
+  if (production && ['localhost', '127.0.0.1', '::1'].includes(new URL(e.DATABASE_URL).hostname)) {
+    fail('DATABASE_URL', 'must not point at a local database in production');
+  }
+  // The fake provider answers with canned text. Real learners must never get that by accident.
+  if (production && e.AI_PROVIDER === 'fake') {
+    fail('AI_PROVIDER', 'the fake provider is refused in production');
+  }
+  // With the kill switch off no call is made, so no key is needed; otherwise one is.
+  if (production && e.AI_ENABLED && e.GEMINI_API_KEY === undefined) {
+    fail(
+      'GEMINI_API_KEY',
+      'is required in production while AI_ENABLED=true (or set AI_ENABLED=false)',
+    );
+  }
+  // The free tier lets the provider train on prompts, so real students cannot sign up on it.
+  if (production && e.INVITES_ENABLED && e.AI_TIER === 'free') {
+    fail(
+      'INVITES_ENABLED',
+      'cannot be true while AI_TIER=free: free-tier prompts may be used for training',
+    );
+  }
+
+  // Wherever it runs: asking for the gemini adapter without a key, and paid spend without a ceiling.
+  if (e.AI_PROVIDER === 'gemini' && e.GEMINI_API_KEY === undefined) {
+    fail('GEMINI_API_KEY', 'is required when AI_PROVIDER=gemini');
+  }
+  if (e.AI_TIER === 'paid' && e.AI_MONTHLY_BUDGET_USD <= 0) {
+    fail('AI_MONTHLY_BUDGET_USD', 'must be above 0 when AI_TIER=paid: paid use needs a hard cap');
+  }
 });
 
 export type Env = z.infer<typeof envSchema>;

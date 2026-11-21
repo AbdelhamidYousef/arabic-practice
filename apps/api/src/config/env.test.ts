@@ -93,3 +93,91 @@ describe('validation', () => {
     expect(problems({ ...base, [name]: value })).toEqual([name]);
   });
 });
+
+// A complete, valid production configuration; each test below breaks exactly one thing.
+const production = {
+  ...base,
+  DATABASE_URL: 'postgres://u:p@ep-example.neon.tech/db',
+  NODE_ENV: 'production',
+  WEB_ORIGIN: 'https://arabic-practice.example.app',
+  GEMINI_API_KEY: 'AIza-example-key-0000',
+};
+
+describe('production rules', () => {
+  it('boots with a complete production configuration', () => {
+    expect(problems(production)).toEqual([]);
+  });
+
+  it('requires an https WEB_ORIGIN', () => {
+    expect(problems({ ...production, WEB_ORIGIN: 'http://arabic-practice.example.app' })).toEqual([
+      'WEB_ORIGIN',
+    ]);
+    expect(problems({ ...production, WEB_ORIGIN: '' })).toEqual(['WEB_ORIGIN']);
+  });
+
+  it('refuses a local database', () => {
+    for (const url of ['postgres://u:p@localhost:5434/db', 'postgres://u:p@127.0.0.1/db']) {
+      expect(problems({ ...production, DATABASE_URL: url })).toEqual(['DATABASE_URL']);
+    }
+  });
+
+  it('refuses AI_PROVIDER=fake', () => {
+    expect(problems({ ...production, AI_PROVIDER: 'fake' })).toEqual(['AI_PROVIDER']);
+    expect(problems({ ...production, AI_PROVIDER: 'gemini' })).toEqual([]);
+  });
+
+  it('requires a Gemini key while AI is enabled, and only then', () => {
+    const noKey = { ...production, GEMINI_API_KEY: '' }; // empty counts as unset
+    expect(problems(noKey)).toEqual(['GEMINI_API_KEY']);
+    expect(problems({ ...noKey, GEMINI_API_KEY: '' })).toEqual(['GEMINI_API_KEY']);
+    expect(problems({ ...noKey, AI_ENABLED: 'false' })).toEqual([]);
+  });
+
+  it('refuses INVITES_ENABLED=true while AI_TIER=free', () => {
+    expect(problems({ ...production, INVITES_ENABLED: 'true' })).toEqual(['INVITES_ENABLED']);
+    expect(problems({ ...production, INVITES_ENABLED: 'true', AI_TIER: '' })).toEqual([
+      'INVITES_ENABLED',
+    ]);
+  });
+
+  it('allows invites on the paid tier, which needs a monthly budget', () => {
+    const paid = { ...production, AI_TIER: 'paid', INVITES_ENABLED: 'true' };
+    expect(problems(paid)).toEqual(['AI_MONTHLY_BUDGET_USD']);
+    expect(problems({ ...paid, AI_MONTHLY_BUDGET_USD: '5' })).toEqual([]);
+  });
+
+  it('reports every broken rule at once', () => {
+    const noKey = { ...production, GEMINI_API_KEY: '' }; // empty counts as unset
+    expect(
+      problems({ ...noKey, WEB_ORIGIN: 'http://x.example', INVITES_ENABLED: 'true' }).sort(),
+    ).toEqual(['GEMINI_API_KEY', 'INVITES_ENABLED', 'WEB_ORIGIN']);
+  });
+
+  it('does not apply the production rules in development or test', () => {
+    const local = {
+      ...base,
+      INVITES_ENABLED: 'true',
+      WEB_ORIGIN: 'http://localhost:5175',
+      AI_PROVIDER: 'fake',
+    };
+    expect(problems(local)).toEqual([]);
+    expect(problems({ ...local, NODE_ENV: 'test' })).toEqual([]);
+  });
+});
+
+describe('rules that apply everywhere', () => {
+  it('requires a key when the gemini adapter is asked for explicitly', () => {
+    expect(problems({ ...base, AI_PROVIDER: 'gemini' })).toEqual(['GEMINI_API_KEY']);
+    expect(
+      problems({ ...base, AI_PROVIDER: 'gemini', GEMINI_API_KEY: 'AIza-example-key-0000' }),
+    ).toEqual([]);
+  });
+
+  it('refuses the paid tier without a spending ceiling', () => {
+    expect(problems({ ...base, AI_TIER: 'paid' })).toEqual(['AI_MONTHLY_BUDGET_USD']);
+    expect(problems({ ...base, AI_TIER: 'paid', AI_MONTHLY_BUDGET_USD: '0' })).toEqual([
+      'AI_MONTHLY_BUDGET_USD',
+    ]);
+    expect(problems({ ...base, AI_TIER: 'paid', AI_MONTHLY_BUDGET_USD: '10' })).toEqual([]);
+  });
+});

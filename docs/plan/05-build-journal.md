@@ -70,3 +70,29 @@ What was built per step and why, for the owner to read; three quiz questions at 
 1. Why does matching use `normalizeArabic()` on both sides instead of comparing strings directly, and why are ؤ and ئ left unfolded?
 2. Why does the test harness read the foreign keys from `pg_constraint` and delete in that order, instead of keeping a hard-coded list?
 3. An invite has `max_uses = 1` and two people submit the sign-up at the same moment. Which single SQL statement decides who wins, and why is checking `used_count` first in code not enough?
+
+## Phase 2 — API foundation
+
+- **2.1 App factory, errors, request logging.** `createApp({ config, db, logger, ai })` takes everything
+  it uses as arguments. `AppError(code, message)` is the only error services throw; the error middleware is
+  the only place it becomes an HTTP response, in one JSON shape `{ error: { code, message, details? } }`.
+  The request id is accepted from the caller only if it looks like an id, then goes on every log line.
+  Learn: a log line is text an attacker can influence, so anything that reaches it (a header) is validated first.
+- **2.2 Security middleware.** helmet headers, a 16 kB JSON limit, an Origin check on every mutation, a
+  general rate limit per IP, and helpers for stricter limits (per IP + email, per IP). Learn: SameSite
+  cookies already withhold the cookie from a cross-site POST; the Origin check is a second, independent layer,
+  and a lookalike origin (`http://localhost:5175.evil.example`) is refused because origins are compared whole.
+- **2.3 Health with a database ping.** `GET /api/v1/health` answers 503 when the database is down or hangs,
+  and always reports which AI adapter is configured and whether AI is switched on. Learn: a probe that
+  only reads the status code must see "not ok" as a status, not as a 200 with a sad message.
+- **2.4 Production rules.** The environment schema refuses to boot in production with: a non-https
+  `WEB_ORIGIN`, a local database, `AI_PROVIDER=fake`, no Gemini key while AI is on, or
+  `INVITES_ENABLED=true` on the free tier. Everywhere it refuses `AI_PROVIDER=gemini` without a key and the
+  paid tier without a monthly budget. Learn: turning a promise ("real students never touch the free tier")
+  into a boot failure means a mistake in a hosting dashboard cannot quietly break it. The fake provider is
+  chosen by `NODE_ENV=test` only, never by a flag production could set.
+
+### Quiz (phase 2)
+1. Why is the request id validated before it is logged or echoed back in a response header?
+2. A hosting dashboard has `INVITES_ENABLED=true` and `AI_TIER=free` in production. What happens at boot, and which promise does that protect?
+3. Why does `/health` answer 503 for a database outage instead of 200 with `"db": "down"`, and why is it exempt from the rate limit?
