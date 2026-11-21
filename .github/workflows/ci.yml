@@ -68,6 +68,55 @@ jobs:
       # separate migrate step. One package at a time: they would otherwise share one test database.
       - run: pnpm -r --workspace-concurrency=1 test
 
+  e2e:
+    name: E2E (Playwright, Chromium)
+    runs-on: ubuntu-latest
+    # Only after the cheap checks pass: a type error should not cost a browser install.
+    needs: [check, test]
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: arabic
+          POSTGRES_PASSWORD: arabic
+          POSTGRES_DB: arabic_e2e
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U arabic -d arabic_e2e"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      # playwright.config.ts starts the API (NODE_ENV=test, fake AI provider: no Gemini key, no
+      # network calls) and `vite preview` on ports of their own; e2e/global-setup.ts migrates and
+      # seeds this database before the first spec.
+      E2E_DATABASE_URL: postgres://arabic:arabic@localhost:5432/arabic_e2e
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # The production bundle that `vite preview` serves.
+      - run: pnpm --filter @arabic/web build
+      # Chromium only: the project config has one browser, and this skips ~1 GB of Firefox/WebKit.
+      - run: pnpm exec playwright install --with-deps chromium
+      # `e2e:run` because the build step is above (`pnpm e2e` builds and runs, for laptops).
+      - run: pnpm e2e:run
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-artifacts
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
+
   secrets:
     name: Secret scan (gitleaks)
     runs-on: ubuntu-latest
@@ -81,4 +130,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-# The e2e and dependency-audit jobs arrive in phase 12.
+# The dependency-audit job arrives in phase 12.
