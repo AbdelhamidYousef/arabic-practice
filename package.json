@@ -1,0 +1,52 @@
+{
+  "name": "arabic-practice",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "packageManager": "pnpm@12.16.1",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "typecheck": "tsc -b",
+    "lint": "eslint . --max-warnings 0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "pnpm -r --if-present test",
+    "test:live": "pnpm --filter @arabic/api test:live",
+    "coverage": "pnpm -r --if-present coverage",
+    "e2e": "playwright test",
+    "db:migrate": "pnpm --filter @arabic/api db:migrate",
+    "db:seed": "pnpm --filter @arabic/api db:seed",
+    "db:reset": "pnpm --filter @arabic/api db:reset",
+    "eval": "pnpm --filter @arabic/api eval",
+    "prepare": "simple-git-hooks"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.5",
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^22.20.5",
+    "@vitest/coverage-v8": "^5.0.5",
+    "eslint": "^9.39.5",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "lint-staged": "^17.6.0",
+    "prettier": "^3.9.10",
+    "simple-git-hooks": "^2.14.0",
+    "typescript": "~6.0.3",
+    "typescript-eslint": "^8.72.1"
+  },
+  "simple-git-hooks": {
+    "pre-commit": "pnpm exec lint-staged"
+  },
+  "lint-staged": {
+    "*.{ts,tsx,js}": [
+      "prettier --write",
+      "eslint --max-warnings 0 --no-warn-ignored"
+    ],
+    "*.{json,css,yml,yaml,html}": "prettier --write --ignore-unknown"
+  }
+}
