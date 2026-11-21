@@ -25,6 +25,24 @@ function readHarakatPref(): boolean {
 // Within this many pixels of the end of the chat, new text keeps the view pinned to the bottom.
 const PIN_SLACK = 120;
 
+type Unanswered = 'noReply' | 'history' | undefined;
+
+/**
+ * Whether a saved line is a learner line the partner never answered. `nextRole` is the role of the
+ * saved message after it (undefined for the last one); `turnRunning` means a new learner bubble is
+ * on screen after the saved ones.
+ */
+export function unansweredState(
+  role: 'learner' | 'partner',
+  nextRole: 'learner' | 'partner' | undefined,
+  turnRunning: boolean,
+  turnFailed: boolean,
+): Unanswered {
+  if (role !== 'learner' || nextRole === 'partner') return undefined;
+  if (nextRole === 'learner' || turnRunning) return 'history';
+  return turnFailed ? 'noReply' : 'history';
+}
+
 export function ChatView({ data }: { data: ConversationDetailResponse }) {
   const { t } = useT();
   const { data: user } = useMe();
@@ -127,8 +145,18 @@ export function ChatView({ data }: { data: ConversationDetailResponse }) {
       </div>
 
       <ul aria-label={t('chat.messages')} className="flex-1 space-y-4 py-4">
-        {messages.map((message) =>
-          message.role === 'partner' ? (
+        {messages.map((message, index) => {
+          // A learner line the partner never answered. If anything learner-side follows it (a
+          // retry that is running or finished), it is history: muted, "Not answered". If it is the
+          // last line and the turn failed, it is the one Retry will resend: "No reply".
+          const next = messages[index + 1];
+          const unanswered = unansweredState(
+            message.role,
+            next?.role,
+            turn.status !== 'idle',
+            turn.failure !== null,
+          );
+          return message.role === 'partner' ? (
             <li key={message.id}>
               <PartnerBubble
                 messageId={message.id}
@@ -139,7 +167,11 @@ export function ChatView({ data }: { data: ConversationDetailResponse }) {
             </li>
           ) : (
             <li key={message.id} className="space-y-2">
-              <LearnerBubble text={message.text} hideHarakat={hideHarakat} />
+              <LearnerBubble
+                text={message.text}
+                hideHarakat={hideHarakat}
+                {...(unanswered && { unanswered })}
+              />
               <div className="ml-auto max-w-[88%] sm:max-w-[80%]">
                 <CorrectionCard
                   original={message.text}
@@ -150,8 +182,8 @@ export function ChatView({ data }: { data: ConversationDetailResponse }) {
                 />
               </div>
             </li>
-          ),
-        )}
+          );
+        })}
         {turn.status !== 'idle' && (
           <>
             <li className="space-y-2">

@@ -156,6 +156,8 @@ export const en = {
   'chat.error.generic': 'Something went wrong with this message. Please try again.',
   'chat.error.replyFailed': 'Your message was saved, but the partner could not reply.',
   'chat.retry': 'Retry',
+  'chat.noReply': 'No reply — try again',
+  'chat.notAnswered': 'Not answered',
   'chat.correction.checking': 'Checking…',
   'chat.correction.failed': "Couldn't check this message",
   'chat.correction.correct': 'Correct',

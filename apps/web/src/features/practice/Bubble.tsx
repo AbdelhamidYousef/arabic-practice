@@ -13,15 +13,26 @@ export function LearnerBubble({
   text,
   hideHarakat,
   pending = false,
+  unanswered,
 }: {
   text: string;
   hideHarakat: boolean;
   pending?: boolean;
+  /** The partner never replied to this message: shown muted with a small label under it. */
+  unanswered?: 'noReply' | 'history';
 }) {
   const { t } = useT();
   return (
     <div className="flex justify-end">
-      <div className={cn(bubble, 'border-primary/30 bg-primary-soft', pending && 'opacity-80')}>
+      <div
+        className={cn(
+          bubble,
+          'border-primary/30 bg-primary-soft',
+          pending && 'opacity-80',
+          unanswered && 'border-line bg-surface text-muted',
+        )}
+        {...(unanswered && { 'data-unanswered': unanswered })}
+      >
         <p className="sr-only">{t('chat.you')}</p>
         <ArabicText
           as="p"
@@ -30,6 +41,11 @@ export function LearnerBubble({
         >
           {text}
         </ArabicText>
+        {unanswered && (
+          <p className="mt-1 text-xs">
+            {t(unanswered === 'noReply' ? 'chat.noReply' : 'chat.notAnswered')}
+          </p>
+        )}
       </div>
     </div>
   );
