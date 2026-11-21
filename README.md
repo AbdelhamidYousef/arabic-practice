@@ -155,7 +155,7 @@ Needs Node 22 (`.nvmrc`), pnpm (via `corepack enable`) and Docker.
 cp .env.example .env      # every variable is documented inside; no key needed (the fake provider answers)
 pnpm install
 docker compose up -d      # Postgres on 127.0.0.1:5434
-pnpm db:reset             # migrate and seed (12 lessons, a made-up class)
+pnpm db:reset             # migrate and seed (66 course lessons, a made-up class)
 pnpm dev                  # api on :3002, web on :5175
 ```
 

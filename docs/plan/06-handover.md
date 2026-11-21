@@ -2,6 +2,35 @@
 
 Written by the build sessions for the owner and the next session. Newest state first.
 
+## Part 2 state (2026-11-21, later the same day)
+
+**Live:** https://arabic-practice-phi.vercel.app. Neon is migrated to 0009 and seeded with the course.
+
+- **The app is now a course:** 66 lessons (A0 Starter 10, A1 30, A2 26) in 8 units, from his
+  `arabic-classroom` curriculum, 759 exercises.
+  - Each lesson runs words (flashcards with audio and transliteration), practice (choose, match,
+    build, gap, listen), grammar, culture, then an optional AI talk.
+  - XP, streaks and "words learned" are tracked; finishing a lesson's practice adds its words to
+    review.
+- **Homepage, header and footer rebuilt:** nav-led, with a phone menu.
+- **Style fixes:** badges, Arabic highlights, Arabic text sizes (a CSS layer bug), one page width
+  everywhere, card padding, and the level tabs on a phone.
+- **Tests:** shared 58, API 583, web 275, e2e 14 (overflow checked at 390 and 1280 px on every
+  route, including each player step).
+- **The first 12 chat lessons** are drafts, kept only for the demo class's transcripts.
+
+### Waiting on you (part 2)
+- **A native read of the Arabic.** Every lane listed lines it was unsure of; the decisions log and
+  the lane notes in the chat cover them. Most worth a look:
+  - loanwords (تَاكْسِي، مِتْرُو، أَلُو)
+  - حَضْرَتُكَ as MSA
+  - the vowelled waṣl alif on imperatives (اُكْتُبْ), as in your bank
+  - woman's forms moved to notes in A0
+- **Not built yet** (phase 17.5 extras):
+  - review mixing quick exercises with the word cards
+  - XP by week on the progress page
+- **Open:** should review cards start at the words step instead of practice?
+
 ## Final state (2026-11-21, end of the unattended build)
 
 **Live:** https://arabic-practice-phi.vercel.app · **Repo:** https://github.com/AbdelhamidYousef/arabic-practice (public)
