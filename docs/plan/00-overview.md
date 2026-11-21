@@ -149,3 +149,6 @@ Supporting docs: `01-data-model.md`, `02-api-contract.md`, `03-conventions.md`, 
    teacher view" (a read-only demo teacher whose class is made-up learners). Real students join by
    invite link, which only works on the paid tier. Open sign-up would invite abuse of the free quota
    and real personal data into free-tier prompts.
+
+## Part 2 (2026-11-21)
+Phases 14–19 turn the chat demo into a course app: see `07-course-plan.md`.

@@ -79,7 +79,7 @@ function CorrectionResult({
             <span key={`${index}-${word.text}`}>
               {index > 0 && ' '}
               {word.changed ? (
-                <mark className="rounded bg-surface px-1 font-medium text-accent-strong underline decoration-accent-strong underline-offset-4">
+                <mark className="rounded-md bg-surface px-2 py-0.5 box-decoration-clone font-medium text-accent-strong underline decoration-accent-strong underline-offset-4">
                   {text}
                 </mark>
               ) : (

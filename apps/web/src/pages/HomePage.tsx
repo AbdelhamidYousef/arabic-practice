@@ -79,7 +79,7 @@ export default function HomePage() {
             <div className="rounded-ui bg-primary px-4 py-3 text-surface">
               <p dir="rtl" className="text-xl">
                 <ArabicText>{EXAMPLE_TURN.before}</ArabicText>{' '}
-                <mark className="rounded bg-accent-soft px-1 text-ink">
+                <mark className="rounded-md bg-accent-soft px-2 py-0.5 box-decoration-clone text-ink">
                   <ArabicText>{EXAMPLE_TURN.wrong}</ArabicText>
                 </mark>{' '}
                 <ArabicText>{EXAMPLE_TURN.after}</ArabicText>
@@ -92,7 +92,7 @@ export default function HomePage() {
             <p className="mt-2 text-sm text-muted">{t('home.turn.corrected')}</p>
             <p dir="rtl" className="text-xl">
               <ArabicText>{EXAMPLE_TURN.before}</ArabicText>{' '}
-              <mark className="rounded bg-surface px-1 text-ink">
+              <mark className="rounded-md bg-surface px-2 py-0.5 box-decoration-clone text-ink">
                 <ArabicText>{EXAMPLE_TURN.right}</ArabicText>
               </mark>{' '}
               <ArabicText>{EXAMPLE_TURN.after}</ArabicText>
