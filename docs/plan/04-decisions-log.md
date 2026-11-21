@@ -22,3 +22,9 @@ decisions that you need and mark them for my revision"). OWNER = his own call.
 - 2026-11-21 · REVIEW · Ports Pawsome + 2 (Postgres 5434, API 3002, web 5175, e2e 3102/5275), compose project `arabic`, DBs `arabic` / `arabic_test`, package scope `@arabic/*` · all three projects run side by side · never.
 - 2026-11-21 · REVIEW · One serial build lane in the main checkout, Sonnet builders per phase, Opus reviews auth, AI layer, budget and the turn stream · disk has 5 GB free (a worktree is ~1.7 GB), machine load already 12 of 20 cores · parallel worktrees · if disk is freed.
 - 2026-11-21 · REVIEW · Fonts: Inter (UI) and Noto Naskh Arabic, self-hosted with `@fontsource` · Naskh is the textbook style learners read, keeps harakat legible; no third-party font request · IBM Plex Sans Arabic, Amiri · his taste.
+
+## Phase 0
+- 2026-11-21 · REVIEW · Config files (eslint, prettier) and the git-hook setup landed in steps 0.2/0.3, so step 0.6 is an empty verification commit · the gates (lint, format) had to run from the first workspace on · splitting the files across steps by hand (would have meant committing code that fails its own gates) · never.
+- 2026-11-21 · REVIEW · CI test job runs no separate `db:migrate` · the test harness migrates `arabic_test` itself in `globalSetup`, and `db:migrate` does not exist until phase 1 · adding the step later (redundant) · if a job needs a migrated non-test DB (e2e, phase 12).
+- 2026-11-21 · REVIEW · `pnpm-workspace.yaml` keeps `argon2: false` in `allowBuilds` and drops `sharp` · as Pawsome (argon2 ships prebuilt binaries); no image processing here · building argon2 from source · if install fails on a new platform.
+- 2026-11-21 · REVIEW · Kept `@playwright/test` as a root dev dependency though e2e starts in phase 12 · same versions as Pawsome, lockfile stays stable · adding it later · never.
