@@ -11,3 +11,4 @@ export * from './sessions.ts';
 export * from './units.ts';
 export * from './users.ts';
 export * from './vocab-cards.ts';
+export * from './lesson-progress.ts';

@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import { db } from '../db/client.ts';
 import {
+  activityDays,
   aiCalls,
   conversations,
   corrections,
   invites,
+  lessonProgress,
   lessonVocab,
   lessons,
   messages,
@@ -35,6 +37,12 @@ async function populateEverything() {
   const vocab = await createVocab(conversation.lessonId);
   await createExercise(conversation.lessonId);
   await createUnit();
+  await db.insert(lessonProgress).values({
+    userId: conversation.userId,
+    lessonId: conversation.lessonId,
+    step: 'words',
+  });
+  await db.insert(activityDays).values({ userId: conversation.userId, day: '2026-11-21', xp: 5 });
   const [correction] = await db
     .insert(corrections)
     .values({ messageId: message.id, isCorrect: false, corrected: 'x' })
@@ -88,7 +96,7 @@ describe('test harness', () => {
 
     // Every application table held a row; children come before the tables they point at.
     expect(emptied.sort()).toEqual(all.filter((t) => t !== '__drizzle_migrations').sort());
-    expect(emptied).toHaveLength(13);
+    expect(emptied).toHaveLength(15);
     expect(await emptyDirtyTables(all)).toEqual([]);
     // The reason the harness exists: emptying a full database is milliseconds, not seconds.
     expect(elapsed).toBeLessThan(2000);

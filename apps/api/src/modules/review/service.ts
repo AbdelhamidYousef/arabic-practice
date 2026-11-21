@@ -23,6 +23,18 @@ async function createMissingCards(userId: string): Promise<void> {
   `);
 }
 
+// The same idempotent insert for one lesson's words: finishing a lesson's practice puts them into
+// the learner's review deck without a conversation.
+export async function createCardsForLesson(userId: string, lessonId: string): Promise<void> {
+  await db.execute(sql`
+    insert into vocab_cards (user_id, vocab_id)
+    select ${userId}::uuid, v.id
+    from lesson_vocab v
+    where v.lesson_id = ${lessonId}::uuid
+    on conflict do nothing
+  `);
+}
+
 export async function getDueCards(user: AuthUser): Promise<ReviewDueResponse> {
   // The read-only demo account only looks: reading must not write rows for it.
   if (!user.readOnly) await createMissingCards(user.id);

@@ -64,6 +64,13 @@
       "when": 1795256266895,
       "tag": "0008_units_sections_exercises",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1795256419393,
+      "tag": "0009_lesson_progress",
+      "breakpoints": true
     }
   ]
 }
