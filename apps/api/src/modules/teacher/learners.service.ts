@@ -26,8 +26,15 @@ const TOP_TYPES = 3;
 
 // Ownership: a learner is mine when `teacher_id` is me. It is in every query below, so another
 // teacher's learner (or a teacher's id, or a random id) is the same 404.
+// Guests are never anyone's learners to look at: they all hang off the public demo teacher, so
+// without `is_guest = false` any visitor could open every guest's chats through the demo login.
 const myLearner = (teacher: AuthUser, id: string) =>
-  and(eq(users.id, id), eq(users.teacherId, teacher.id), eq(users.role, 'learner'));
+  and(
+    eq(users.id, id),
+    eq(users.teacherId, teacher.id),
+    eq(users.role, 'learner'),
+    eq(users.isGuest, false),
+  );
 
 const learnerColumns = {
   id: users.id,
@@ -191,6 +198,7 @@ export async function getTranscript(
         eq(conversations.id, conversationId),
         eq(users.teacherId, teacher.id),
         eq(users.role, 'learner'),
+        eq(users.isGuest, false),
       ),
     );
   if (!conv) throw notFound('Conversation not found');

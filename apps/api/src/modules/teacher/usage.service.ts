@@ -80,6 +80,9 @@ export async function getUsage(teacher: AuthUser, now = new Date()): Promise<Tea
       .where(
         and(
           inMyClass,
+          // Guests are anonymous visitors of the public demo: their ids must not leak to the demo
+          // teacher (they are the key to nothing now, but they were, see learners.service.ts).
+          eq(users.isGuest, false),
           providerCall,
           eq(aiCalls.purpose, 'reply'),
           gte(aiCalls.createdAt, new Date(`${todayKey}T00:00:00Z`)),

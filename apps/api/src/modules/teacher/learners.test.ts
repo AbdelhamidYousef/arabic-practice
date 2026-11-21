@@ -11,6 +11,7 @@ import {
   createLesson,
   createMessage,
   createMistake,
+  createUser,
 } from '../../test/factories.ts';
 import { bodyOf, errorOf } from '../../test/http.ts';
 import { createSession } from '../auth/sessions.ts';
@@ -258,5 +259,26 @@ describe('GET /teacher/conversations/:id', () => {
     const loner = await signedIn();
     const conv = await createConversation({ userId: loner.user.id });
     expect((await get(`/teacher/conversations/${conv.id}`, t.cookie)).status).toBe(404);
+  });
+});
+
+describe('teacher learners: guests stay private', () => {
+  // Every guest hangs off the public demo teacher, and anyone can sign in as it. A guest's page and
+  // chats must therefore be invisible to that teacher (security review, 2026-11-21).
+  it('answers 404 for a guest learner page and a guest transcript, and lists no guests', async () => {
+    const { demo, cookie } = await demoCookie();
+    const guest = await createUser({
+      isGuest: true,
+      teacherId: demo.id,
+      displayName: 'Guest 1A2B',
+    });
+    const lesson = await createLesson({ teacherId: demo.id });
+    const conv = await createConversation({ userId: guest.id, lessonId: lesson.id });
+    await createMessage(conv.id, { role: 'learner', text: 'اسمي سارة' });
+
+    expect((await get(`/teacher/learners/${guest.id}`, cookie)).status).toBe(404);
+    expect((await get(`/teacher/conversations/${conv.id}`, cookie)).status).toBe(404);
+    const list = bodyOf<ListBody>(await get('/teacher/learners', cookie));
+    expect(list.learners.map((l) => l.id)).not.toContain(guest.id);
   });
 });

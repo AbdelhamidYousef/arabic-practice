@@ -127,9 +127,9 @@ describe('GET /teacher/usage', () => {
     expect(body.byPurpose.map((p) => p.purpose)).toEqual(['reply', 'correction', 'eval']);
     expect(body.byModel.map((m) => m.model)).toEqual(['m-reply', 'm-corr']);
     expect(body.today.models).toContainEqual({ model: 'm-reply', calls: 2 });
+    // Guests are counted in the totals but never listed: their ids must not reach the demo teacher.
     expect(body.today.people).toEqual([
       expect.objectContaining({ displayName: 'Ana', isGuest: false, turns: 1 }),
-      expect.objectContaining({ displayName: 'Guest 4F2A', isGuest: true, turns: 1 }),
     ]);
   });
 
