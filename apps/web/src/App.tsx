@@ -1,5 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 
+import { t } from './i18n';
+
 interface Health {
   status: string;
 }
@@ -16,7 +18,7 @@ export function App() {
 
   return (
     <main className="mx-auto max-w-xl p-6">
-      <h1 className="text-2xl font-semibold">Arabic Practice</h1>
+      <h1 className="text-2xl font-semibold">{t('app.name')}</h1>
       <p className="mt-2 text-sm">
         API status: <span data-testid="api-status">{label}</span>
       </p>
