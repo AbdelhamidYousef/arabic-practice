@@ -19,6 +19,7 @@ import {
 } from '../schema/index.ts';
 
 import { seedConversations } from './conversations.ts';
+import { seedCourse, type CourseSeedSummary } from './course.ts';
 import { seedLessons } from './lessons.ts';
 import { DEFAULT_DEV_TEACHER_PASSWORD, DEMO_TEACHER, DEV_TEACHER, demoLearners } from './users.ts';
 import { validateLessons } from './validate.ts';
@@ -35,6 +36,7 @@ export interface SeedSummary {
   learners: number;
   conversations: number;
   devTeacher: boolean;
+  course: CourseSeedSummary;
 }
 
 // What the partner prompt will later measure live (phase 5); computed here from the same shared
@@ -177,6 +179,9 @@ export async function runSeed(options: SeedOptions = {}): Promise<SeedSummary> {
     plainWordsBySlug.set(lesson.slug, new Set(vocabRows.map((v) => v.arabicPlain)));
   }
 
+  // The course (units, content lessons, exercises) from the content files, next to the old lessons.
+  const course = await seedCourse(demoTeacher.id);
+
   // The class's conversations are rebuilt each run, so the seed is repeatable and a changed
   // fixture replaces the old one. Deleting a conversation cascades to its messages, corrections
   // and mistakes. The seeded usage rows are removed with them.
@@ -283,6 +288,7 @@ export async function runSeed(options: SeedOptions = {}): Promise<SeedSummary> {
     learners: learners.size,
     conversations: conversationCount,
     devTeacher,
+    course,
   };
 }
 
@@ -292,6 +298,8 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   await closeDb();
   console.log(
     `seeded ${summary.lessons} lessons (${summary.vocab} vocabulary items), ` +
-      `${summary.learners} learners, ${summary.conversations} conversations`,
+      `${summary.learners} learners, ${summary.conversations} conversations; ` +
+      `course: ${summary.course.units} units, ${summary.course.lessons} lessons, ` +
+      `${summary.course.exercises} exercises`,
   );
 }

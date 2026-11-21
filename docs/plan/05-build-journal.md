@@ -373,3 +373,46 @@ The README is the case study: the problem, the level-control approach, the evals
 2. The free tier allows 500 calls a day per Flash-Lite model. Why does running correction and reply on
    one model halve the number of practice turns a day, and what is the trade-off for splitting them?
 3. Why must a migration run on Neon before the push that needs it, and with which of the two URLs?
+
+## Phase 16: course data model and API (lead session)
+
+### 16.1: the A0 level
+A new level goes in first, so every table that maps levels needed a row (reply token budgets, the
+AI level rules, eval scoring). One shared list now feeds the database enum, the Zod schema and the
+evals, so the compiler found most places for us. Learn: when a value list is written in six places,
+the one place you forgot is the bug; derive them from one constant (`CEFR_LEVELS`) and let types
+complain. The enum value itself needed its own migration, as in phase 12.
+
+### 16.2: units, sections and exercises
+A lesson is now words, exercises, a grammar note, a culture tip and the AI chat. Exercises are one Zod
+discriminated union (`choose`, `match`, `build`, `gap`, `listen`) stored as jsonb with the type
+repeated in a column. Learn: put data that is always read whole (an exercise) in one jsonb document,
+and keep the columns you filter on (`type`, `position`) as real columns; a discriminated union gives
+the web a type that narrows on `type`.
+
+### 16.3: progress, XP and streaks
+XP is paid only the first time a step is completed, decided by an insert that does nothing on
+conflict. The streak is counted from the learner's local date, which the browser sends and the server
+accepts only within a day of its own UTC date. Learn: "was this the first time?" must be answered by the
+database in the same statement that records it, or two quick taps pay twice; and a client-supplied
+date is only safe when its range is clamped.
+
+### 16.4: endpoints
+`GET /course` builds the path (levels, units, lessons, next up, stats); the progress route sits behind
+the read-only guard. The lesson detail gained its sections. Answers ship to the browser on purpose.
+Learn: a new required field in a shared response schema breaks every test fixture that builds the old
+shape, which is the schema doing its job.
+
+### 16.5: content files and the validator
+Lessons are typed files, not rows typed into a form; a pure validator lists every problem (Latin letters
+in Arabic, missing harakat, an answer index that points nowhere) and runs before the seed writes.
+Learn: content is code that needs tests; make the checks pure so they run in milliseconds, and make
+the seed idempotent in the way the data demands (words keep their ids because review cards point at them).
+
+### Quiz: Phase 16
+1. Two parallel requests post the same finished step. Which statement makes sure only one is paid XP,
+   and why is a select followed by an insert not enough?
+2. Why does the server accept the learner's local date only within one day of its own UTC date, and
+   what could someone do if it accepted any date?
+3. Why does the seed upsert a lesson's words by their plain form but delete and re-insert its exercises?
+

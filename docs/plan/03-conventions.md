@@ -42,6 +42,20 @@ Run tests one package at a time (`pnpm -r --workspace-concurrency=1 test`); neve
 - Comparisons go through `normalizeArabic()` from `@arabic/shared`, never raw string equality.
 - UI strings go through `t()` (English dictionary, typed keys). Arabic lesson content is data, not UI strings.
 
+## Course content (phase 16)
+- Lessons are typed content files: `apps/api/src/content/<level>/<nn>-<slug>.ts` (one `ContentLesson`
+  each), the unit list in `content/units.ts`, collected in order by `content/index.ts`. The seed
+  upserts them by slug; `content/validate.ts` checks every file before anything is written (and runs
+  in unit tests). Never edit course lessons through the teacher area: the seed would overwrite them.
+- Arabic is always fully voweled. Letters taught alone (letter-recognition options) are the one
+  exception: a lone letter carries no mark.
+- **Transliteration scheme** (`translit` on every word, and in grammar examples): Latin letters only.
+  Long vowels `ā ī ū`; `ʿ` for ع and `ʾ` for the hamza; emphatic `ḥ ṣ ḍ ṭ ẓ`; digraphs `kh gh sh th dh`;
+  `q` ق, `j` ج. Doubled letters stay doubled (`ʿalla`, `as-salām`). The article is `al-`, assimilated
+  before sun letters (`as-salām`, `an-nūr`) and joined with a hyphen. Case endings are left out (the
+  form you say in a pause: `bāb`, not `bābun`), except the `-an` of tanwin fatha, which is heard
+  (`shukran`). Fixed phrases are written as they are said (`as-salāmu ʿalaykum`).
+
 ## Testing rules
 - Unit: shared helpers, prompt builders, scorer, budget maths.
 - Integration: `createApp(deps)` with the fake provider against Postgres `arabic_test`; tables are

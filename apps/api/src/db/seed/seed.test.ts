@@ -1,17 +1,20 @@
 import { harakatRatio } from '@arabic/shared';
-import { eq, sql } from 'drizzle-orm';
+import { eq, isNull, sql } from 'drizzle-orm';
 import { describe, expect, it } from 'vitest';
 
+import { contentLessons, contentUnits } from '../../content/index.ts';
 import { verify } from '../../lib/password.ts';
 import { db } from '../client.ts';
 import {
   aiCalls,
   conversations,
   corrections,
+  lessonExercises,
   lessons,
   lessonVocab,
   messages,
   mistakes,
+  units,
   users,
 } from '../schema/index.ts';
 
@@ -43,7 +46,8 @@ describe('seed', () => {
     const demo = await db.select().from(users).where(eq(users.email, DEMO_TEACHER.email));
     expect(demo[0]).toMatchObject({ role: 'teacher', readOnly: true, displayName: 'Ustadh Demo' });
 
-    const rows = await db.select().from(lessons);
+    // The course lessons (in a unit) come next to the 12 chat lessons.
+    const rows = await db.select().from(lessons).where(isNull(lessons.unitId));
     expect(rows).toHaveLength(12);
     expect(rows.every((l) => l.teacherId === demo[0]?.id && l.status === 'published')).toBe(true);
     for (const lesson of rows) {
@@ -59,7 +63,62 @@ describe('seed', () => {
     const first = await counts();
     await runSeed({ nodeEnv: 'test' });
     expect(await counts()).toEqual(first);
-    expect(first).toMatchObject({ lessons: 12, conversations: 8, users: 1 + 1 + 4 });
+    expect(first).toMatchObject({
+      lessons: 12 + contentLessons.length,
+      conversations: 8,
+      users: 1 + 1 + 4,
+    });
+  });
+
+  it('loads the units and content lessons with their sections and exercises', async () => {
+    const summary = await runSeed({ nodeEnv: 'test' });
+    expect(summary.course).toMatchObject({
+      units: contentUnits.length,
+      lessons: contentLessons.length,
+    });
+    expect(await db.select().from(units)).toHaveLength(contentUnits.length);
+
+    const [row] = await db.select().from(lessons).where(eq(lessons.slug, 'a0-letters-alif-ba'));
+    expect(row).toMatchObject({ level: 'A0', kind: 'letters', status: 'published', position: 1 });
+    expect(row?.unitId).not.toBeNull();
+    expect(row?.grammarNote.length).toBeGreaterThan(0);
+    expect(row?.cultureTip?.title).toBeTruthy();
+
+    const vocab = await db
+      .select()
+      .from(lessonVocab)
+      .where(eq(lessonVocab.lessonId, row?.id ?? ''));
+    expect(vocab.every((v) => v.translit !== '')).toBe(true);
+    const exercises = await db
+      .select()
+      .from(lessonExercises)
+      .where(eq(lessonExercises.lessonId, row?.id ?? ''));
+    expect(exercises.map((e) => e.position).sort((a, b) => a - b)).toEqual(
+      exercises.map((_, i) => i + 1),
+    );
+    expect(exercises.every((e) => e.data.type === e.type)).toBe(true);
+  });
+
+  it('replaces the exercises of a content lesson on a re-run and keeps its word rows', async () => {
+    await runSeed({ nodeEnv: 'test' });
+    const [row] = await db.select().from(lessons).where(eq(lessons.slug, 'a1-greetings'));
+    const before = await db
+      .select()
+      .from(lessonVocab)
+      .where(eq(lessonVocab.lessonId, row?.id ?? ''));
+    await db.delete(lessonExercises).where(eq(lessonExercises.lessonId, row?.id ?? ''));
+    await runSeed({ nodeEnv: 'test' });
+    const after = await db
+      .select()
+      .from(lessonVocab)
+      .where(eq(lessonVocab.lessonId, row?.id ?? ''));
+    // Same word ids: a learner's review cards point at them.
+    expect(after.map((v) => v.id).sort()).toEqual(before.map((v) => v.id).sort());
+    const exercises = await db
+      .select()
+      .from(lessonExercises)
+      .where(eq(lessonExercises.lessonId, row?.id ?? ''));
+    expect(exercises.length).toBeGreaterThanOrEqual(6);
   });
 
   it('puts the made-up class under the demo teacher with data for the teacher view', async () => {
