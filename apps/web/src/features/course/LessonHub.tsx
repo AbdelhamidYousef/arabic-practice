@@ -29,7 +29,7 @@ export function LessonHub({ data }: { data: LessonDetailResponse }) {
   return (
     <>
       <Seo title={lesson.title} description={lesson.summary} />
-      <header className="mt-4 rounded-3xl bg-[radial-gradient(ellipse_at_top_right,var(--color-primary-soft),transparent_70%)] py-2">
+      <header className="mt-4">
         <div className="flex flex-wrap items-center gap-2">
           <Badge tone="primary">{lesson.level}</Badge>
           {lesson.kind === 'letters' && <Badge>{t('course.letters')}</Badge>}

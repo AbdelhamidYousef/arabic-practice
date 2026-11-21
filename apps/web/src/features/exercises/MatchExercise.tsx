@@ -75,7 +75,7 @@ export function MatchExercise({ prompt, pairs, seed = 'match', onAnswered }: Mat
           aria-disabled={isMatched || undefined}
           onClick={() => !isMatched && pick(side, index)}
           className={cn(
-            'flex min-h-14 w-full items-center justify-center gap-2 rounded-ui border-2 px-3 py-2 text-center transition-colors',
+            'flex min-h-16 w-full items-center justify-center gap-2 rounded-ui border-2 px-3 py-2 text-center transition-colors',
             isMatched && 'cursor-default border-success bg-success-soft text-success',
             !isMatched && isWrong && 'shake border-danger bg-danger-soft',
             !isMatched && !isWrong && isSelected && 'border-primary bg-primary-soft',

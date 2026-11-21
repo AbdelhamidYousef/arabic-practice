@@ -17,6 +17,7 @@ import { Card } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Icon } from '../components/ui/Icon';
 import { Tabs } from '../components/ui/Tabs';
+import { MixedText } from '../features/course/MixedText';
 import { useCourse } from '../features/course/queries';
 import { StatsStrip } from '../features/course/StatsStrip';
 import { firstOpenStep, learnPath } from '../features/course/steps';
@@ -150,8 +151,11 @@ function LessonNode({
       <span
         className={cn(
           'inline-flex size-11 shrink-0 items-center justify-center rounded-full text-lg font-semibold',
-          lesson.finished ? 'bg-success-soft text-success' : 'bg-primary-soft text-primary',
-          isNext && !lesson.finished && 'bg-primary text-surface',
+          lesson.finished
+            ? 'bg-success-soft text-success'
+            : isNext
+              ? 'bg-primary text-surface'
+              : 'bg-primary-soft text-primary',
         )}
       >
         {lesson.finished ? (
@@ -173,7 +177,7 @@ function LessonNode({
             to={`/lessons/${lesson.slug}`}
             className="[overflow-wrap:anywhere] after:absolute after:inset-0 after:rounded-ui focus:outline-none"
           >
-            {lesson.title}
+            <MixedText text={lesson.title} />
           </Link>
         </h3>
         <p
@@ -224,7 +228,7 @@ function MoreConversation({ lessons }: { lessons: LessonSummary[] }) {
       <ul className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {lessons.map((lesson) => (
           <li key={lesson.id}>
-            <Card className="relative flex h-full flex-col gap-2 p-5 transition-colors focus-within:ring-2 focus-within:ring-primary hover:bg-primary-soft/40">
+            <Card className="relative flex h-full flex-col gap-1 p-4 transition-colors sm:p-5 focus-within:ring-2 focus-within:ring-primary hover:bg-primary-soft/40">
               <div className="flex items-start justify-between gap-3">
                 <h3 className="min-w-0 text-lg">
                   <Link
@@ -237,7 +241,7 @@ function MoreConversation({ lessons }: { lessons: LessonSummary[] }) {
                 <Badge tone="primary">{lesson.level}</Badge>
               </div>
               <p className="text-sm text-muted">{lesson.topic}</p>
-              <p className="mt-auto pt-2 text-sm">
+              <p className="mt-auto pt-1 text-sm">
                 {tn('lessons.practised', lesson.conversationCount)}
               </p>
             </Card>

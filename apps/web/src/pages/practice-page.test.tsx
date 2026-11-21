@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it } from 'vitest';
 
 import { en } from '../i18n';
+import { localDay } from '../lib/local-day';
 import { jsonError, learner, renderAt, stubApi, type Handlers } from '../test-utils';
 
 const NOW = '2026-11-21T10:00:00.000Z';
@@ -488,5 +489,27 @@ describe('practice chat: translate and keyboard', () => {
     expect(box).toHaveValue('اتب');
     expect(box).toHaveFocus();
     expect(screen.getByText('3 / 500')).toBeVisible();
+  });
+});
+
+describe('practice chat: the lesson talk step', () => {
+  it('marks the talk step once, after the first finished reply', async () => {
+    const stream = liveStream();
+    const calls = setup({
+      'POST /conversations/c1/turns': () => stream.response,
+      'POST /lessons/greetings/progress': () =>
+        Response.json({ xpGained: 10, xpToday: 10, streak: 1 }),
+    });
+    const box = await openChat();
+    await typeAndSend(box, 'مرحبا');
+    await stream.emit('learner', learnerEvent('مرحبا'));
+    expect(calls.some((c) => c.key === 'POST /lessons/greetings/progress')).toBe(false);
+    await stream.emit('done', partnerDone('أَهْلًا'));
+    await stream.end();
+    await waitFor(() =>
+      expect(calls.filter((c) => c.key === 'POST /lessons/greetings/progress')).toEqual([
+        { key: 'POST /lessons/greetings/progress', body: { step: 'talk', day: localDay() } },
+      ]),
+    );
   });
 });

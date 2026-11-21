@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { en } from '../i18n';
 import { localDay } from '../lib/local-day';
-import { courseDetail } from '../test/course-fixtures';
+import { course, courseDetail } from '../test/course-fixtures';
 import { courseKey, learner, renderAt, stubApi } from '../test-utils';
 
 const signedIn = { 'GET /auth/me': () => Response.json({ user: learner }) };
@@ -197,5 +197,99 @@ describe('practice step', () => {
       score: 100,
       day: localDay(),
     });
+  });
+});
+
+describe('grammar, culture, talk and finish', () => {
+  const api = {
+    ...signedIn,
+    'GET /lessons/a1-greetings': () => Response.json(courseDetail()),
+    [courseKey()]: () =>
+      Response.json({ ...course, nextUp: 'a1-family', stats: { ...course.stats, streak: 4 } }),
+  };
+
+  it('renders the grammar blocks with every Arabic run marked, and posts grammar on Continue', async () => {
+    const calls = stubApi({ ...api, 'POST /lessons/a1-greetings/progress': progressOk });
+    const router = renderAt('/lessons/a1-greetings/learn/grammar');
+    expect(
+      await screen.findByRole('heading', { level: 1, name: en['grammar.title'] }),
+    ).toBeVisible();
+    // Inside a paragraph, the example phrase and the example row.
+    expect(screen.getAllByText('أَنَا آدَمُ')).toHaveLength(2);
+    for (const el of screen.getAllByText('أَنَا آدَمُ')) expect(el).toHaveAttribute('lang', 'ar');
+    expect(screen.getByText('anā ādam')).toBeVisible();
+    const table = screen.getByRole('table');
+    expect(within(table).getByText('كَيْفَ حَالُكِ')).toHaveAttribute('lang', 'ar');
+    expect(within(table).getByText('a woman')).not.toHaveAttribute('lang');
+    await userEvent.click(screen.getByRole('button', { name: en['player.continue'] }));
+    await vi.waitFor(() =>
+      expect(router.state.location.pathname).toBe('/lessons/a1-greetings/learn/culture'),
+    );
+    expect(calls.find((c) => c.key.startsWith('POST'))?.body).toEqual({
+      step: 'grammar',
+      day: localDay(),
+    });
+  });
+
+  it('shows the culture tip, then talk, then the finish screen with the XP earned', async () => {
+    stubApi({
+      ...api,
+      'POST /lessons/a1-greetings/progress': () =>
+        Response.json({ xpGained: 2, xpToday: 20, streak: 4 }),
+    });
+    const router = renderAt('/lessons/a1-greetings/learn/culture');
+    expect(await screen.findByRole('heading', { name: 'Greetings of light' })).toBeVisible();
+    await userEvent.click(screen.getByRole('button', { name: en['player.continue'] }));
+    expect(await screen.findByRole('heading', { level: 1, name: en['talk.title'] })).toBeVisible();
+    await userEvent.click(screen.getByRole('link', { name: en['talk.skip'] }));
+    expect(
+      await screen.findByRole('heading', { level: 1, name: en['finish.title'] }),
+    ).toBeVisible();
+    expect(router.state.location.pathname).toBe('/lessons/a1-greetings/learn/done');
+    expect(screen.getByText('+2')).toBeVisible();
+    expect(screen.getByText(en['finish.xpLesson'])).toBeVisible();
+    expect(screen.getByText('4')).toBeVisible();
+    expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '100');
+    expect(await screen.findByRole('link', { name: en['finish.next'] })).toHaveAttribute(
+      'href',
+      '/lessons/a1-family',
+    );
+    expect(screen.getByRole('link', { name: en['finish.toCourse'] })).toHaveAttribute(
+      'href',
+      '/lessons',
+    );
+  });
+
+  it('shows XP today and the course streak when the finish screen is opened fresh', async () => {
+    stubApi(api);
+    renderAt('/lessons/a1-greetings/learn/done');
+    expect(await screen.findByText(en['course.stat.xpToday'])).toBeVisible();
+    expect(await screen.findByText('18')).toBeVisible();
+    expect(screen.getByText('4')).toBeVisible();
+    expect(screen.queryByText(en['finish.xpLesson'])).not.toBeInTheDocument();
+  });
+
+  it('starts the conversation from the talk step and opens the chat', async () => {
+    const calls = stubApi({
+      ...api,
+      'POST /conversations': () =>
+        Response.json(
+          {
+            conversation: {
+              id: 'c10',
+              lessonId: 'cl1',
+              turnCount: 0,
+              lastMessageAt: '2026-11-21T10:00:00.000Z',
+              createdAt: '2026-11-21T10:00:00.000Z',
+            },
+            messages: [],
+          },
+          { status: 201 },
+        ),
+    });
+    const router = renderAt('/lessons/a1-greetings/learn/talk');
+    await userEvent.click(await screen.findByRole('button', { name: en['talk.start'] }));
+    await vi.waitFor(() => expect(router.state.location.pathname).toBe('/practice/c10'));
+    expect(calls.find((c) => c.key === 'POST /conversations')?.body).toEqual({ lessonId: 'cl1' });
   });
 });

@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { Badge } from '../../components/ui/Badge';
 import { useT } from '../../i18n';
 import { useMe } from '../auth/queries';
+import { useRecordTalkOnReply } from '../course/queries';
 
 import { LearnerBubble, PartnerBubble } from './Bubble';
 import { Composer } from './Composer';
@@ -48,6 +49,8 @@ export function ChatView({ data }: { data: ConversationDetailResponse }) {
   const { data: user } = useMe();
   const { conversation, lesson, messages } = data;
   const { turn, busy, announcement, send, stop, retry } = useTurn(conversation.id);
+  // A finished reply in this chat completes the lesson's talk step.
+  useRecordTalkOnReply(lesson.slug, announcement !== '');
 
   const [draft, setDraft] = useState('');
   const [showHarakat, setShowHarakat] = useState(readHarakatPref);

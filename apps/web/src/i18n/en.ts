@@ -532,7 +532,7 @@ export const en = {
   'step.culture': 'Culture',
   'step.culture.body': 'How people really say it.',
   'step.talk': 'Talk',
-  'step.talk.body': 'Chat it through with your AI partner. Optional.',
+  'step.talk.body': 'Chat it through with your AI partner.',
 
   'hub.back': 'Back to the course',
   'hub.unit': 'Unit {code} · {title}',
@@ -560,6 +560,22 @@ export const en = {
   'words.previous': 'Previous',
   'words.next': 'Next',
   'words.finish': 'Done with the words',
+
+  'grammar.title': 'How it works',
+  'culture.title': 'Good to know',
+  'talk.title': 'Talk it through',
+  'talk.lead': 'Use what you just learned in a short chat with your AI practice partner.',
+  'talk.point1': 'Your partner stays at your level and uses this lesson’s words.',
+  'talk.point2': 'Every message you write gets a gentle correction.',
+  'talk.point3': 'This step is optional: the lesson counts as done without it.',
+  'talk.start': 'Start the conversation',
+  'talk.skip': 'Finish without talking',
+  'finish.title': 'Lesson complete',
+  'finish.xpGained': '+{xp}',
+  'finish.xpLesson': 'XP this lesson',
+  'finish.noNewXp': 'You had done these steps before, so there is no new XP this time.',
+  'finish.next': 'Next lesson',
+  'finish.toCourse': 'Back to the course',
 
   'count.lessons': { zero: 'No lessons yet', one: '{count} lesson', other: '{count} lessons' },
 } as const;

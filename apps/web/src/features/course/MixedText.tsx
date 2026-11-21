@@ -15,12 +15,18 @@ export function splitArabic(text: string): { text: string; arabic: boolean }[] {
 
 // Content text (grammar notes, culture tips, lesson titles) mixes English with Arabic examples.
 // Arabic must always carry lang/dir and the Arabic font (conventions), so each run is wrapped.
+// An Arabic run inside an English line keeps the English line height: the tall Arabic line (which
+// keeps harakat apart on their own lines) would otherwise push that one line apart from the rest.
+const inline = { lineHeight: 1 };
+
 export function MixedText({ text, arabicClassName }: { text: string; arabicClassName?: string }) {
+  const parts = splitArabic(text);
+  const mixed = parts.length > 1;
   return (
     <>
-      {splitArabic(text).map((part, i) =>
+      {parts.map((part, i) =>
         part.arabic ? (
-          <ArabicText key={i} className={arabicClassName}>
+          <ArabicText key={i} className={arabicClassName} style={mixed ? inline : undefined}>
             {part.text}
           </ArabicText>
         ) : (

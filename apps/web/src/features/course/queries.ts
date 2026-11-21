@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useEffect, useRef } from 'react';
 
 import { fetchCourse, postLessonProgress, type LessonStep } from '../../api/course';
 import { localDay } from '../../lib/local-day';
@@ -41,4 +42,19 @@ export function useRecordStep(slug: string) {
         client.invalidateQueries({ queryKey: keys.reviewDue }),
       ]),
   });
+}
+
+/**
+ * The talk step is done once the partner has answered the learner in a chat on this lesson. Posted
+ * once per open chat, after the first reply that finished; a failure is ignored (the chat itself
+ * matters more, and the next reply in a later visit tries again). The API pays XP only once.
+ */
+export function useRecordTalkOnReply(slug: string, replied: boolean) {
+  const { mutate } = useRecordStep(slug);
+  const sent = useRef(false);
+  useEffect(() => {
+    if (!replied || sent.current) return;
+    sent.current = true;
+    mutate({ step: 'talk' }, { onError: () => undefined });
+  }, [replied, mutate]);
 }
