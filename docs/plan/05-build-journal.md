@@ -322,3 +322,18 @@ Learn: setting a field's value from code does not tell React; writing with `setR
 1. Why does the review page ignore Space when a button has focus, and what happens to a card's focus after an answer?
 2. A teacher fills three vocab rows, leaves a blank one between them, and the English of the third is missing. Which row does the error mark, and which code does that?
 3. Where does an invite code live in the browser after "Done" is pressed, and why can it not be listed again?
+
+## Phase 12: security hardening (lane hardening)
+- **Gloss cap, conversation cap.** Two more per-user counters beside the turn cap, one per billed or row-creating action. Learn: a shared pool needs a per-person fence for every action that draws on it, not just the main one.
+- **Guest limit in the database.** The hashed IP sits on the guest row; an advisory lock serialises count-then-insert. Learn: in-memory state on a serverless host belongs to one instance, so a limit must be counted where all instances look; and hash an IP with a secret key, because the IPv4 space is small enough to brute-force a plain hash.
+- **Reserve, then call.** The guard inserts a `pending` row inside a locked transaction and the ledger settles it. Learn: "check, then do" is a race unless the check and the claim are one atomic step; Postgres cannot use a new enum value in the transaction that adds it, so a migration only adds it.
+- **Login IP limiter.** A second limiter in front, keyed by IP alone. Learn: a key that includes the victim's input (the email) limits attacks on one account, not a machine that tries every account.
+- **Scrubbed logs.** One function removes parameters from an error and its causes; the first test failed because pino-http brings its own error serializer. Learn: a logger setting is only a default, so test the real path an error takes into the log.
+- **Boot refusal on Vercel.** VERCEL set with NODE_ENV not production fails validation. Learn: safety rules keyed on one variable need a second variable that detects the variable being wrong.
+- **Security headers.** The CSP was proven against the real build in a browser instead of guessed. Learn: a CSP that breaks the page is found in the console, not by reading the policy.
+- **Read-only review, health cache.** `forbidReadOnly` on the answer route and no card creation on read; the health probe is reused for 5 s. Learn: a GET that writes is a write for access-control purposes.
+
+### Quiz (phase 12, hardening)
+1. Two parallel requests each see 9 conversations used of 10. Which two things stop both from creating the tenth, and which of the two protects the AI calls?
+2. Why is a plain SHA-256 of an IPv4 address nearly as bad as storing the address, and what does the key change?
+3. Why does the migration that adds `pending` not also use it, and what would happen if it did?
