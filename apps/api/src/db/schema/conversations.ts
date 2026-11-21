@@ -16,6 +16,9 @@ export const conversations = pgTable(
       .references(() => lessons.id, { onDelete: 'cascade' }),
     // Learner messages sent so far; the daily cap and the "three turns" demo path read it.
     turnCount: integer('turn_count').notNull().default(0),
+    // Set while a turn is being served (the per-conversation guard, see practice/repo.ts); a stale
+    // value (a crashed serverless instance) stops counting after TURN_LOCK_SECONDS.
+    turnStartedAt: timestamp('turn_started_at', { withTimezone: true }),
     lastMessageAt: timestamp('last_message_at', { withTimezone: true }).notNull().defaultNow(),
     createdAt: createdAt(),
   },

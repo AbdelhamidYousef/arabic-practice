@@ -21,6 +21,8 @@ export const ErrorCode = {
   AI_FAILED: 'AI_FAILED',
   // The seeded demo teacher the guest and demo sign-ins depend on is missing (the seed was not run).
   DEMO_UNAVAILABLE: 'DEMO_UNAVAILABLE',
+  // A second turn was sent in a conversation that is still answering the first one.
+  TURN_IN_PROGRESS: 'TURN_IN_PROGRESS',
   INTERNAL: 'INTERNAL',
 } as const;
 
@@ -41,5 +43,6 @@ export const errorStatus: Record<ErrorCode, number> = {
   AI_BUSY: 503,
   AI_FAILED: 502,
   DEMO_UNAVAILABLE: 503,
+  TURN_IN_PROGRESS: 409,
   INTERNAL: 500,
 };

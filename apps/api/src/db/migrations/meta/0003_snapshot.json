@@ -138,12 +138,8 @@
           "name": "ai_calls_user_id_users_id_fk",
           "tableFrom": "ai_calls",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         },
@@ -151,12 +147,8 @@
           "name": "ai_calls_conversation_id_conversations_id_fk",
           "tableFrom": "ai_calls",
           "tableTo": "conversations",
-          "columnsFrom": [
-            "conversation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["conversation_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -255,12 +247,8 @@
           "name": "conversations_user_id_users_id_fk",
           "tableFrom": "conversations",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -268,12 +256,8 @@
           "name": "conversations_lesson_id_lessons_id_fk",
           "tableFrom": "conversations",
           "tableTo": "lessons",
-          "columnsFrom": [
-            "lesson_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["lesson_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -333,12 +317,8 @@
           "name": "corrections_message_id_messages_id_fk",
           "tableFrom": "corrections",
           "tableTo": "messages",
-          "columnsFrom": [
-            "message_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["message_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -348,9 +328,7 @@
         "corrections_message_id_unique": {
           "name": "corrections_message_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "message_id"
-          ]
+          "columns": ["message_id"]
         }
       },
       "policies": {},
@@ -483,12 +461,8 @@
           "name": "mistakes_correction_id_corrections_id_fk",
           "tableFrom": "mistakes",
           "tableTo": "corrections",
-          "columnsFrom": [
-            "correction_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["correction_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -496,12 +470,8 @@
           "name": "mistakes_user_id_users_id_fk",
           "tableFrom": "mistakes",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -509,12 +479,8 @@
           "name": "mistakes_lesson_id_lessons_id_fk",
           "tableFrom": "mistakes",
           "tableTo": "lessons",
-          "columnsFrom": [
-            "lesson_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["lesson_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -605,12 +571,8 @@
           "name": "invites_teacher_id_users_id_fk",
           "tableFrom": "invites",
           "tableTo": "users",
-          "columnsFrom": [
-            "teacher_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["teacher_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -620,9 +582,7 @@
         "invites_code_hash_unique": {
           "name": "invites_code_hash_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "code_hash"
-          ]
+          "columns": ["code_hash"]
         }
       },
       "policies": {},
@@ -722,12 +682,8 @@
           "name": "lesson_vocab_lesson_id_lessons_id_fk",
           "tableFrom": "lesson_vocab",
           "tableTo": "lessons",
-          "columnsFrom": [
-            "lesson_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["lesson_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -737,10 +693,7 @@
         "lesson_vocab_lesson_plain_unique": {
           "name": "lesson_vocab_lesson_plain_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "lesson_id",
-            "arabic_plain"
-          ]
+          "columns": ["lesson_id", "arabic_plain"]
         }
       },
       "policies": {},
@@ -891,12 +844,8 @@
           "name": "lessons_teacher_id_users_id_fk",
           "tableFrom": "lessons",
           "tableTo": "users",
-          "columnsFrom": [
-            "teacher_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["teacher_id"],
+          "columnsTo": ["id"],
           "onDelete": "restrict",
           "onUpdate": "no action"
         }
@@ -906,9 +855,7 @@
         "lessons_slug_unique": {
           "name": "lessons_slug_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "slug"
-          ]
+          "columns": ["slug"]
         }
       },
       "policies": {},
@@ -993,12 +940,8 @@
           "name": "messages_conversation_id_conversations_id_fk",
           "tableFrom": "messages",
           "tableTo": "conversations",
-          "columnsFrom": [
-            "conversation_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["conversation_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1076,12 +1019,8 @@
           "name": "sessions_user_id_users_id_fk",
           "tableFrom": "sessions",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1217,12 +1156,8 @@
           "name": "users_teacher_id_users_id_fk",
           "tableFrom": "users",
           "tableTo": "users",
-          "columnsFrom": [
-            "teacher_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["teacher_id"],
+          "columnsTo": ["id"],
           "onDelete": "set null",
           "onUpdate": "no action"
         }
@@ -1232,9 +1167,7 @@
         "users_email_unique": {
           "name": "users_email_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "email"
-          ]
+          "columns": ["email"]
         }
       },
       "policies": {},
@@ -1340,12 +1273,8 @@
           "name": "vocab_cards_user_id_users_id_fk",
           "tableFrom": "vocab_cards",
           "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["user_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         },
@@ -1353,12 +1282,8 @@
           "name": "vocab_cards_vocab_id_lesson_vocab_id_fk",
           "tableFrom": "vocab_cards",
           "tableTo": "lesson_vocab",
-          "columnsFrom": [
-            "vocab_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["vocab_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -1366,10 +1291,7 @@
       "compositePrimaryKeys": {
         "vocab_cards_user_id_vocab_id_pk": {
           "name": "vocab_cards_user_id_vocab_id_pk",
-          "columns": [
-            "user_id",
-            "vocab_id"
-          ]
+          "columns": ["user_id", "vocab_id"]
         }
       },
       "uniqueConstraints": {},
@@ -1387,69 +1309,37 @@
     "public.ai_call_status": {
       "name": "ai_call_status",
       "schema": "public",
-      "values": [
-        "ok",
-        "error",
-        "limited"
-      ]
+      "values": ["ok", "error", "limited"]
     },
     "public.ai_purpose": {
       "name": "ai_purpose",
       "schema": "public",
-      "values": [
-        "correction",
-        "reply",
-        "gloss",
-        "eval"
-      ]
+      "values": ["correction", "reply", "gloss", "eval"]
     },
     "public.cefr_level": {
       "name": "cefr_level",
       "schema": "public",
-      "values": [
-        "A1",
-        "A2",
-        "B1",
-        "B2",
-        "C1",
-        "C2"
-      ]
+      "values": ["A1", "A2", "B1", "B2", "C1", "C2"]
     },
     "public.lesson_status": {
       "name": "lesson_status",
       "schema": "public",
-      "values": [
-        "draft",
-        "published"
-      ]
+      "values": ["draft", "published"]
     },
     "public.message_role": {
       "name": "message_role",
       "schema": "public",
-      "values": [
-        "learner",
-        "partner"
-      ]
+      "values": ["learner", "partner"]
     },
     "public.mistake_type": {
       "name": "mistake_type",
       "schema": "public",
-      "values": [
-        "grammar",
-        "vocabulary",
-        "harakat",
-        "spelling",
-        "word_order",
-        "register"
-      ]
+      "values": ["grammar", "vocabulary", "harakat", "spelling", "word_order", "register"]
     },
     "public.user_role": {
       "name": "user_role",
       "schema": "public",
-      "values": [
-        "learner",
-        "teacher"
-      ]
+      "values": ["learner", "teacher"]
     }
   },
   "schemas": {},

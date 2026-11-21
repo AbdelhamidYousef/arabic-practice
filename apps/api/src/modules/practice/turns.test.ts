@@ -554,4 +554,71 @@ describe('client disconnect', () => {
     expect(await rowsOf(conversation.id)).toHaveLength(1);
     expect((await db.select().from(conversations))[0]?.turnCount).toBe(0);
   });
+
+  describe('one turn at a time per conversation', () => {
+    it('answers 409 TURN_IN_PROGRESS to a second turn while one streams, before any AI call', async () => {
+      const { fake, app, post } = setup();
+      fake.replyStallMs = 600;
+      const { learner, conversation } = await started();
+      const url = `/conversations/${conversation.id}/turns`;
+
+      await withServer(app, async (port) => {
+        const { response, destroy } = await startTurn(port, url, learner.cookie, WRONG);
+        expect(response.statusCode).toBe(200);
+        await new Promise<void>((resolve) => {
+          let seen = '';
+          response.on('data', (chunk: Buffer) => {
+            seen += chunk.toString();
+            if (seen.includes('event: delta')) resolve();
+          });
+        });
+        const second = await post(url, { text: RIGHT }, learner.cookie);
+        expect(second.status).toBe(409);
+        expect(errorOf(second).code).toBe('TURN_IN_PROGRESS');
+        // Only the first turn's two calls (reply + correction) ever reached the provider.
+        expect(fake.requests.map((r) => r.purpose).sort()).toEqual(['correction', 'reply']);
+        // The refused turn saved nothing.
+        expect((await rowsOf(conversation.id)).filter((m) => m.role === 'learner')).toHaveLength(1);
+        destroy();
+        await until(() => Promise.resolve(fake.replyAborted));
+      });
+    });
+
+    it('frees the conversation when the turn ends, so the next turn works', async () => {
+      const { post } = setup();
+      const { learner, conversation } = await started();
+      const url = `/conversations/${conversation.id}/turns`;
+      expect((await post(url, { text: RIGHT }, learner.cookie)).status).toBe(200);
+      expect((await db.select().from(conversations))[0]?.turnStartedAt).toBeNull();
+      expect((await post(url, { text: RIGHT }, learner.cookie)).status).toBe(200);
+    });
+
+    it('frees the conversation when the turn is refused before it starts (a cap)', async () => {
+      const { post } = setup({ AI_DAILY_TURNS_LEARNER: 0 });
+      const { learner, conversation } = await started();
+      const res = await post(
+        `/conversations/${conversation.id}/turns`,
+        { text: RIGHT },
+        learner.cookie,
+      );
+      expect(res.status).toBe(429);
+      expect((await db.select().from(conversations))[0]?.turnStartedAt).toBeNull();
+    });
+
+    it('ignores a claim older than 90 seconds (a crashed instance)', async () => {
+      const { post } = setup();
+      const { learner, conversation } = await started();
+      const url = `/conversations/${conversation.id}/turns`;
+      await db
+        .update(conversations)
+        .set({ turnStartedAt: new Date(Date.now() - 120_000) })
+        .where(eq(conversations.id, conversation.id));
+      expect((await post(url, { text: RIGHT }, learner.cookie)).status).toBe(200);
+      await db
+        .update(conversations)
+        .set({ turnStartedAt: new Date(Date.now() - 30_000) })
+        .where(eq(conversations.id, conversation.id));
+      expect((await post(url, { text: RIGHT }, learner.cookie)).status).toBe(409);
+    });
+  });
 });
