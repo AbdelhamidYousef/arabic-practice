@@ -5,7 +5,7 @@ import { cn } from '../../lib/cn';
 import { Spinner } from './Spinner';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
-export type ButtonSize = 'sm' | 'md' | 'lg';
+export type ButtonSize = 'sm' | 'md' | 'lg' | 'icon';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: ButtonVariant;
@@ -25,6 +25,8 @@ const sizes: Record<ButtonSize, string> = {
   sm: 'min-h-9 px-3 text-sm',
   md: 'min-h-11 px-5 text-base',
   lg: 'min-h-12 px-7 text-lg',
+  // A square key with one glyph (the caller gives it an aria-label), as tall as an input.
+  icon: 'size-11 shrink-0 p-0 text-base',
 };
 
 // The look of a button without the element, for links that navigate: a link is the right element

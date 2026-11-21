@@ -8,14 +8,15 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
   hint?: string;
   error?: string | undefined;
+  hideLabel?: boolean;
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
-  { label, hint, error, className, ...rest },
+  { label, hint, error, hideLabel, className, ...rest },
   ref,
 ) {
   return (
-    <Field label={label} hint={hint} error={error}>
+    <Field label={label} hint={hint} error={error} hideLabel={hideLabel}>
       {(aria) => <input ref={ref} {...aria} {...rest} className={cn(controlClasses, className)} />}
     </Field>
   );
