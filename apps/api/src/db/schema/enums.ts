@@ -6,3 +6,5 @@ import { pgEnum } from 'drizzle-orm/pg-core';
 export const cefrLevel = pgEnum('cefr_level', CEFR_LEVELS);
 
 export const userRole = pgEnum('user_role', ['learner', 'teacher']);
+
+export const lessonStatus = pgEnum('lesson_status', ['draft', 'published']);
