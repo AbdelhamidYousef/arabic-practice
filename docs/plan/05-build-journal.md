@@ -96,3 +96,42 @@ What was built per step and why, for the owner to read; three quiz questions at 
 1. Why is the request id validated before it is logged or echoed back in a response header?
 2. A hosting dashboard has `INVITES_ENABLED=true` and `AI_TIER=free` in production. What happens at boot, and which promise does that protect?
 3. Why does `/health` answer 503 for a database outage instead of 200 with `"db": "down"`, and why is it exempt from the rate limit?
+
+## Phase 4 — Auth
+
+- **4.1 Sessions and passwords.** `sid` cookie holds 32 random bytes, the database stores their SHA-256, expiry slides
+  to 30 days at most once a day, `last_seen_at` moves at most once an hour. `requireUser`, `requireRole`,
+  `forbidReadOnly` (403 `DEMO_READ_ONLY`) are exported for later phases. Learn: a sliding session that
+  writes on every request turns every page view into an UPDATE; compare timestamps first and write only when due.
+- **4.2 Login, logout, me.** `POST /auth/login` is rate-limited per IP + email (before validation, so malformed
+  attempts count), verifies against a dummy hash when the email is unknown or the account has no password, and
+  replaces any session that arrived with the request. `GET /auth/me` returns the user DTO from a Zod schema in
+  `packages/shared`, built by an allow-list. Learn: "wrong password" and "no such user" must look identical in the
+  body and in the time taken, otherwise login becomes a way to list who has an account.
+- **4.3 Guest learners.** `POST /auth/guest` creates `Guest XXXX` (4 hex) on the demo teacher at A1, signs in, and
+  deletes up to 200 guests unseen for 7 days in the same request; per-IP limit of 10 an hour. A missing demo
+  teacher answers 503 `DEMO_UNAVAILABLE`. Learn: cleanup without a scheduler is "whoever arrives next sweeps", so
+  it must be bounded or one unlucky visitor pays for everyone.
+- **4.4 Invites and registration.** Invite codes are 16 random bytes in base64url, stored as SHA-256. Register claims a
+  use with one `UPDATE ... WHERE used_count < max_uses AND expires_at > now() RETURNING` inside the same
+  transaction that inserts the user, so a duplicate email rolls the use back and four parallel sign-ups for the last
+  use produce exactly one account. Closed (the default) is 403 `INVITES_CLOSED`. Learn: "check then update" races;
+  a conditional UPDATE lets the database decide who got the last seat.
+- **4.5 Demo teacher.** `POST /auth/demo-teacher` signs a visitor into the seeded teacher (per-IP limit). It refuses
+  with 503 if that row is missing, not a teacher or no longer read-only, so a public button can never open a writable
+  account. `forbidReadOnly` (403 `DEMO_READ_ONLY`) is tested on an example route and must go on every teacher
+  mutation in phase 10. Learn: a public sign-in endpoint is a privilege escalation if the account it points at can
+  change; check the property you rely on every time, not once at seed time.
+
+### Quiz (phase 4)
+1. Why does the database store the SHA-256 of the session id, and why is a fast hash enough here when passwords need argon2?
+2. Two people use the last use of an invite at the same moment. Which single statement decides who wins, and what happens to the loser's use count if their email is already taken?
+3. Why does login verify against a dummy hash when the email is unknown, and what would an attacker learn without it?
+
+## Phase 5 (lane auth) — Lessons API
+- **5.2 Learner lessons API.** `GET /lessons` lists the published lessons of my teacher grouped by level with my
+  conversation count (a LEFT JOIN whose condition holds both the lesson and my user id, so lessons nobody has
+  practised show 0 and other learners' conversations never count). `GET /lessons/:slug` adds the vocabulary in
+  position order and my five latest conversations. Missing, draft and other teachers' lessons are one 404.
+  Learn: put a filter on the joined table in the JOIN condition, not the WHERE, or the LEFT JOIN quietly becomes
+  an INNER JOIN and untouched lessons vanish from the list.

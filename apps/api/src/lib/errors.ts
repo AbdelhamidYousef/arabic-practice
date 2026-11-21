@@ -43,3 +43,7 @@ export const demoReadOnly = (message = 'The demo account is read-only') =>
 
 export const invitesClosed = (message = 'Sign-up by invitation is closed') =>
   new AppError(ErrorCode.INVITES_CLOSED, message);
+
+// The demo teacher row is missing, so guests and the demo sign-in cannot work: run `pnpm db:seed`.
+export const demoUnavailable = (message = 'The demo is not set up on this server') =>
+  new AppError(ErrorCode.DEMO_UNAVAILABLE, message);

@@ -7,16 +7,25 @@ import { pinoHttp } from 'pino-http';
 import type { AiStatus } from './ai-status.ts';
 import type { Database } from './db/client.ts';
 import { createHealthRouter } from './lib/health.ts';
+import { createAttachUser } from './middleware/auth.ts';
 import { createCsrfCheck } from './middleware/csrf.ts';
 import { createErrorHandler, notFoundHandler } from './middleware/error.ts';
 import { createRateLimiter, type RateLimitOptions } from './middleware/rate-limit.ts';
 import { requestId } from './middleware/request-id.ts';
+import { createAuthRouter } from './modules/auth/router.ts';
+import { createLessonsRouter } from './modules/lessons/router.ts';
 
 export interface AppConfig {
   nodeEnv: 'development' | 'test' | 'production';
   webOrigin: string;
   /** General limit per client IP; stricter limits are applied per route by the auth module. */
   rateLimit: RateLimitOptions;
+  /** Stricter limit per IP + email on login and register. */
+  authRateLimit: RateLimitOptions;
+  /** Guest sign-ins per IP (defaults to 10 per hour); tests lower it. */
+  guestRateLimit?: RateLimitOptions;
+  /** Invite sign-up switch (INVITES_ENABLED); registration answers 403 INVITES_CLOSED while off. */
+  invitesEnabled: boolean;
 }
 
 export interface AppDeps {
@@ -61,7 +70,21 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
   // Only our own web origin may change anything; see middleware/csrf.ts.
   app.use(createCsrfCheck({ webOrigin: config.webOrigin }));
 
+  // After the body parsers and the Origin check, before any route that needs to know who is calling.
+  app.use(createAttachUser({ secureCookies: config.nodeEnv === 'production' }));
+
   app.use('/api/v1', createHealthRouter({ db, ai }));
+  app.use(
+    '/api/v1',
+    createAuthRouter({
+      secureCookies: config.nodeEnv === 'production',
+      authRateLimit: config.authRateLimit,
+      invitesEnabled: config.invitesEnabled,
+      guestRateLimit: config.guestRateLimit,
+    }),
+  );
+
+  app.use('/api/v1', createLessonsRouter());
 
   // Order matters: unknown routes first, then the error handler that catches everything above.
   app.use(notFoundHandler);

@@ -25,6 +25,8 @@ export function makeTestApp(
       webOrigin: TEST_ORIGIN,
       // Too high to trip by accident; the rate-limit tests override it.
       rateLimit: { windowMs: 60_000, limit: 100_000 },
+      authRateLimit: { windowMs: 60_000, limit: 100_000 },
+      invitesEnabled: false,
       ...opts.config,
     },
   });
