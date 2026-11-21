@@ -18,6 +18,7 @@ export default defineConfig({
         'src/db/schema/**',
         'src/index.ts',
         'src/db/migrate.ts',
+        'src/db/reset.ts',
       ],
       reporter: ['text-summary', 'text', 'json-summary'],
     },

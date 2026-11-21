@@ -35,3 +35,38 @@ What was built per step and why, for the owner to read; three quiz questions at 
 1. Why does the Vite dev server proxy `/api` instead of the browser calling port 3002 directly?
 2. What does `workspace:*` in a `package.json` mean, and why does pnpm refuse imports a package has not declared?
 3. Why is `fsync=off` acceptable in `docker-compose.yml` but never in production?
+
+## Phase 1 — Database schema, migrations, test harness, seed
+
+- **1.1 Drizzle client, env validation, base migration.** `config/env.ts` reads the one `.env` at the repo
+  root and validates it with Zod at boot; `db/client.ts` is one connection pool; migration 0000 installs
+  `citext` and the `set_updated_at()` trigger function. Learn: an empty value in `.env` counts as unset
+  (a copied `.env.example` has many empty lines), and the API refuses to start with a bad value instead
+  of failing at the first request that needs it.
+- **1.2 Arabic helpers.** `stripHarakat`, `normalizeArabic`, `tokenizeArabic`, `isArabic`, `harakatRatio`,
+  `hasLatin`. Learn: harakat are separate combining characters (U+064B to U+0652, plus U+0670 for the
+  superscript alef) placed after the letter, so a word can be written with or without them. Matching folds
+  the differences learners make without changing the word (alef with hamza, ى/ي, ة/ه) but keeps ؤ and ئ,
+  because dropping those would merge different words.
+- **1.3 users, sessions, invites.** Migration 0001. Learn: the cookie holds a random value and the database
+  keeps only its SHA-256, so a leaked table cannot be replayed as logins; an invite is claimed with one
+  conditional `UPDATE ... WHERE used_count < max_uses`, so two people cannot take the last use.
+- **1.4 lessons and vocab.** Migration 0002. `arabic_plain` is computed in code by `normalizeArabic`, and
+  a unique `(lesson_id, arabic_plain)` stops two spellings of one word in a lesson.
+- **1.5 practice, review and AI usage tables.** Migration 0003: conversations, messages, corrections
+  (one per message), mistakes, vocab cards (Leitner box 1 to 5, a check constraint) and the `ai_calls`
+  ledger. Learn: money is stored as integer millionths of a dollar so sums never drift.
+- **1.6 test harness.** Tests share one real Postgres database. Before each test only the tables that hold
+  rows are emptied, with DELETE in foreign-key order read from the database itself. Learn: TRUNCATE
+  rebuilds indexes and was the slow part in Pawsome; DELETE of a few rows is milliseconds.
+- **1.7 seed.** Twelve made-up lessons (A1 to B2), each with goals, grammar focus, a scenario for the AI
+  partner, an opening line and 8 to 12 vocabulary items with full harakat; four made-up learners with
+  conversations, corrections and mistakes; a read-only demo teacher and a local dev teacher. Learn: a
+  typo in a vowel mark is invisible to a program that checks types, so the lesson data goes through a
+  structural check (a mark needs a letter, one vowel per letter, tanwin only at the word end, ة and ى only
+  at the end) before it is written. It cannot prove the Arabic right: **the Arabic needs the teacher's read.**
+
+### Quiz (phase 1)
+1. Why does matching use `normalizeArabic()` on both sides instead of comparing strings directly, and why are ؤ and ئ left unfolded?
+2. Why does the test harness read the foreign keys from `pg_constraint` and delete in that order, instead of keeping a hard-coded list?
+3. An invite has `max_uses = 1` and two people submit the sign-up at the same moment. Which single SQL statement decides who wins, and why is checking `used_count` first in code not enough?
