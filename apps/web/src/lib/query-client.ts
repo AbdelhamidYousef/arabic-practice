@@ -31,7 +31,6 @@ export const keys = {
     learner: (id: string) => ['teacher', 'learners', id] as const,
     transcript: (id: string) => ['teacher', 'conversations', id] as const,
     invites: ['teacher', 'invites'] as const,
-    invitesOpen: ['teacher', 'invites-open'] as const,
     usage: ['teacher', 'usage'] as const,
   },
 };

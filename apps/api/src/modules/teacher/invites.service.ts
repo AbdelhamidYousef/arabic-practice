@@ -30,6 +30,7 @@ function toInvite(row: InviteRow, now: Date): Invite {
 
 export async function listInvites(
   teacher: AuthUser,
+  invitesOpen: boolean,
   now = new Date(),
 ): Promise<InviteListResponse> {
   const rows = await db
@@ -37,7 +38,7 @@ export async function listInvites(
     .from(invites)
     .where(eq(invites.teacherId, teacher.id))
     .orderBy(desc(invites.createdAt), desc(invites.id));
-  return { invites: rows.map((r) => toInvite(r, now)) };
+  return { invites: rows.map((r) => toInvite(r, now)), invitesOpen };
 }
 
 export async function createInvite(

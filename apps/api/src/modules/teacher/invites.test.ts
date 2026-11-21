@@ -111,6 +111,17 @@ describe('POST /teacher/invites', () => {
   });
 });
 
+describe('GET /teacher/invites: invitesOpen', () => {
+  it('is false while INVITES_ENABLED is off, so the page can say sign-up is closed', async () => {
+    const closed = api(makeTestApp({ config: { invitesEnabled: false } }));
+    const t = await teacher();
+    expect(bodyOf(await closed.get('/teacher/invites', t.cookie))).toEqual({
+      invites: [],
+      invitesOpen: false,
+    });
+  });
+});
+
 describe('GET /teacher/invites', () => {
   it('lists only my invites, newest first, with a status and no code', async () => {
     const t = await teacher();
@@ -133,7 +144,8 @@ describe('GET /teacher/invites', () => {
     await createInvite(other.user.id, { note: 'not mine' });
 
     const res = await get('/teacher/invites', t.cookie);
-    const list = bodyOf<{ invites: InviteBody[] }>(res).invites;
+    const list = bodyOf<{ invites: InviteBody[]; invitesOpen: boolean }>(res).invites;
+    expect(bodyOf<{ invitesOpen: boolean }>(res).invitesOpen).toBe(true);
     expect(list.map((i) => [i.note, i.status])).toEqual([
       ['active', 'active'],
       ['used up', 'used_up'],
@@ -145,6 +157,9 @@ describe('GET /teacher/invites', () => {
 
   it('is empty for a teacher without invites', async () => {
     const t = await teacher();
-    expect(bodyOf(await get('/teacher/invites', t.cookie))).toEqual({ invites: [] });
+    expect(bodyOf(await get('/teacher/invites', t.cookie))).toEqual({
+      invites: [],
+      invitesOpen: true,
+    });
   });
 });

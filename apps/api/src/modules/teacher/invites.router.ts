@@ -11,14 +11,18 @@ import { forbidReadOnly, requireRole } from '../../middleware/auth.ts';
 import * as service from './invites.service.ts';
 import { teacherOf } from './teacher-of.ts';
 
-export function createTeacherInvitesRouter(): Router {
+export function createTeacherInvitesRouter(opts: { invitesEnabled: boolean }): Router {
   const router = ExpressRouter();
   const teacherOnly = requireRole('teacher');
   const create = { body: CreateInviteRequestSchema };
 
   router.get('/teacher/invites', teacherOnly, async (req, res) => {
     res.setHeader('Cache-Control', 'no-store');
-    respond(res, InviteListResponseSchema, await service.listInvites(teacherOf(req.user)));
+    respond(
+      res,
+      InviteListResponseSchema,
+      await service.listInvites(teacherOf(req.user), opts.invitesEnabled),
+    );
   });
 
   router.post(
