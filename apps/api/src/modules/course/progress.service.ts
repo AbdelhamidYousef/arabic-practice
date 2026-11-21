@@ -76,9 +76,8 @@ export async function recordProgress(
           ),
         );
     }
-    if (!first) return 0;
-
-    const gained = xpForStep(input.step, score);
+    // A repeat earns no XP but still counts as a day of practice, so redoing a lesson keeps a streak.
+    const gained = first ? xpForStep(input.step, score) : 0;
     await tx
       .insert(activityDays)
       .values({ userId: user.id, day: input.day, xp: gained })

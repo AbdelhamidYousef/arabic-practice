@@ -82,12 +82,12 @@ describe('recordProgress', () => {
     expect(third.streak).toBe(3);
   });
 
-  it('keeps the streak alive on the day after the last activity, before the first step', async () => {
+  it('counts a repeated step as a day of practice, with no XP', async () => {
     const { user, lesson } = await learnerWithLesson();
     await recordProgress(user, lesson.slug, { step: 'words', day: yesterday });
-    // Nothing yet today; a repeat of the same step adds no XP and so no activity for today.
+    // Redoing a finished lesson today earns nothing but keeps the streak going.
     const repeat = await recordProgress(user, lesson.slug, { step: 'words', day: today });
-    expect(repeat).toEqual({ xpGained: 0, xpToday: 0, streak: 1 });
+    expect(repeat).toEqual({ xpGained: 0, xpToday: 0, streak: 2 });
   });
 
   it('rejects a day more than one day from the server date', async () => {
