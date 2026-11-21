@@ -26,7 +26,7 @@ export const routes: RouteObject[] = [
       { index: true, ...page(() => import('./pages/HomePage')) },
       { path: 'login', ...page(() => import('./pages/LoginPage')) },
       { path: 'register', ...page(() => import('./pages/RegisterPage')) },
-      { path: 'lessons', ...page(() => import('./pages/LessonsPage')) },
+      { path: 'lessons', ...page(() => import('./pages/CoursePage')) },
       { path: 'lessons/:slug', ...page(() => import('./pages/LessonPage')) },
       { path: 'practice/:conversationId', ...page(() => import('./pages/PracticePage')) },
       // Learner pages: a visitor is sent to the sign-in.

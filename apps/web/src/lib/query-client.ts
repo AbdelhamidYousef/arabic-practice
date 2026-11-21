@@ -18,6 +18,8 @@ export const keys = {
   // True once a request came back 401 while the page believed someone was signed in.
   sessionExpired: ['session-expired'] as const,
   lessons: ['lessons'] as const,
+  // Not under 'lessons': invalidating the list must not refetch the whole course, and back.
+  course: ['course'] as const,
   lesson: (slug: string) => ['lessons', slug] as const,
   conversation: (id: string) => ['conversation', id] as const,
   gloss: (messageId: string) => ['gloss', messageId] as const,

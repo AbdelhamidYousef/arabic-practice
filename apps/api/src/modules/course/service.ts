@@ -103,16 +103,17 @@ export async function getCourse(
       };
       byUnit.set(r.unitId, entry);
     }
+    const required = requiredSteps(r.hasGrammar, r.hasCulture);
+    const finished = required.every((s) => state.stepsDone.includes(s));
     entry.unit.lessons.push({
       slug: r.slug,
       title: r.title,
       kind: r.kind,
       position: r.position,
+      steps: [...required, 'talk'],
       ...state,
+      finished,
     });
-    const finished = requiredSteps(r.hasGrammar, r.hasCulture).every((s) =>
-      state.stepsDone.includes(s),
-    );
     if (!finished && nextUp === null) nextUp = r.slug;
   }
 

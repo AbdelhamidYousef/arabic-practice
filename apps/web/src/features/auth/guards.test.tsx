@@ -25,7 +25,7 @@ describe('guards and sign-out', () => {
   it('sends a learner from a teacher page to the lessons', async () => {
     stubApi({ ...signedIn, 'GET /lessons': () => Response.json({ levels: [] }) });
     const router = renderAt('/teacher/invites');
-    await screen.findByRole('heading', { level: 1, name: en['page.lessons'] });
+    await screen.findByRole('heading', { level: 1, name: en['page.course'] });
     expect(router.state.location.pathname).toBe('/lessons');
   });
 

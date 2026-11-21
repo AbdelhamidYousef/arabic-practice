@@ -26,7 +26,7 @@ export function navFor(user: User | null | undefined): NavItem[] {
     ];
   }
   return [
-    { to: '/lessons', label: 'nav.lessons' },
+    { to: '/lessons', label: 'nav.course' },
     { to: '/review', label: 'nav.review' },
     { to: '/progress', label: 'nav.progress' },
   ];

@@ -104,7 +104,7 @@ describe('routes', () => {
     ['/', en['home.title']],
     ['/login', en['page.login']],
     ['/register', en['page.register']],
-    ['/lessons', en['page.lessons']],
+    ['/lessons', en['page.course']],
   ];
   // Signed-in pages (guarded; their data and the guards have their own tests).
   const signedIn: [string, string, Who][] = [
@@ -143,12 +143,12 @@ describe('role-aware navigation', () => {
     ]);
   });
 
-  it('offers Lessons, Review and Progress to a learner', async () => {
+  it('offers Course, Review and Progress to a learner', async () => {
     stubApi(learner);
     renderAt('/progress');
     await screen.findByRole('heading', { level: 1, name: en['page.progress'] });
     await screen.findByRole('link', { name: en['nav.review'] });
-    expect(navLinks()).toEqual([en['nav.lessons'], en['nav.review'], en['nav.progress']]);
+    expect(navLinks()).toEqual([en['nav.course'], en['nav.review'], en['nav.progress']]);
   });
 
   it('offers Lessons, Learners, Invites and Usage to a teacher', async () => {

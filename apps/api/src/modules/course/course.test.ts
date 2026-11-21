@@ -95,11 +95,21 @@ describe('GET /course', () => {
     // Culture is still open on "first".
     let body = bodyOf<CourseBody>(await get(`/course?day=${today}`, learner.cookie));
     expect(body.nextUp).toBe('first');
-    expect(body.levels[0]?.units[0]?.lessons[0]).toMatchObject({ practiceScore: 80 });
+    expect(body.levels[0]?.units[0]?.lessons[0]).toMatchObject({
+      practiceScore: 80,
+      steps: ['words', 'practice', 'grammar', 'culture', 'talk'],
+      finished: false,
+    });
+    // A lesson with no grammar note and no culture tip skips both steps.
+    expect(body.levels[0]?.units[0]?.lessons[1]).toMatchObject({
+      steps: ['words', 'practice', 'talk'],
+      finished: false,
+    });
 
     await post('/lessons/first/progress', { step: 'culture', day: today }, learner.cookie);
     body = bodyOf<CourseBody>(await get(`/course?day=${today}`, learner.cookie));
     expect(body.nextUp).toBe('second');
+    expect(body.levels[0]?.units[0]?.lessons[0]).toMatchObject({ finished: true });
     // 5 + 13 + 3 + 2
     expect(body.stats).toEqual({ streak: 1, xpToday: 23, xpTotal: 23, wordsLearned: 2 });
   });

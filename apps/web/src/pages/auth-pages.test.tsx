@@ -28,9 +28,7 @@ describe('landing page', () => {
     });
     const router = renderAt('/');
     await userEvent.click(await screen.findByRole('button', { name: en['home.cta.guest'] }));
-    expect(
-      await screen.findByRole('heading', { level: 1, name: en['page.lessons'] }),
-    ).toBeVisible();
+    expect(await screen.findByRole('heading', { level: 1, name: en['page.course'] })).toBeVisible();
     expect(router.state.location.pathname).toBe('/lessons');
     expect(calls.some((c) => c.key === 'POST /auth/guest')).toBe(true);
   });
@@ -53,7 +51,7 @@ describe('landing page', () => {
   it('sends a signed-in learner to /lessons and a teacher to /teacher', async () => {
     stubApi({ 'GET /auth/me': () => Response.json({ user: learner }), ...lessonsStub });
     const first = renderAt('/');
-    await screen.findByRole('heading', { level: 1, name: en['page.lessons'] });
+    await screen.findByRole('heading', { level: 1, name: en['page.course'] });
     expect(first.state.location.pathname).toBe('/lessons');
   });
 
@@ -103,7 +101,7 @@ describe('login page', () => {
     });
     const router = renderAt('/login');
     await fill('  Sara@Example.com ', 'a-long-password');
-    await screen.findByRole('heading', { level: 1, name: en['page.lessons'] });
+    await screen.findByRole('heading', { level: 1, name: en['page.course'] });
     expect(router.state.location.pathname).toBe('/lessons');
     expect(calls.find((c) => c.key === 'POST /auth/login')?.body).toEqual({
       email: 'sara@example.com',
@@ -151,7 +149,7 @@ describe('register page', () => {
     await userEvent.type(screen.getByLabelText(en['auth.email']), 'sara@example.com');
     await userEvent.type(screen.getByLabelText(en['auth.password']), 'a-fine-long-passphrase');
     await userEvent.click(screen.getByRole('button', { name: en['auth.submit.register'] }));
-    await screen.findByRole('heading', { level: 1, name: en['page.lessons'] });
+    await screen.findByRole('heading', { level: 1, name: en['page.course'] });
     expect(router.state.location.pathname).toBe('/lessons');
     expect(calls.find((c) => c.key === 'POST /auth/register')?.body).toEqual({
       code: 'abcdefghijklmnop',

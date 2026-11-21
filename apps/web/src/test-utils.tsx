@@ -3,6 +3,7 @@ import { render } from '@testing-library/react';
 import { RouterProvider, createMemoryRouter } from 'react-router-dom';
 import { vi } from 'vitest';
 
+import { localDay } from './lib/local-day';
 import { createQueryClient } from './lib/query-client';
 import { routes } from './routes';
 
@@ -16,6 +17,14 @@ export const learner = {
   email: 'sara@example.com',
 };
 export const teacher = { ...learner, id: 't1', displayName: 'Omar', role: 'teacher', level: 'A1' };
+
+/** The stub key of `GET /course`, which carries the browser's local day. */
+export const courseKey = () => `GET /course?day=${localDay()}`;
+export const emptyCourse = {
+  levels: [],
+  nextUp: null,
+  stats: { streak: 0, xpToday: 0, xpTotal: 0, wordsLearned: 0 },
+};
 
 export type Handler = (init: {
   method: string;

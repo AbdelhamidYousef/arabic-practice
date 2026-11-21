@@ -126,8 +126,12 @@ export const CourseLessonSchema = z.object({
   title: z.string(),
   kind: lessonKindSchema,
   position: z.number().int(),
+  // The steps this lesson has content for, in order (a lesson without a grammar note skips it).
+  steps: z.array(lessonStepSchema),
   stepsDone: z.array(lessonStepSchema),
   practiceScore: z.number().int().min(0).max(100).nullable(),
+  // Every required step is done (talk is optional): the same rule that picks `nextUp`.
+  finished: z.boolean(),
 });
 export type CourseLesson = z.infer<typeof CourseLessonSchema>;
 

@@ -18,72 +18,7 @@ const lesson = (over: object) => ({
   ...over,
 });
 
-const list = {
-  levels: [
-    {
-      level: 'A1',
-      lessons: [
-        lesson({}),
-        lesson({ id: 'l2', slug: 'food', title: 'Food', topic: 'Ordering', conversationCount: 1 }),
-      ],
-    },
-    {
-      level: 'B1',
-      lessons: [
-        lesson({ id: 'l3', slug: 'travel', title: 'Travel', level: 'B1', conversationCount: 3 }),
-      ],
-    },
-  ],
-};
-
 const signedIn = { 'GET /auth/me': () => Response.json({ user: learner }) };
-
-describe('lessons list', () => {
-  it('groups lessons under level headings with badge and practised count', async () => {
-    stubApi({ ...signedIn, 'GET /lessons': () => Response.json(list) });
-    renderAt('/lessons');
-    const headings = await screen.findAllByRole('heading', { level: 2 });
-    expect(headings.map((h) => h.textContent)).toEqual([
-      'Level A1Beginner',
-      'Level B1Intermediate',
-    ]);
-    const a1 = within(screen.getByRole('region', { name: /Level A1/ }));
-    expect(a1.getAllByRole('listitem')).toHaveLength(2);
-    expect(a1.getByText('Not practised yet')).toBeVisible();
-    expect(a1.getByText('Practised 1 time')).toBeVisible();
-    expect(screen.getByText('Practised 3 times')).toBeVisible();
-    expect(screen.getByRole('link', { name: 'Food' })).toHaveAttribute('href', '/lessons/food');
-  });
-
-  it('shows an empty state when no lesson is published', async () => {
-    stubApi({ ...signedIn, 'GET /lessons': () => Response.json({ levels: [] }) });
-    renderAt('/lessons');
-    expect(await screen.findByText(en['lessons.empty.title'])).toBeVisible();
-  });
-
-  it('offers a retry when loading fails', async () => {
-    let calls = 0;
-    stubApi({
-      ...signedIn,
-      'GET /lessons': () => {
-        calls += 1;
-        return calls < 4 ? jsonError('INTERNAL', 500) : Response.json(list);
-      },
-    });
-    renderAt('/lessons');
-    await userEvent.click(
-      await screen.findByRole('button', { name: en['load.retry'] }, { timeout: 4000 }),
-    );
-    expect(await screen.findByText('Level A1')).toBeVisible();
-  });
-
-  it('sends a visitor to the sign-in page', async () => {
-    stubApi({ 'GET /lessons': () => jsonError('UNAUTHENTICATED', 401) });
-    const router = renderAt('/lessons');
-    await screen.findByRole('heading', { level: 1, name: en['page.login'] });
-    expect(router.state.location.pathname).toBe('/login');
-  });
-});
 
 const detail = {
   lesson: {
