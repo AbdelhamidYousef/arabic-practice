@@ -1,5 +1,6 @@
 import {
   ConversationDetailResponseSchema,
+  GlossResponseSchema,
   StartConversationRequestSchema,
   StartConversationResponseSchema,
   TurnRequestSchema,
@@ -65,6 +66,21 @@ export function createPracticeRouter({ ai, turnRateLimit }: PracticeRouterOption
       if (!req.user) throw new Error('requireUser let an anonymous request through');
       const { params, body } = valid(req, turn);
       await runTurn({ req, res, user: req.user, conversationId: params.id, text: body.text, ai });
+    },
+  );
+
+  // Same per-learner limit as turns (its own counter): a gloss is also a billed provider call.
+  router.post(
+    '/messages/:id/gloss',
+    requireUser,
+    forbidReadOnly,
+    createUserRateLimiter(turnRateLimit),
+    validate(idParams),
+    async (req, res) => {
+      if (!req.user) throw new Error('requireUser let an anonymous request through');
+      const { params } = valid(req, idParams);
+      res.setHeader('Cache-Control', 'no-store');
+      respond(res, GlossResponseSchema, await service.glossMessage(req.user, params.id, ai));
     },
   );
 
