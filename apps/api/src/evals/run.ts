@@ -10,7 +10,7 @@ import {
 } from '../ai/prompts/correction.ts';
 import type { LessonContext } from '../ai/prompts/lesson-context.ts';
 import { buildReplyPrompt } from '../ai/prompts/reply.ts';
-import { LlmRateLimited, type LlmProvider } from '../ai/provider.ts';
+import { LlmFailed, LlmRateLimited, type LlmProvider } from '../ai/provider.ts';
 import { seedLessons, type SeedLesson } from '../db/seed/lessons.ts';
 
 import type { CallStats, CorrectionCase, ReplyCase } from './score.ts';
@@ -153,8 +153,10 @@ export async function runEval(options: RunOptions): Promise<EvalRun> {
       try {
         return await call();
       } catch (e) {
-        if (e instanceof LlmRateLimited && attempt < pacing.maxRetries) {
-          log(`  429 on ${model}, waiting ${pacing.retryWaitMs / 1000}s (retry ${attempt + 1})`);
+        if (isRetryable(e) && attempt < pacing.maxRetries) {
+          log(
+            `  retryable error on ${model}, waiting ${pacing.retryWaitMs / 1000}s (retry ${attempt + 1})`,
+          );
           await sleep(pacing.retryWaitMs);
           continue;
         }
@@ -177,8 +179,8 @@ export async function runEval(options: RunOptions): Promise<EvalRun> {
       const prompt = buildCorrectionPrompt({
         level: c.level,
         lesson: toLessonContext(lesson),
-        // In the app the learner answers the partner's last message; for a first turn that is the opening line.
-        partnerMessage: lesson.openingLine,
+        // No partnerMessage: the cases are standalone sentences. A first run that passed the lesson's
+        // opening line made the model grade the sentence as an answer to it ("you were asked when you wake up").
         learnerText: c.text,
       });
       try {
@@ -252,6 +254,14 @@ export async function runEval(options: RunOptions): Promise<EvalRun> {
     corrections,
     replies,
   };
+}
+
+// 429 (quota) and 503/500 (the model is busy: "high demand", seen on the first real run) are transient.
+function isRetryable(e: unknown): boolean {
+  return (
+    e instanceof LlmRateLimited ||
+    (e instanceof LlmFailed && ['HTTP_503', 'HTTP_500', 'HTTP_502', 'HTTP_504'].includes(e.code))
+  );
 }
 
 const stats = (u: { latencyMs: number; inputTokens: number; outputTokens: number }): CallStats => ({

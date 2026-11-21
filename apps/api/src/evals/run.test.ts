@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { FakeProvider } from '../ai/fake.ts';
-import { LlmRateLimited, type JsonRequest, type TextRequest } from '../ai/provider.ts';
+import { LlmFailed, LlmRateLimited, type JsonRequest, type TextRequest } from '../ai/provider.ts';
 import { seedLessons } from '../db/seed/lessons.ts';
 
 import { renderReport, reportFileName, scoreRun } from './report.ts';
@@ -33,6 +33,28 @@ describe('takeSpread', () => {
 });
 
 describe('runEval on the fake', () => {
+  it('retries a busy model (HTTP 503) like a 429', async () => {
+    const provider = new FakeProvider();
+    const real = provider.generateJson.bind(provider);
+    let calls = 0;
+    provider.generateJson = ((req: JsonRequest<unknown>) => {
+      calls += 1;
+      if (calls === 1) return Promise.reject(new LlmFailed('HTTP_503', 'UNAVAILABLE: high demand'));
+      return real(req);
+    }) as typeof provider.generateJson;
+    const run = await runEval({
+      provider,
+      correctionModel: 'c',
+      replyModel: 'r',
+      only: 'corrections',
+      limit: 1,
+      pacing: { minGapMs: 0, retryWaitMs: 1, maxRetries: 3 },
+      sleep: () => Promise.resolve(),
+    });
+    expect(run.corrections[0]?.result).toBeDefined();
+    expect(calls).toBe(2);
+  });
+
   it('runs every case through the app prompts and writes a report', async () => {
     const provider = new FakeProvider();
     const run = await runEval({ provider, correctionModel: 'fake-c', replyModel: 'fake-r' });

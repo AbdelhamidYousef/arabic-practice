@@ -77,7 +77,7 @@ export function renderReport(run: EvalRun, date: string): string {
     `- Reply model: ${run.only === 'corrections' ? 'not run' : run.replyModel}`,
     `- Parts: ${run.only ?? 'corrections and replies'}`,
     `- Limit: ${run.limit === undefined ? 'none (all cases)' : `${run.limit} per part, evenly spread`}`,
-    `- Pacing: at least ${run.pacing.minGapMs} ms between calls to a model, ${run.pacing.retryWaitMs / 1000} s wait and up to ${run.pacing.maxRetries} retries on 429`,
+    `- Pacing: at least ${run.pacing.minGapMs} ms between calls to a model, ${run.pacing.retryWaitMs / 1000} s wait and up to ${run.pacing.maxRetries} retries on 429 or 5xx busy errors`,
     `- Started: ${run.startedAt}`,
     `- Cases run: ${run.corrections.length} corrections (${scored.correctionErrors} errors), ${run.replies.length} replies (${scored.replyErrors} errors)`,
     "- The prompts are the app's own (`prompts/correction.ts`, `prompts/reply.ts`) with the seed lesson as context.",
