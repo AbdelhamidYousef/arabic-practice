@@ -39,17 +39,18 @@ async function counts() {
 }
 
 describe('seed', () => {
-  it('creates 12 published lessons with 8 to 12 vocabulary items each, owned by the demo teacher', async () => {
+  it('keeps the 12 chat lessons as drafts with 8 to 12 vocabulary items each, owned by the demo teacher', async () => {
     const summary = await runSeed({ nodeEnv: 'test' });
     expect(summary).toMatchObject({ lessons: 12, learners: 4, conversations: 8, devTeacher: true });
 
     const demo = await db.select().from(users).where(eq(users.email, DEMO_TEACHER.email));
     expect(demo[0]).toMatchObject({ role: 'teacher', readOnly: true, displayName: 'Ustadh Demo' });
 
-    // The course lessons (in a unit) come next to the 12 chat lessons.
+    // The course lessons (in a unit) are what learners see; the 12 chat lessons stay as drafts
+    // only for the demo class's transcripts.
     const rows = await db.select().from(lessons).where(isNull(lessons.unitId));
     expect(rows).toHaveLength(12);
-    expect(rows.every((l) => l.teacherId === demo[0]?.id && l.status === 'published')).toBe(true);
+    expect(rows.every((l) => l.teacherId === demo[0]?.id && l.status === 'draft')).toBe(true);
     for (const lesson of rows) {
       const vocab = await db.select().from(lessonVocab).where(eq(lessonVocab.lessonId, lesson.id));
       expect(vocab.length, lesson.slug).toBeGreaterThanOrEqual(8);

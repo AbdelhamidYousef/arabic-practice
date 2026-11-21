@@ -2,7 +2,7 @@ import type { IconName } from '../../components/ui/Icon';
 import type { StringKey } from '../../i18n';
 
 // Landing-page data. Arabic here is content (with full harakat), English goes through the
-// dictionary. Lesson counts follow the course plan (docs/plan/07-course-plan.md).
+// dictionary. Lesson counts match the content files (apps/api/src/content).
 
 export const HERO_WORD = {
   arabic: 'مَرْحَبًا',
@@ -25,7 +25,7 @@ export interface LevelCard {
 
 export const LEVELS: LevelCard[] = [
   { code: 'A0', nameKey: 'level.A0', canDoKey: 'home.levels.A0', lessons: 10, sample: 'بَابٌ' },
-  { code: 'A1', nameKey: 'level.A1', canDoKey: 'home.levels.A1', lessons: 36, sample: 'قَهْوَةٌ' },
+  { code: 'A1', nameKey: 'level.A1', canDoKey: 'home.levels.A1', lessons: 30, sample: 'قَهْوَةٌ' },
   { code: 'A2', nameKey: 'level.A2', canDoKey: 'home.levels.A2', lessons: 26, sample: 'سَافَرْتُ' },
 ];
 

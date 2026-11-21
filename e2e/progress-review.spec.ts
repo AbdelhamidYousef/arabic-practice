@@ -19,7 +19,7 @@ test('progress shows the mistakes, review runs through to the summary', async ({
   await expect(page).toHaveURL(/\/review$/);
   const session = page.getByRole('region', { name: 'Review session' });
   await expect(session).toBeVisible();
-  await expect(session.getByText('Greetings and introductions')).toBeVisible();
+  await expect(session.getByText('Greetings and your name')).toBeVisible();
 
   // Reveal, answer, repeat: alternate "knew it" and "not yet" until the summary appears.
   const summary = page.getByRole('heading', { name: 'Session complete' });

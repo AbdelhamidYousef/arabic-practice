@@ -120,8 +120,9 @@ export async function runSeed(options: SeedOptions = {}): Promise<SeedSummary> {
     learners.set(l.email, row.id);
   }
 
-  // Lessons belong to the demo teacher: guests and the made-up class both point at that teacher,
-  // so these are the lessons they see.
+  // The first 12 chat-only lessons belong to the demo teacher as drafts: since part 2 the course
+  // (content files) is what learners see, and these stay only because the made-up class's
+  // conversations were written for them (the teacher's transcripts still make sense).
   const lessonIds = new Map<string, string>();
   const plainWordsBySlug = new Map<string, Set<string>>();
   let vocabCount = 0;
@@ -137,7 +138,7 @@ export async function runSeed(options: SeedOptions = {}): Promise<SeedSummary> {
       grammarFocus: lesson.grammarFocus,
       scenario: lesson.scenario,
       openingLine: lesson.openingLine,
-      status: 'published' as const,
+      status: 'draft' as const,
       position: index + 1,
     };
     const [row] = await db

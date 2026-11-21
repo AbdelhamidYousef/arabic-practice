@@ -77,7 +77,7 @@ for (const width of WIDTHS) {
       const conversationPath = new URL(page.url()).pathname;
       for (const path of [
         '/lessons',
-        '/lessons/greetings',
+        '/lessons/a1-greetings',
         // A course lesson: the hub and every step of the player.
         '/lessons/a1-greetings',
         ...['words', 'practice', 'grammar', 'culture', 'talk', 'done'].map(

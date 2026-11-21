@@ -21,11 +21,10 @@ export async function startAsDemoTeacher(page: Page): Promise<void> {
   await expect(page).toHaveURL(/\/teacher$/);
 }
 
-/** From the course page (its "More conversation practice" section) to a fresh conversation on the greetings lesson. */
+/** From the A1 greetings lesson's talk step to a fresh conversation. */
 export async function startGreetingsPractice(page: Page): Promise<void> {
-  await page.getByRole('link', { name: /Greetings and introductions/ }).click();
-  await expect(page).toHaveURL(/\/lessons\/greetings$/);
-  await page.getByRole('button', { name: 'Start practice' }).click();
+  await page.goto('/lessons/a1-greetings/learn/talk');
+  await page.getByRole('button', { name: 'Start the conversation' }).click();
   await expect(page).toHaveURL(/\/practice\/[0-9a-f-]+$/);
   await expect(composer(page)).toBeVisible();
 }
