@@ -178,3 +178,12 @@ What was built per step and why, for the owner to read; three quiz questions at 
 - **10.1 Teacher lessons API.** CRUD with the whole lesson as one body; the vocab list is rewritten inside the
   lesson's transaction, `arabic_plain` is computed in code, the slug is derived once and made unique by the index
   with a retry. Learn: "check then insert" for a unique name is a race; let the unique index decide and retry the loser.
+- **10.2 Learners, transcripts, invites, usage API.** Four small modules behind one `/teacher` router; every
+  query reaches ownership through `users.teacher_id = me`, either directly or by joining to `users`. Invites reuse
+  the register code hashing. Usage counts from the `ai_calls` ledger and reads the caps through one function.
+  Learn: a join that carries the ownership condition cannot be forgotten, while a separate "check the owner" step can.
+
+### Quiz (phase 10, API part)
+1. Why does `forbidReadOnly` run before body validation on every teacher mutation?
+2. A teacher deletes a lesson learners have practised. What happens, why was it chosen, and what is the safe alternative?
+3. The usage page shows today's calls per model for everyone but per-person turns only for the class. Why the difference?

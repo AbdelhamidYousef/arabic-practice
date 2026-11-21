@@ -8,15 +8,9 @@ import { z } from 'zod';
 
 import { respond, valid, validate } from '../../lib/validate.ts';
 import { forbidReadOnly, requireRole } from '../../middleware/auth.ts';
-import type { AuthUser } from '../auth/sessions.ts';
 
 import * as service from './lessons.service.ts';
-
-// requireRole has already refused anonymous callers, so a missing user is a wiring bug.
-function teacherOf(user: AuthUser | null): AuthUser {
-  if (!user) throw new Error('requireRole let an anonymous request through');
-  return user;
-}
+import { teacherOf } from './teacher-of.ts';
 
 export function createTeacherLessonsRouter(): Router {
   const router = ExpressRouter();

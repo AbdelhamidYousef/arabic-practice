@@ -4,3 +4,6 @@ export * from './lesson.ts';
 export * from './progress.ts';
 export * from './review.ts';
 export * from './teacher-lesson.ts';
+export * from './teacher-learners.ts';
+export * from './teacher-invites.ts';
+export * from './teacher-usage.ts';
