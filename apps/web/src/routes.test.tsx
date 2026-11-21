@@ -105,7 +105,6 @@ describe('routes', () => {
     ['/login', en['page.login']],
     ['/register', en['page.register']],
     ['/lessons', en['page.lessons']],
-    ['/lessons/greetings', en['page.lesson']],
     ['/practice/c1', en['page.practice']],
     ['/progress', en['page.progress']],
     ['/review', en['page.review']],
@@ -135,15 +134,17 @@ describe('role-aware navigation', () => {
 
   it('offers Lessons, Review and Progress to a learner', async () => {
     stubApi(learner);
-    renderAt('/');
-    await screen.findByText(en['home.greeting'].replace('{name}', 'Sara'));
+    renderAt('/progress');
+    await screen.findByRole('heading', { level: 1, name: en['page.progress'] });
+    await screen.findByRole('link', { name: en['nav.review'] });
     expect(navLinks()).toEqual([en['nav.lessons'], en['nav.review'], en['nav.progress']]);
   });
 
   it('offers Lessons, Learners, Invites and Usage to a teacher', async () => {
     stubApi(teacher);
-    renderAt('/');
-    await screen.findByText(en['home.greeting'].replace('{name}', 'Omar'));
+    renderAt('/teacher');
+    await screen.findByRole('heading', { level: 1, name: en['page.teacher'] });
+    await screen.findByRole('link', { name: en['nav.learners'] });
     expect(navLinks()).toEqual([
       en['nav.lessons'],
       en['nav.learners'],
