@@ -20,6 +20,18 @@ export const keys = {
   lessons: ['lessons'] as const,
   lesson: (slug: string) => ['lessons', slug] as const,
   invite: (code: string) => ['invite', code] as const,
+  progress: ['progress'] as const,
+  reviewDue: ['review', 'due'] as const,
+  teacher: {
+    lessons: ['teacher', 'lessons'] as const,
+    lesson: (id: string) => ['teacher', 'lessons', id] as const,
+    learners: ['teacher', 'learners'] as const,
+    learner: (id: string) => ['teacher', 'learners', id] as const,
+    transcript: (id: string) => ['teacher', 'conversations', id] as const,
+    invites: ['teacher', 'invites'] as const,
+    invitesOpen: ['teacher', 'invites-open'] as const,
+    usage: ['teacher', 'usage'] as const,
+  },
 };
 
 // A 401 for someone the page believes is signed in means the session ended behind its back (it

@@ -147,5 +147,12 @@ export const en = {
   'page.teacherUsage': 'Usage',
   'page.comingSoon': 'This page is coming soon.',
 
+  'nav.signOut': 'Sign out',
+
+  'readOnly.banner': 'Demo teacher view — changes are switched off.',
+  'readOnly.hint': 'Changes are switched off in the demo teacher view.',
+  'readOnly.error': 'Changes are switched off in the demo teacher view, so nothing was saved.',
+  'teacher.error': 'Something went wrong. Please try again.',
+
   'count.lessons': { zero: 'No lessons yet', one: '{count} lesson', other: '{count} lessons' },
 } as const;

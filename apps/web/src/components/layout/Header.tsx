@@ -1,5 +1,6 @@
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 
+import { useLogout } from '../../features/auth/mutations';
 import { navFor } from '../../features/auth/nav';
 import { useMe } from '../../features/auth/queries';
 import { useT } from '../../i18n';
@@ -12,6 +13,8 @@ import { Container } from './Container';
 export function Header() {
   const { t } = useT();
   const { data: user } = useMe();
+  const logout = useLogout();
+  const navigate = useNavigate();
   return (
     <header className="border-b border-line bg-surface">
       <Container className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 py-3">
@@ -37,6 +40,18 @@ export function Header() {
                 </NavLink>
               </li>
             ))}
+            {user && (
+              <li>
+                <button
+                  type="button"
+                  disabled={logout.isPending}
+                  onClick={() => logout.mutate(undefined, { onSuccess: () => navigate('/') })}
+                  className="inline-flex min-h-11 items-center rounded-ui px-3 font-medium text-ink hover:bg-primary-soft disabled:opacity-60"
+                >
+                  {t('nav.signOut')}
+                </button>
+              </li>
+            )}
           </ul>
         </nav>
       </Container>

@@ -6,6 +6,7 @@ import {
   type RegisterInput,
   type User,
 } from '@arabic/shared';
+import { z } from 'zod';
 
 import { ApiError, apiFetch } from './client';
 
@@ -64,4 +65,8 @@ export async function register(input: RegisterInput): Promise<User> {
     schema: UserResponseSchema,
   });
   return res.user;
+}
+
+export async function logout(): Promise<void> {
+  await apiFetch('/auth/logout', { method: 'POST', schema: z.unknown() });
 }

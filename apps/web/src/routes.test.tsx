@@ -106,19 +106,26 @@ describe('routes', () => {
     ['/register', en['page.register']],
     ['/lessons', en['page.lessons']],
     ['/practice/c1', en['page.practice']],
-    ['/progress', en['page.progress']],
-    ['/review', en['page.review']],
-    ['/teacher', en['page.teacher']],
-    ['/teacher/lessons', en['page.teacherLessons']],
-    ['/teacher/lessons/l1', en['page.teacherLesson']],
-    ['/teacher/learners/u1', en['page.teacherLearner']],
-    ['/teacher/conversations/c1', en['page.teacherConversation']],
-    ['/teacher/invites', en['page.teacherInvites']],
-    ['/teacher/usage', en['page.teacherUsage']],
+  ];
+  // Signed-in pages (guarded; their data and the guards have their own tests).
+  const signedIn: [string, string, Who][] = [
+    ['/progress', en['page.progress'], learner],
+    ['/review', en['page.review'], learner],
+    ['/teacher', en['page.teacher'], teacher],
+    ['/teacher/lessons', en['page.teacherLessons'], teacher],
+    ['/teacher/lessons/l1', en['page.teacherLesson'], teacher],
+    ['/teacher/invites', en['page.teacherInvites'], teacher],
+    ['/teacher/usage', en['page.teacherUsage'], teacher],
   ];
 
   it.each(cases)('%s renders its page', async (path, heading) => {
     stubApi(null);
+    renderAt(path);
+    expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
+  });
+
+  it.each(signedIn)('%s renders its page for the right person', async (path, heading, who) => {
+    stubApi(who);
     renderAt(path);
     expect(await screen.findByRole('heading', { level: 1, name: heading })).toBeInTheDocument();
   });
