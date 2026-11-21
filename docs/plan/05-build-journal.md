@@ -202,3 +202,30 @@ Learn: setting a field's value from code does not tell React; writing with `setR
 1. Why does the keyboard dispatch an `input` event after changing the textarea?
 2. Why does the register page call the invite lookup before showing the form?
 3. What stops a keyboard key press from taking focus away from the textarea on a phone?
+
+## Phase 9 — Progress and review API (lane api2)
+- **9.1 Progress API.** One endpoint, seven small aggregate queries run in parallel, weeks bucketed in SQL and
+  zero-filled in code. Learn: "per week" needs one definition of a week shared by the database and the code
+  (ISO, Monday, UTC), otherwise a Sunday-night turn lands in different buckets on each side.
+- **9.3 Review API (Leitner).** `reviewCard` is a pure function (box, counters and due date in, new state out), so
+  the schedule is tested without a database; the service only locks the row and writes. Learn: seeding cards with
+  `INSERT … SELECT … ON CONFLICT DO NOTHING` makes "create what is missing" safe to call on every visit.
+
+### Quiz (phase 9, API part)
+1. Why does the progress endpoint fill empty weeks on the server instead of returning only weeks with data?
+2. A learner double-taps "I knew it" on one card. What stops the card from skipping a box, and where is it in the code?
+3. Why is the new due date based on the new box and not the old one?
+
+## Phase 10 — Teacher API (lane api2)
+- **10.1 Teacher lessons API.** CRUD with the whole lesson as one body; the vocab list is rewritten inside the
+  lesson's transaction, `arabic_plain` is computed in code, the slug is derived once and made unique by the index
+  with a retry. Learn: "check then insert" for a unique name is a race; let the unique index decide and retry the loser.
+- **10.2 Learners, transcripts, invites, usage API.** Four small modules behind one `/teacher` router; every
+  query reaches ownership through `users.teacher_id = me`, either directly or by joining to `users`. Invites reuse
+  the register code hashing. Usage counts from the `ai_calls` ledger and reads the caps through one function.
+  Learn: a join that carries the ownership condition cannot be forgotten, while a separate "check the owner" step can.
+
+### Quiz (phase 10, API part)
+1. Why does `forbidReadOnly` run before body validation on every teacher mutation?
+2. A teacher deletes a lesson learners have practised. What happens, why was it chosen, and what is the safe alternative?
+3. The usage page shows today's calls per model for everyone but per-person turns only for the class. Why the difference?
