@@ -16,6 +16,7 @@
     "db:reset": "tsx src/db/reset.ts",
     "db:migrate:deploy": "tsx scripts/deploy-migrate.ts",
     "audio:build": "tsx scripts/audio-build.ts",
+    "teacher:create": "tsx scripts/create-teacher.ts",
     "build": "tsx scripts/build.ts",
     "eval": "tsx src/evals/cli.ts"
   },

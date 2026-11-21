@@ -1,20 +1,23 @@
 import {
+  ChangePasswordSchema,
   InviteCodeSchema,
   InviteInfoSchema,
   LoginSchema,
   RegisterSchema,
+  ResetPasswordSchema,
   UserResponseSchema,
 } from '@arabic/shared';
 import { Router as ExpressRouter, type RequestHandler, type Router } from 'express';
 import { z } from 'zod';
 
 import { clearSessionCookie, readSessionCookie, setSessionCookie } from '../../lib/cookies.ts';
-import { invitesClosed } from '../../lib/errors.ts';
+import { forbidden, invitesClosed } from '../../lib/errors.ts';
 import { respond, valid, validate } from '../../lib/validate.ts';
-import { requireUser } from '../../middleware/auth.ts';
+import { forbidReadOnly, requireUser } from '../../middleware/auth.ts';
 import {
   createAuthRateLimiter,
   createIpRateLimiter,
+  createUserRateLimiter,
   type RateLimitOptions,
 } from '../../middleware/rate-limit.ts';
 
@@ -123,6 +126,42 @@ export function createAuthRouter(opts: AuthRouterOptions): Router {
     res.setHeader('Cache-Control', 'no-store');
     respond(res, UserResponseSchema, { user: toUserDto(req.user) });
   });
+
+  // Public (the learner cannot sign in, that is the point), so it is limited per IP, before
+  // validation so malformed attempts count too. The token is 256 random bits, so the limit is not
+  // what protects it; it only keeps the endpoint from being a free argon2 CPU burner.
+  const resetPassword = { body: ResetPasswordSchema };
+  router.post(
+    '/auth/reset',
+    createIpRateLimiter(opts.authRateLimit),
+    validate(resetPassword),
+    async (req, res) => {
+      const { body } = valid(req, resetPassword);
+      await service.resetPassword(body);
+      // No sign-in here: the learner goes to the login form with the new password. A stale cookie
+      // would belong to a session that was just deleted anyway.
+      clearSessionCookie(res, opts.secureCookies);
+      res.status(204).end();
+    },
+  );
+
+  // A signed-in person with a password (not a guest, not the read-only demo). The per-user limit
+  // stops someone with a stolen session from guessing the current password.
+  const changePassword = { body: ChangePasswordSchema };
+  router.post(
+    '/auth/password',
+    requireUser,
+    forbidReadOnly,
+    createUserRateLimiter(opts.authRateLimit),
+    validate(changePassword),
+    async (req, res) => {
+      const { body } = valid(req, changePassword);
+      if (!req.user) throw new Error('requireUser let an anonymous request through');
+      if (req.user.isGuest) throw forbidden('Guests have no password to change');
+      await service.changePassword(req.user, req.sessionToken, body);
+      res.status(204).end();
+    },
+  );
 
   return router;
 }

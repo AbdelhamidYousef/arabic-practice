@@ -28,6 +28,9 @@ export const ErrorCode = {
   // sign-ins from one network or in total.
   CONVERSATION_LIMIT: 'CONVERSATION_LIMIT',
   GUEST_LIMIT: 'GUEST_LIMIT',
+  // The signed-in person typed the wrong current password (change password, delete account). Not a
+  // 401: the session is fine, and the web treats a 401 as "signed out".
+  WRONG_PASSWORD: 'WRONG_PASSWORD',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
@@ -51,4 +54,5 @@ export const errorStatus: Record<ErrorCode, number> = {
   INTERNAL: 500,
   CONVERSATION_LIMIT: 429,
   GUEST_LIMIT: 429,
+  WRONG_PASSWORD: 403,
 };

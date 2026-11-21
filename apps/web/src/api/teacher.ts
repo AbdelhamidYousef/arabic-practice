@@ -1,5 +1,6 @@
 import {
   CreateInviteResponseSchema,
+  CreateResetLinkResponseSchema,
   InviteListResponseSchema,
   TeacherLearnerDetailResponseSchema,
   TeacherLearnerListResponseSchema,
@@ -11,6 +12,7 @@ import {
   type CefrLevel,
   type CreateInviteRequest,
   type CreateInviteResponse,
+  type CreateResetLinkResponse,
   type InviteListResponse,
   type TeacherLearnerDetailResponse,
   type TeacherLearnerListResponse,
@@ -103,3 +105,9 @@ export const createInvite = (input: CreateInviteRequest): Promise<CreateInviteRe
 
 export const fetchUsage = (signal?: AbortSignal): Promise<TeacherUsageResponse> =>
   get('/teacher/usage', TeacherUsageResponseSchema, signal);
+
+export const createResetLink = (learnerId: string): Promise<CreateResetLinkResponse> =>
+  apiFetch(`/teacher/learners/${encodeURIComponent(learnerId)}/reset-link`, {
+    method: 'POST',
+    schema: CreateResetLinkResponseSchema,
+  });

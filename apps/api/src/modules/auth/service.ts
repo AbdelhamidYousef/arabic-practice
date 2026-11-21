@@ -1,25 +1,28 @@
 import { createHmac, randomBytes } from 'node:crypto';
 
 import { ErrorCode } from '@arabic/shared';
-import { and, count, eq, gt, gte, inArray, lt, sql } from 'drizzle-orm';
+import { and, count, eq, gt, gte, inArray, isNull, lt, sql } from 'drizzle-orm';
 import { ipKeyGenerator } from 'express-rate-limit';
 
 import { db } from '../../db/client.ts';
-import { invites, users } from '../../db/schema/index.ts';
+import { invites, passwordResets, sessions, users } from '../../db/schema/index.ts';
 import { DEMO_TEACHER } from '../../db/seed/users.ts';
 import { uniqueViolation } from '../../lib/db-errors.ts';
 import {
   AppError,
   conflict,
   demoUnavailable,
+  notFound,
   unauthenticated,
   unprocessable,
+  wrongPassword,
 } from '../../lib/errors.ts';
 import { hash, verify, verifyAgainstDummy } from '../../lib/password.ts';
 
 import {
   createSession,
   deleteSession,
+  deleteSessionsOf,
   purgeExpiredSessions,
   sha256,
   type AuthUser,
@@ -75,6 +78,56 @@ export async function login(
 
 export async function logout(token: string | null): Promise<void> {
   if (token) await deleteSession(token);
+}
+
+// Needs the current password. The other sessions are ended only after the new hash is stored, so a
+// failure never leaves the old password with no sessions. The caller's own session stays: they just
+// proved who they are.
+export async function changePassword(
+  user: AuthUser,
+  currentToken: string | null,
+  input: { currentPassword: string; newPassword: string },
+): Promise<void> {
+  const [row] = await db
+    .select({ passwordHash: users.passwordHash })
+    .from(users)
+    .where(eq(users.id, user.id));
+  const ok = row?.passwordHash
+    ? await verify(row.passwordHash, input.currentPassword)
+    : await verifyAgainstDummy(input.currentPassword);
+  if (!ok) throw wrongPassword();
+  const passwordHash = await hash(input.newPassword);
+  await db.update(users).set({ passwordHash }).where(eq(users.id, user.id));
+  await deleteSessionsOf(user.id, currentToken);
+}
+
+// Spends a teacher-issued reset link. The conditional UPDATE is the whole check (unknown, expired and
+// already-used links all match zero rows, and all answer the same 404, so the endpoint reveals
+// nothing), and it is what makes the link single-use under a race. The new password, the spent
+// link and the deleted sessions commit together: either the learner has a new password and is
+// signed out everywhere, or nothing changed and the link is still good.
+export async function resetPassword(
+  input: { token: string; password: string },
+  now = new Date(),
+): Promise<void> {
+  // Hashed before the transaction opens, as in register: argon2 must not hold a connection.
+  const passwordHash = await hash(input.password);
+  await db.transaction(async (tx) => {
+    const [claimed] = await tx
+      .update(passwordResets)
+      .set({ usedAt: now })
+      .where(
+        and(
+          eq(passwordResets.tokenHash, sha256(input.token)),
+          isNull(passwordResets.usedAt),
+          gt(passwordResets.expiresAt, now),
+        ),
+      )
+      .returning({ userId: passwordResets.userId });
+    if (!claimed) throw notFound('This reset link does not work');
+    await tx.update(users).set({ passwordHash }).where(eq(users.id, claimed.userId));
+    await tx.delete(sessions).where(eq(sessions.userId, claimed.userId));
+  });
 }
 
 const DAY_MS = 24 * 3600 * 1000;

@@ -23,6 +23,7 @@ export const en = {
   'nav.invites': 'Invites',
   'nav.usage': 'Usage',
   'nav.signIn': 'Sign in',
+  'nav.settings': 'Settings',
 
   'nav.levels': 'Levels',
   'nav.how': 'How it works',
@@ -148,6 +149,9 @@ export const en = {
   'auth.error.rateLimited': 'Too many attempts. Please wait a little and try again.',
   'auth.error.emailTaken': 'An account with this email already exists.',
   'auth.error.demoUnavailable': 'The demo is not set up on this server yet.',
+  'auth.error.wrongPassword': 'That is not your current password. Please try again.',
+  'auth.error.guestLimit':
+    'Too many people have tried the demo as a guest from this network or today. The network limit eases within an hour and the daily one within 24 hours. Please try again later.',
   'auth.error.generic': 'Something went wrong. Please try again.',
   'auth.error.emailRequired': 'Enter a valid email address.',
   'auth.error.passwordRequired': 'Enter your password.',
@@ -167,6 +171,49 @@ export const en = {
   'register.invitedBy': 'Invited by {name}',
   'register.noCode': 'This page needs the link from your invite.',
   'register.toStart': 'Go to the start page',
+
+  'settings.lead': 'Your account, your password and your data.',
+  'settings.account.title': 'Account',
+  'settings.account.name': 'Name',
+  'settings.account.email': 'Email',
+  'settings.account.type': 'Account type',
+  'settings.account.role.learner': 'Learner',
+  'settings.account.role.teacher': 'Teacher',
+  'settings.demo': 'This is the read-only demo account, so there is nothing to change here.',
+  'settings.password.title': 'Change password',
+  'settings.password.lead': 'You stay signed in here. Your other devices are signed out.',
+  'settings.password.current': 'Current password',
+  'settings.password.new': 'New password',
+  'settings.password.confirm': 'New password again',
+  'settings.password.mismatch': 'The two new passwords are not the same.',
+  'settings.password.currentRequired': 'Enter your current password.',
+  'settings.password.submit': 'Change password',
+  'settings.password.done': 'Your password is changed. Your other devices are signed out.',
+
+  'reset.lead': 'Your teacher gave you this link. Choose a new password to sign in with.',
+  'reset.submit': 'Set new password',
+  'reset.done': 'Your password is changed. Sign in with the new one.',
+  'reset.invalid.title': 'This reset link does not work',
+  'reset.invalid.body':
+    'It may have expired (a link lasts one day), been used already, or been replaced by a newer one. Ask your teacher for a new link.',
+
+  'settings.data.title': 'Your data',
+  'settings.data.teacher':
+    'Teacher accounts are closed by the person who runs this app, because your lessons belong to your learners. Ask them if you need yours removed.',
+  'settings.export.title': 'Download your data',
+  'settings.export.lead':
+    'A JSON file with your profile, your practice chats and their corrections, your mistakes and your progress.',
+  'settings.export.button': 'Download my data',
+  'settings.delete.title': 'Delete your account',
+  'settings.delete.lead':
+    'This removes your account and everything in it: your chats, corrections, mistakes, progress and review cards. It cannot be undone.',
+  'settings.delete.button': 'Delete my account',
+  'settings.delete.dialogTitle': 'Delete your account?',
+  'settings.delete.warning':
+    'Your chats, mistakes and progress will be erased for good. Type your password to confirm.',
+  'settings.delete.password': 'Your password',
+  'settings.delete.confirm': 'Delete everything',
+  'settings.delete.cancel': 'Keep my account',
 
   'lessons.lead': 'Pick a lesson and practise it as a conversation.',
   'load.error': 'We could not load this page. Check your connection and try again.',
@@ -193,6 +240,7 @@ export const en = {
   'lesson.harakat.toggle': 'Show short vowels (harakat)',
   'lesson.start': 'Start practice',
   'lesson.starting': 'Starting',
+  'limit.conversations': "You've started as many conversations as one day allows.",
   'lesson.startError': 'We could not start the practice. Please try again.',
   'lesson.recent': 'Your recent conversations',
   'lesson.recent.empty': 'You have not practised this lesson yet.',
@@ -231,6 +279,7 @@ export const en = {
   'chat.translate.label': 'English translation',
   'chat.translate.error': 'Could not translate this message.',
   'chat.translate.retry': 'Try again',
+  'chat.translate.limit': "You've used all of today's translations.",
   'chat.guestNote':
     "Practice chats on this demo go through Google's Gemini free tier. Please don't type personal information.",
   'chat.composer.label': 'Your message in Arabic',
@@ -240,7 +289,8 @@ export const en = {
   'chat.stop': 'Stop',
   'chat.error.limitUser': "You've reached today's practice limit.",
   'chat.error.resets': 'It resets at {when}, your local time.',
-  'chat.error.limitGlobal': 'The practice partner is resting for today. Please come back tomorrow.',
+  'chat.error.limitGlobal':
+    'The practice partner has reached its daily limit for everyone, so it is resting until the reset.',
   'chat.error.busy': 'Too many people are practising right now, try again in a minute.',
   'chat.error.disabled': 'Practice is switched off at the moment. Please try again later.',
   'chat.error.slowDown': 'You are sending messages very quickly. Wait a few seconds and try again.',
@@ -277,6 +327,8 @@ export const en = {
 
   'page.login': 'Sign in',
   'page.register': 'Create your account',
+  'page.settings': 'Settings',
+  'page.reset': 'Choose a new password',
   'page.lessons': 'Lessons',
   'page.course': 'Course',
   'page.practice': 'Practice',
@@ -370,6 +422,16 @@ export const en = {
   'teacher.learner.conversations': 'Conversations',
   'teacher.learner.noConversations': 'No conversations yet.',
   'teacher.learner.readTranscript': 'Read transcript',
+  'teacher.reset.title': 'Password reset link',
+  'teacher.reset.lead':
+    'If this learner forgot their password, make a one-time link and send it to them in your chat. It lasts one day.',
+  'teacher.reset.create': 'Create reset link',
+  'teacher.reset.once':
+    "Copy the link now, you won't see it again. It works once and expires {when}. Using it signs the learner out everywhere.",
+  'teacher.reset.link': 'Reset link',
+  'teacher.reset.copy': 'Copy link',
+  'teacher.reset.copied': 'Copied.',
+  'teacher.reset.copyFailed': 'Could not copy. Select the link and copy it by hand.',
   'teacher.transcript.back': 'Back to {name}',
   'teacher.transcript.readOnly': 'Read-only transcript.',
   'teacher.transcript.empty': 'No messages in this conversation.',

@@ -1,10 +1,13 @@
+import { ErrorCode } from '@arabic/shared';
 import { useState } from 'react';
 
+import { ApiError } from '../../api/client';
 import { Alert } from '../../components/ui/Alert';
 import { ArabicText } from '../../components/ui/ArabicText';
 import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
 
+import { ResetLine } from './limits';
 import { useGloss } from './queries';
 
 const bubble = 'min-w-0 max-w-[88%] rounded-ui border px-4 py-2.5 sm:max-w-[80%]';
@@ -126,19 +129,39 @@ function Translate({ messageId, known }: { messageId: string; known: string | nu
             </p>
           )}
           {gloss.isError && text === null && (
-            <Alert tone="danger" className="mt-1">
-              {t('chat.translate.error')}{' '}
-              <button
-                type="button"
-                onClick={() => void gloss.refetch()}
-                className="font-medium underline underline-offset-4"
-              >
-                {t('chat.translate.retry')}
-              </button>
-            </Alert>
+            <GlossError error={gloss.error} onRetry={gloss.refetch} />
           )}
         </div>
       )}
     </div>
+  );
+}
+
+// A daily limit is not a hiccup: retrying changes nothing until the reset, so it gets its own
+// sentence and the time, and no retry button.
+function GlossError({ error, onRetry }: { error: unknown; onRetry: () => unknown }) {
+  const { t } = useT();
+  const code = error instanceof ApiError ? error.code : null;
+  if (code === ErrorCode.AI_LIMIT_USER || code === ErrorCode.AI_LIMIT_GLOBAL) {
+    return (
+      <Alert tone="danger" className="mt-1">
+        <p>
+          {t(code === ErrorCode.AI_LIMIT_USER ? 'chat.translate.limit' : 'chat.error.limitGlobal')}
+        </p>
+        <ResetLine />
+      </Alert>
+    );
+  }
+  return (
+    <Alert tone="danger" className="mt-1">
+      {t('chat.translate.error')}{' '}
+      <button
+        type="button"
+        onClick={() => void onRetry()}
+        className="font-medium underline underline-offset-4"
+      >
+        {t('chat.translate.retry')}
+      </button>
+    </Alert>
   );
 }

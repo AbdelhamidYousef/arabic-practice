@@ -2,11 +2,9 @@ import type { LessonConversation, LessonDetailResponse } from '@arabic/shared';
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 
-import { ApiError } from '../api/client';
 import { Container } from '../components/layout/Container';
 import { LoadState } from '../components/LoadState';
 import { Seo } from '../components/Seo';
-import { Alert } from '../components/ui/Alert';
 import { ArabicText } from '../components/ui/ArabicText';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
@@ -14,6 +12,7 @@ import { Card } from '../components/ui/Card';
 import { LessonHub } from '../features/course/LessonHub';
 import { isCourseLesson } from '../features/course/steps';
 import { useLesson } from '../features/lessons/queries';
+import { StartError } from '../features/practice/limits';
 import { useStartConversation } from '../features/practice/mutations';
 import { useT } from '../i18n';
 
@@ -73,11 +72,9 @@ function LessonView({ data }: { data: LessonDetailResponse }) {
         </Button>
       </header>
       {start.error && (
-        <Alert tone="danger" className="mt-4">
-          {start.error instanceof ApiError && start.error.code === 'RATE_LIMITED'
-            ? t('auth.error.rateLimited')
-            : t('lesson.startError')}
-        </Alert>
+        <div className="mt-4">
+          <StartError error={start.error} />
+        </div>
       )}
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">

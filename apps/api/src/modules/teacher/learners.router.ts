@@ -1,4 +1,5 @@
 import {
+  CreateResetLinkResponseSchema,
   TeacherLearnerDetailResponseSchema,
   TeacherLearnerListResponseSchema,
   TeacherTranscriptResponseSchema,
@@ -10,6 +11,7 @@ import { z } from 'zod';
 
 import { respond, valid, validate } from '../../lib/validate.ts';
 import { forbidReadOnly, requireRole } from '../../middleware/auth.ts';
+import { createUserRateLimiter } from '../../middleware/rate-limit.ts';
 
 import * as service from './learners.service.ts';
 import { teacherOf } from './teacher-of.ts';
@@ -46,6 +48,27 @@ export function createTeacherLearnersRouter(): Router {
       await service.getLearner(teacherOf(req.user), params.id),
     );
   });
+
+  // Each call makes a credential, so it is limited per teacher (30 an hour is far above real use).
+  const resetLimit = createUserRateLimiter({ windowMs: 3600_000, limit: 30 });
+  router.post(
+    '/teacher/learners/:id/reset-link',
+    teacherOnly,
+    forbidReadOnly,
+    resetLimit,
+    validate(idParams),
+    async (req, res) => {
+      const { params } = valid(req, idParams);
+      // The token is in this one response; make sure no cache keeps it.
+      res.setHeader('Cache-Control', 'no-store');
+      res.status(201);
+      respond(
+        res,
+        CreateResetLinkResponseSchema,
+        await service.createResetLink(teacherOf(req.user), params.id),
+      );
+    },
+  );
 
   router.get('/teacher/conversations/:id', teacherOnly, validate(idParams), async (req, res) => {
     const { params } = valid(req, idParams);

@@ -2,6 +2,17 @@
 
 Written by the build sessions for the owner and the next session. Newest state first.
 
+## Phase 21 (accounts and teacher tools)
+
+- `pnpm --filter @arabic/api teacher:create <email>` makes a teacher (hidden password prompt; for Neon use the direct URL).
+  This closes the "create teacher script is not written yet" item below.
+- Settings page `/settings` (learners and teachers, not guests or the demo): change password (keeps this session, ends
+  the others), download my data, delete my account (learners only; the operator closes a teacher account).
+- Teacher-issued reset links (`password_resets`, migration `0010_password_resets`): the teacher makes a link on the
+  learner's page and sends it by chat; `/reset/:token` sets a new password and ends all that learner's sessions.
+  Production builds apply the migration themselves (phase 23.1).
+- Every daily limit now says when it resets; the guest limit has its own text.
+
 ## Part 2 state (2026-11-21, later the same day)
 
 **Live:** https://arabic-practice-phi.vercel.app. Neon is migrated to 0009 and seeded with the course.

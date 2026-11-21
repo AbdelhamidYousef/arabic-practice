@@ -1,11 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom';
 
-import { ApiError } from '../../api/client';
-import { Alert } from '../../components/ui/Alert';
 import { Button, buttonClasses } from '../../components/ui/Button';
 import { Card } from '../../components/ui/Card';
 import { Icon } from '../../components/ui/Icon';
 import { useT } from '../../i18n';
+import { StartError } from '../practice/limits';
 import { useStartConversation } from '../practice/mutations';
 
 import type { StepProps } from './step-props';
@@ -41,13 +40,7 @@ export function TalkStep({ data }: Pick<StepProps, 'data'>) {
         </ul>
         <p className="mt-5 text-sm text-muted">{t('chat.guestNote')}</p>
       </Card>
-      {start.error && (
-        <Alert tone="danger">
-          {start.error instanceof ApiError && start.error.code === 'RATE_LIMITED'
-            ? t('auth.error.rateLimited')
-            : t('lesson.startError')}
-        </Alert>
-      )}
+      {start.error && <StartError error={start.error} />}
       <div className="flex flex-col gap-3">
         <Button
           size="lg"

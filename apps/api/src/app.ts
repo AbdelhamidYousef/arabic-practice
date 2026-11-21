@@ -18,6 +18,7 @@ import { DEFAULT_GUEST_LIMITS } from './modules/auth/service.ts';
 import type { GuestLimits } from './modules/auth/service.ts';
 import { createCourseRouter } from './modules/course/router.ts';
 import { createLessonsRouter } from './modules/lessons/router.ts';
+import { createMeRouter } from './modules/me/router.ts';
 import { createPracticeRouter } from './modules/practice/router.ts';
 import { createProgressRouter } from './modules/progress/router.ts';
 import { createReviewRouter } from './modules/review/router.ts';
@@ -102,6 +103,14 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
       guestRateLimit: config.guestRateLimit,
       loginIpRateLimit: config.loginIpRateLimit,
       guestLimits: config.guestLimits ?? DEFAULT_GUEST_LIMITS,
+    }),
+  );
+
+  app.use(
+    '/api/v1',
+    createMeRouter({
+      secureCookies: config.nodeEnv === 'production',
+      authRateLimit: config.authRateLimit,
     }),
   );
 

@@ -15,6 +15,7 @@ import { Select } from '../components/ui/Select';
 import { MistakeBars, RecentMistakes } from '../features/progress/MistakeViews';
 import { useSetLearnerLevel, useTeacherLearner } from '../features/teacher/queries';
 import { TeacherError, useReadOnlyProps } from '../features/teacher/ReadOnly';
+import { ResetLinkCard } from '../features/teacher/ResetLink';
 import { useT } from '../i18n';
 import { formatDateTime } from '../lib/format';
 
@@ -107,6 +108,8 @@ function LearnerView({ data }: { data: TeacherLearnerDetailResponse }) {
             )}
           </div>
         </section>
+
+        <ResetLinkCard learnerId={learner.id} />
 
         <section aria-labelledby="convs-heading">
           <h2 id="convs-heading" className="text-xl">

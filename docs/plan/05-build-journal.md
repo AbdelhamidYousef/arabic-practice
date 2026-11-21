@@ -531,3 +531,54 @@ Learn: Cache Storage matching follows HTTP's `Vary` rules. A cache that "has the
 miss it; check the request headers, not just the URL.
 Still to do after the accounts merge: queue progress made offline, say "offline" in the chat and the
 banner, the manifest and icons (25.1, after the design pick).
+## Phase 21 (accounts and teacher tools)
+
+### 21.1: create-teacher script
+`pnpm --filter @arabic/api teacher:create <email>` makes a teacher account: the email and password
+go through the same schemas as registration, the password is typed at a hidden prompt (raw-mode
+stdin, never argv) and hashed with argon2id. Against Neon it needs the direct connection string.
+The first version of the piped-stdin path rejected every password: closing the readline interface
+fires `close` synchronously, before the promise was resolved. Learn: with events that fire inside
+your own call (`rl.close()`), settle the promise first.
+
+### 21.2: change password
+`POST /auth/password` checks the current password with argon2, stores the new hash, then deletes every
+session of that user except the one making the request, so a stolen laptop is signed out but the person
+typing is not. The settings page validates the new password with the same shared schema before sending.
+A wrong current password has its own 403 code: with a 401 the web would sign the person out for a typo.
+Learn: an HTTP status carries meaning for generic client code (401 = "log in again"), so pick codes for
+what the client will do with them, not only for what happened.
+
+### 21.3: teacher-issued reset links
+No email sender means no "forgot password" mail, so a teacher makes the link: `POST /teacher/learners/:id/reset-link`
+returns `/reset/<token>` once (32 random bytes, only the SHA-256 stored, 24 hours). The learner opens it, sets a
+password, and `POST /auth/reset` does three things in one transaction: claims the link with a conditional
+`UPDATE ... WHERE used_at IS NULL AND expires_at > now() RETURNING`, stores the new hash and deletes every session
+of that learner. Learn: let the database decide "has this been used?" in the same statement that marks it used; a
+SELECT followed by an UPDATE leaves a gap two requests can both walk through (the test fires both at once).
+
+### 21.4: delete my account and export my data
+`GET /me/export` returns one JSON file with the learner's profile, chats, corrections, mistakes and progress, built
+from queries that all filter on the session's own user id. `DELETE /me` asks for the password again and deletes the
+`users` row; the foreign keys cascade to everything the learner owns, while `ai_calls` keep their cost with the user
+and conversation ids set to null (a test checks that the ledger survives). Teachers, guests and the demo are refused:
+a teacher's lessons are `ON DELETE RESTRICT` because the learners' chats hang off them. On the web, the first version
+of "leave after deleting" sent the person to the sign-in: clearing the cached user made the page's own guard redirect
+before the navigation to `/` could happen. Learn: when a state change removes the very thing a guard checks, the guard
+fires first. Make the exit explicit in the same render instead of racing it.
+
+### 21.5: clear limit messages
+The limits were already enforced; what a learner saw was not. Practice turns had a reset time, but a refused
+translation said "could not translate, try again", a refused new conversation said "could not start", a refused guest
+start in the header did nothing at all (the button's error was never rendered) and the shared cap said "come back
+tomorrow". One small helper (`features/practice/limits.tsx`) now holds the reset time (the next UTC midnight, shown in
+local time) and the start error; the guest limit gets its own text because it is a rolling window, not the UTC day.
+Learn: an error you enforce is also a screen you have to write, and "try again" is the wrong advice for a limit.
+
+### Quiz: Phase 21
+1. A reset link is stored as a SHA-256 of 32 random bytes, not as an argon2 hash like a password. Why is the fast hash enough
+   here, and what would break if the token were a 6-digit code instead?
+2. `POST /auth/reset` marks the link used, stores the new password and deletes the sessions in one transaction, with the
+   link claimed by a single conditional `UPDATE ... RETURNING`. Which two failures would a `SELECT` followed by an `UPDATE`
+   allow, and what does the transaction add on top of the conditional update?
+3. Why does a wrong current password answer 403 `WRONG_PASSWORD` instead of the 401 that login uses?

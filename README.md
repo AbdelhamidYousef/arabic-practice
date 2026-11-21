@@ -186,6 +186,15 @@ pnpm e2e
 Local logins after `pnpm db:reset` (made-up, local only): `teacher@arabic-practice.test` with the
 password from `SEED_TEACHER_PASSWORD` (default `Teacher-demo-1!`), and the read-only demo teacher.
 
+Creating a real teacher (there is no sign-up for teachers; invites make learners):
+
+```sh
+DATABASE_URL='<Neon direct URL, the host without -pooler>' \
+  pnpm --filter @arabic/api teacher:create teacher@example.com --name "Ustadh Name"
+```
+
+It asks for the password on the terminal (hidden, never on the command line) and refuses a weak one.
+
 ## What's next
 
 - More held-out cases written by the teacher, and a Claude Haiku adapter compared on them.

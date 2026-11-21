@@ -26,6 +26,9 @@ export const routes: RouteObject[] = [
       { index: true, ...page(() => import('./pages/HomePage')) },
       { path: 'login', ...page(() => import('./pages/LoginPage')) },
       { path: 'register', ...page(() => import('./pages/RegisterPage')) },
+      // Guards itself (visitor to sign-in, guest to lessons) so a deleted account can leave for the start page.
+      { path: 'settings', ...page(() => import('./pages/SettingsPage')) },
+      { path: 'reset/:token', ...page(() => import('./pages/ResetPasswordPage')) },
       { path: 'lessons', ...page(() => import('./pages/CoursePage')) },
       { path: 'lessons/:slug', ...page(() => import('./pages/LessonPage')) },
       {

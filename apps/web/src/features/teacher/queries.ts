@@ -87,3 +87,7 @@ export function useCreateInvite() {
     onSuccess: () => client.invalidateQueries({ queryKey: keys.teacher.invites }),
   });
 }
+
+// Nothing to invalidate: a reset link is not part of any list the teacher sees.
+export const useCreateResetLink = (learnerId: string) =>
+  useMutation({ mutationFn: () => api.createResetLink(learnerId) });

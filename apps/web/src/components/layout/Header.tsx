@@ -1,11 +1,13 @@
 import { useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 
+import { authErrorKey } from '../../features/auth/errors';
 import { useGuest, useLogout } from '../../features/auth/mutations';
 import { navFor } from '../../features/auth/nav';
 import { useMe } from '../../features/auth/queries';
 import { useT } from '../../i18n';
 import { cn } from '../../lib/cn';
+import { Alert } from '../ui/Alert';
 import { Button } from '../ui/Button';
 import { Icon } from '../ui/Icon';
 
@@ -96,6 +98,11 @@ export function Header() {
             )}
           </ul>
         </nav>
+        {guest.error && (
+          <div className="w-full pb-2">
+            <Alert tone="danger">{t(authErrorKey(guest.error))}</Alert>
+          </div>
+        )}
       </Container>
     </header>
   );
