@@ -86,6 +86,8 @@ const baseSchema = z.object({
 
   // Guest sign-ins: a ceiling on guests created per rolling 24 hours, whatever their network.
   GUESTS_PER_DAY: count(300),
+  // Guests created per hour from one network (keyed IP hash). A class behind one school NAT shares it.
+  GUESTS_PER_IP_PER_HOUR: count(10),
   // Secret pepper for the keyed hash of a guest's IP stored on its row (users.created_ip_hash).
   // Required in production; unset elsewhere falls back to a fixed development value.
   IP_HASH_SALT: unsetIfEmpty(

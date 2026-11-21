@@ -24,7 +24,7 @@ export function bootstrap() {
       guestRateLimit: { windowMs: 3600 * 1000, limit: env.RATE_LIMIT_GUEST_MAX },
       invitesEnabled: env.INVITES_ENABLED,
       guestLimits: {
-        perIpPerHour: 10,
+        perIpPerHour: env.GUESTS_PER_IP_PER_HOUR,
         perDay: env.GUESTS_PER_DAY,
         ipHashSalt: env.IP_HASH_SALT ?? DEV_IP_HASH_SALT,
       },

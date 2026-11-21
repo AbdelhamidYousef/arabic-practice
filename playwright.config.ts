@@ -69,6 +69,9 @@ export default defineConfig({
         RATE_LIMIT_MAX: '10000',
         RATE_LIMIT_AUTH_MAX: '1000',
         RATE_LIMIT_GUEST_MAX: '1000',
+        // The database-backed guest limits (per network per hour, per day) count across runs too.
+        GUESTS_PER_IP_PER_HOUR: '100000',
+        GUESTS_PER_DAY: '100000',
       },
       url: `http://localhost:${API_PORT}/api/v1/health`,
       reuseExistingServer: false,
