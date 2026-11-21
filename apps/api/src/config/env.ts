@@ -50,6 +50,9 @@ const baseSchema = z.object({
       .default(15 * 60_000),
   ),
   RATE_LIMIT_AUTH_MAX: unsetIfEmpty(z.coerce.number().int().positive().default(10)),
+  // Guest and demo-teacher sign-ins per IP per hour. The e2e run raises it: every test starts
+  // as a fresh guest from one address.
+  RATE_LIMIT_GUEST_MAX: unsetIfEmpty(z.coerce.number().int().positive().default(10)),
 
   // AI. Which adapter answers: unset means "gemini if a key exists, else the fake" in development,
   // and "the fake" under NODE_ENV=test. Production refuses `fake` (see the rules below).

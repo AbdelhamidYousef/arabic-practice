@@ -61,9 +61,14 @@ export default tseslint.config(
     languageOptions: { globals: globals.node },
   },
 
-  // Tool configs must default-export; route components/pages may too (React.lazy needs it).
+  // Tool configs (and Playwright's global setup) must default-export; route components/pages may too (React.lazy needs it).
   {
-    files: ['**/*.config.{js,ts}', 'apps/web/src/pages/**/*.tsx', 'apps/web/src/routes.tsx'],
+    files: [
+      '**/*.config.{js,ts}',
+      'e2e/global-setup.ts',
+      'apps/web/src/pages/**/*.tsx',
+      'apps/web/src/routes.tsx',
+    ],
     rules: { 'import/no-default-export': 'off' },
   },
 
