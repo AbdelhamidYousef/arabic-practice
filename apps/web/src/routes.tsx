@@ -2,6 +2,7 @@ import type { ComponentType } from 'react';
 import type { RouteObject } from 'react-router-dom';
 
 import { AppLayout } from './components/layout/AppLayout';
+import { RequireTeacher, RequireUser } from './features/auth/guards';
 import RouteErrorPage from './pages/RouteErrorPage';
 import RouteFallback from './pages/RouteFallback';
 
@@ -28,18 +29,30 @@ export const routes: RouteObject[] = [
       { path: 'lessons', ...page(() => import('./pages/LessonsPage')) },
       { path: 'lessons/:slug', ...page(() => import('./pages/LessonPage')) },
       { path: 'practice/:conversationId', ...page(() => import('./pages/PracticePage')) },
-      { path: 'progress', ...page(() => import('./pages/ProgressPage')) },
-      { path: 'review', ...page(() => import('./pages/ReviewPage')) },
-      { path: 'teacher', ...page(() => import('./pages/TeacherHomePage')) },
-      { path: 'teacher/lessons', ...page(() => import('./pages/TeacherLessonsPage')) },
-      { path: 'teacher/lessons/:id', ...page(() => import('./pages/TeacherLessonPage')) },
-      { path: 'teacher/learners/:id', ...page(() => import('./pages/TeacherLearnerPage')) },
+      // Learner pages: a visitor is sent to the sign-in.
       {
-        path: 'teacher/conversations/:id',
-        ...page(() => import('./pages/TeacherConversationPage')),
+        element: <RequireUser />,
+        children: [
+          { path: 'progress', ...page(() => import('./pages/ProgressPage')) },
+          { path: 'review', ...page(() => import('./pages/ReviewPage')) },
+        ],
       },
-      { path: 'teacher/invites', ...page(() => import('./pages/TeacherInvitesPage')) },
-      { path: 'teacher/usage', ...page(() => import('./pages/TeacherUsagePage')) },
+      // Teacher pages: a visitor goes to the sign-in, a learner to the lessons.
+      {
+        element: <RequireTeacher />,
+        children: [
+          { path: 'teacher', ...page(() => import('./pages/TeacherHomePage')) },
+          { path: 'teacher/lessons', ...page(() => import('./pages/TeacherLessonsPage')) },
+          { path: 'teacher/lessons/:id', ...page(() => import('./pages/TeacherLessonPage')) },
+          { path: 'teacher/learners/:id', ...page(() => import('./pages/TeacherLearnerPage')) },
+          {
+            path: 'teacher/conversations/:id',
+            ...page(() => import('./pages/TeacherConversationPage')),
+          },
+          { path: 'teacher/invites', ...page(() => import('./pages/TeacherInvitesPage')) },
+          { path: 'teacher/usage', ...page(() => import('./pages/TeacherUsagePage')) },
+        ],
+      },
       { path: '*', ...page(() => import('./pages/NotFoundPage')) },
     ],
   },

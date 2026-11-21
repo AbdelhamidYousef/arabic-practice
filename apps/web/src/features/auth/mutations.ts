@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
 
-import { login, register, startDemoTeacher, startGuest } from '../../api/auth';
+import { login, logout, register, startDemoTeacher, startGuest } from '../../api/auth';
 
 import { useSetMe } from './queries';
 
@@ -18,3 +18,13 @@ export const useLogin = () => useSignIn(login);
 export const useRegister = () => useSignIn(register);
 export const useGuest = () => useSignIn(startGuest);
 export const useDemoTeacher = () => useSignIn(startDemoTeacher);
+
+// Sign out: the API forgets the session, then every cached answer of this person is dropped and
+// the header turns back into "Sign in".
+export function useLogout() {
+  const setMe = useSetMe();
+  return useMutation({
+    mutationFn: logout,
+    onSuccess: () => setMe(null),
+  });
+}

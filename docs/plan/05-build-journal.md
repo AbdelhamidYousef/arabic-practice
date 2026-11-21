@@ -311,3 +311,14 @@ Learn: setting a field's value from code does not tell React; writing with `setR
 - What: the practice page `/practice/:conversationId` (message list, streaming reply, correction cards with word diff, translate, harakat toggle, composer with the Arabic keyboard, limit and retry errors), the shared `diffWords` helper, strict web schemas for conversations, gloss and turn events.
 - Why: the turn stream is the centre of the product, so the rules for its event order live in one pure module (`features/practice/turn.ts`) that is tested without a browser, and the component tests feed a hand-driven stream so they can look at the page between two events.
 - Learn: a POST stream cannot use `EventSource`; `fetch` + a reader gives the same events plus an `AbortSignal`, and aborting is how Stop works. A live region that holds streamed text announces every chunk, so the page announces one string, once, when the reply is complete.
+## Phases 9 and 10, web (lane screens)
+- **Guards and sign-out.** Layout routes wrap the pages, so a route added later is guarded by where it sits. Learn: a guard is a UX rule; the API's 401/403 is the security rule, and both must exist.
+- **9.2 Progress.** Bars are plain elements whose width is a percentage; the numbers are also text, so the chart works without sight. Learn: a bar chart is a list with a style attribute, not a library.
+- **9.4 Review.** A session is local state (index, revealed, results) over a snapshot of cards; keys 1/2/Space are one window listener that ignores fields and focused buttons, so Space on a focused button is not handled twice. Learn: a global shortcut must say what it leaves alone.
+- **10.3 Lesson editor.** Rows carry a local key so typed text follows a row when it moves; validation reuses the API's schema. Learn: index keys would make a moved row keep the wrong text.
+- **10.4 Teacher pages.** Tables scroll in their own focusable region; the invite link is shown once from component state because the server keeps only a hash. Learn: "shown once" is a promise the UI has to keep too, so nothing should put the code in the URL or the cache.
+
+### Quiz (phases 9 and 10, web)
+1. Why does the review page ignore Space when a button has focus, and what happens to a card's focus after an answer?
+2. A teacher fills three vocab rows, leaves a blank one between them, and the English of the third is missing. Which row does the error mark, and which code does that?
+3. Where does an invite code live in the browser after "Done" is pressed, and why can it not be listed again?
