@@ -15,7 +15,7 @@ export const ErrorCode = {
   AI_LIMIT_USER: 'AI_LIMIT_USER',
   AI_LIMIT_GLOBAL: 'AI_LIMIT_GLOBAL',
   AI_DISABLED: 'AI_DISABLED',
-  // The provider answered 429: busy, try again shortly.
+  // The provider answered 429, or 500/503 twice in a row ("high demand"): busy, try again shortly.
   AI_BUSY: 'AI_BUSY',
   // The provider failed or returned something we could not parse, even after one retry.
   AI_FAILED: 'AI_FAILED',

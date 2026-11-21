@@ -38,6 +38,11 @@ interface BaseRequest {
   maxOutputTokens: number;
   /** Lets the caller cancel (the learner closed the tab). The adapter adds its own timeout. */
   signal?: AbortSignal;
+  /**
+   * Called with a short code (`HTTP_503`) for every attempt the adapter made and then retried
+   * itself, so the usage ledger can record each real provider call, not only the last one.
+   */
+  onFailedAttempt?: (code: string) => void;
 }
 
 /** Structured output: the model must answer JSON that fits `schema` (the adapter also sends it as JSON Schema). */
@@ -68,6 +73,21 @@ export class LlmRateLimited extends Error {
     super(message);
     this.name = 'LlmRateLimited';
     this.retryAfterMs = retryAfterMs;
+  }
+}
+
+/**
+ * The provider itself is struggling (HTTP 500 / 503, "high demand") and the adapter's one short
+ * retry did not help. Temporary, so it maps to AI_BUSY like a 429. It extends LlmRateLimited so
+ * every "provider is busy, try again" handler (the eval runner's retry) treats it the same way,
+ * while `code` keeps the real status in the ledger.
+ */
+export class LlmUnavailable extends LlmRateLimited {
+  readonly code: string;
+  constructor(code: string, message: string) {
+    super(message);
+    this.name = 'LlmUnavailable';
+    this.code = code;
   }
 }
 

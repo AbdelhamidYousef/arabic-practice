@@ -7,6 +7,7 @@ import { aiCalls } from '../db/schema/index.ts';
 import { createUser } from '../test/factories.ts';
 
 import { FakeProvider } from './fake.ts';
+import { LlmUnavailable, type JsonRequest, type LlmProvider } from './provider.ts';
 import { createLedgeredGateway } from './usage.ts';
 
 const schema = z.object({ translation: z.string() });
@@ -115,5 +116,39 @@ describe('ledgered gateway', () => {
     await expect(
       gw.generateJson({ userId: null }, { ...base, purpose: 'gloss', messages: msg, schema }),
     ).resolves.toBeDefined();
+  });
+
+  // The Gemini adapter retries a 503 by itself and reports the failed attempt through the request.
+  const flaky = (failures: 1 | 2): LlmProvider => {
+    const fake = new FakeProvider();
+    return {
+      name: 'gemini',
+      streamText: (r) => fake.streamText(r),
+      async generateJson<T>(r: JsonRequest<T>) {
+        r.onFailedAttempt?.('HTTP_503');
+        if (failures === 2) throw new LlmUnavailable('HTTP_503', 'busy');
+        return fake.generateJson(r);
+      },
+    };
+  };
+
+  it('records the failed first attempt and the successful retry as two rows', async () => {
+    const gw = createLedgeredGateway({ provider: flaky(1), db, tier: 'free' });
+    await gw.generateJson({ userId: null }, { ...base, purpose: 'gloss', messages: msg, schema });
+    const all = await rows();
+    expect(all.map((r) => [r.status, r.errorCode]).sort()).toEqual([
+      ['error', 'HTTP_503'],
+      ['ok', null],
+    ]);
+  });
+
+  it('two 503s: two error rows with the real status, and the learner sees AI_BUSY', async () => {
+    const gw = createLedgeredGateway({ provider: flaky(2), db, tier: 'free' });
+    await expect(
+      gw.generateJson({ userId: null }, { ...base, purpose: 'gloss', messages: msg, schema }),
+    ).rejects.toMatchObject({ code: 'AI_BUSY' });
+    const all = await rows();
+    expect(all).toHaveLength(2);
+    expect(all.every((r) => r.status === 'error' && r.errorCode === 'HTTP_503')).toBe(true);
   });
 });
