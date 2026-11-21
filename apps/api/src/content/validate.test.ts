@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 import { contentLessons, contentUnits, type ContentLesson } from './index.ts';
 import { assertValidContent, contentProblems } from './validate.ts';
 
-const base = contentLessons[1] as ContentLesson;
+const base = contentLessons.find((l) => l.slug === 'a1-greetings') as ContentLesson;
 
 // A copy of the A1 sample with one change, so each test names the single rule it breaks.
 function withLesson(change: (l: ContentLesson) => void): string[] {
@@ -25,8 +25,10 @@ describe('content files', () => {
     expect(() => assertValidContent(contentLessons, contentUnits)).not.toThrow();
   });
 
-  it('start with the two sample lessons, one in A0 and one in A1', () => {
-    expect(contentLessons.map((l) => l.slug)).toEqual(['a0-letters-alif-ba', 'a1-greetings']);
+  it('start with the first A0 lesson and include the A1 sample', () => {
+    const slugs = contentLessons.map((l) => l.slug);
+    expect(slugs[0]).toBe('a0-letters-alif-ba');
+    expect(slugs).toContain('a1-greetings');
     expect(contentLessons[0]?.kind).toBe('letters');
   });
 });
