@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm --filter @arabic/api build && pnpm build",
+  "buildCommand": "pnpm --filter @arabic/api build && pnpm build && pnpm --filter @arabic/api db:migrate:deploy",
   "regions": ["fra1"],
   "functions": {
     "api/index.js": {
