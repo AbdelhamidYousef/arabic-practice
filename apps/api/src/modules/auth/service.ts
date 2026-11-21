@@ -1,8 +1,11 @@
-import { eq } from 'drizzle-orm';
+import { randomBytes } from 'node:crypto';
+
+import { and, eq, inArray, lt } from 'drizzle-orm';
 
 import { db } from '../../db/client.ts';
 import { users } from '../../db/schema/index.ts';
-import { unauthenticated } from '../../lib/errors.ts';
+import { DEMO_TEACHER } from '../../db/seed/users.ts';
+import { demoUnavailable, unauthenticated } from '../../lib/errors.ts';
 import { verify, verifyAgainstDummy } from '../../lib/password.ts';
 
 import { createSession, deleteSession, purgeExpiredSessions, type AuthUser } from './sessions.ts';
@@ -57,4 +60,50 @@ export async function login(
 
 export async function logout(token: string | null): Promise<void> {
   if (token) await deleteSession(token);
+}
+
+export const GUEST_TTL_MS = 7 * 24 * 3600 * 1000;
+// A request must stay cheap: the cleanup deletes at most this many guests, the rest wait for the next one.
+export const GUEST_CLEANUP_BATCH = 200;
+
+export async function findDemoTeacherId(): Promise<string> {
+  const [row] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, DEMO_TEACHER.email));
+  if (!row) throw demoUnavailable();
+  return row.id;
+}
+
+// There is no scheduler on the free tier, so the next guest sign-in sweeps the previous guests.
+// Their sessions and conversations go with them (foreign keys cascade).
+export async function deleteStaleGuests(now = new Date()): Promise<number> {
+  const cutoff = new Date(now.getTime() - GUEST_TTL_MS);
+  const stale = db
+    .select({ id: users.id })
+    .from(users)
+    .where(and(eq(users.isGuest, true), lt(users.lastSeenAt, cutoff)))
+    .limit(GUEST_CLEANUP_BATCH);
+  const deleted = await db
+    .delete(users)
+    .where(inArray(users.id, stale))
+    .returning({ id: users.id });
+  return deleted.length;
+}
+
+export async function createGuest(previousToken: string | null): Promise<Issued> {
+  const teacherId = await findDemoTeacherId();
+  await deleteStaleGuests();
+  const [user] = await db
+    .insert(users)
+    .values({
+      displayName: `Guest ${randomBytes(2).toString('hex').toUpperCase()}`,
+      role: 'learner',
+      isGuest: true,
+      teacherId,
+      level: 'A1',
+    })
+    .returning(userColumns);
+  if (!user) throw new Error('guest insert returned no row');
+  return issueFreshSession(user, previousToken);
 }

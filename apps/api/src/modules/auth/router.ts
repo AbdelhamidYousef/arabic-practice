@@ -4,7 +4,11 @@ import { Router as ExpressRouter, type Router } from 'express';
 import { clearSessionCookie, readSessionCookie, setSessionCookie } from '../../lib/cookies.ts';
 import { respond, valid, validate } from '../../lib/validate.ts';
 import { requireUser } from '../../middleware/auth.ts';
-import { createAuthRateLimiter, type RateLimitOptions } from '../../middleware/rate-limit.ts';
+import {
+  createAuthRateLimiter,
+  createIpRateLimiter,
+  type RateLimitOptions,
+} from '../../middleware/rate-limit.ts';
 
 import { toUserDto } from './dto.ts';
 import * as service from './service.ts';
@@ -12,6 +16,8 @@ import * as service from './service.ts';
 export interface AuthRouterOptions {
   secureCookies: boolean;
   authRateLimit: RateLimitOptions;
+  /** Guest sign-ins per IP; defaults to 10 per hour. */
+  guestRateLimit?: RateLimitOptions | undefined;
 }
 
 export function createAuthRouter(opts: AuthRouterOptions): Router {
@@ -25,6 +31,17 @@ export function createAuthRouter(opts: AuthRouterOptions): Router {
     // The cookie we read is the one we replace: it is the old session to destroy (fixation).
     const { user, token } = await service.login(body, readSessionCookie(req));
     setSessionCookie(res, token, opts.secureCookies);
+    respond(res, UserResponseSchema, { user: toUserDto(user) });
+  });
+
+  // No account to key on, so the limit is per IP. It keeps one visitor from filling the users table.
+  const guestLimit = createIpRateLimiter(
+    opts.guestRateLimit ?? { windowMs: 3600 * 1000, limit: 10 },
+  );
+  router.post('/auth/guest', guestLimit, async (req, res) => {
+    const { user, token } = await service.createGuest(readSessionCookie(req));
+    setSessionCookie(res, token, opts.secureCookies);
+    res.status(201);
     respond(res, UserResponseSchema, { user: toUserDto(user) });
   });
 

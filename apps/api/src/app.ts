@@ -21,6 +21,8 @@ export interface AppConfig {
   rateLimit: RateLimitOptions;
   /** Stricter limit per IP + email on login and register. */
   authRateLimit: RateLimitOptions;
+  /** Guest sign-ins per IP (defaults to 10 per hour); tests lower it. */
+  guestRateLimit?: RateLimitOptions;
   /** Invite sign-up switch (INVITES_ENABLED); registration answers 403 INVITES_CLOSED while off. */
   invitesEnabled: boolean;
 }
@@ -76,6 +78,7 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
     createAuthRouter({
       secureCookies: config.nodeEnv === 'production',
       authRateLimit: config.authRateLimit,
+      guestRateLimit: config.guestRateLimit,
     }),
   );
 

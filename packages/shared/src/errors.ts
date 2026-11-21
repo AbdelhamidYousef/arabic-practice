@@ -19,6 +19,8 @@ export const ErrorCode = {
   AI_BUSY: 'AI_BUSY',
   // The provider failed or returned something we could not parse, even after one retry.
   AI_FAILED: 'AI_FAILED',
+  // The seeded demo teacher the guest and demo sign-ins depend on is missing (the seed was not run).
+  DEMO_UNAVAILABLE: 'DEMO_UNAVAILABLE',
   INTERNAL: 'INTERNAL',
 } as const;
 
@@ -38,5 +40,6 @@ export const errorStatus: Record<ErrorCode, number> = {
   AI_DISABLED: 503,
   AI_BUSY: 503,
   AI_FAILED: 502,
+  DEMO_UNAVAILABLE: 503,
   INTERNAL: 500,
 };

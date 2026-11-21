@@ -103,3 +103,13 @@ export async function createMessage(
     'message',
   );
 }
+
+// The seeded demo teacher (read-only), which guests and the demo sign-in depend on.
+export const createDemoTeacher = (overrides: Partial<typeof users.$inferInsert> = {}) =>
+  createTeacher({
+    email: 'demo-teacher@arabic-practice.test',
+    displayName: 'Ustadh Demo',
+    readOnly: true,
+    passwordHash: '!unusable:test',
+    ...overrides,
+  });

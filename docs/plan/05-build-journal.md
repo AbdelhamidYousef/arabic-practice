@@ -108,3 +108,7 @@ What was built per step and why, for the owner to read; three quiz questions at 
   replaces any session that arrived with the request. `GET /auth/me` returns the user DTO from a Zod schema in
   `packages/shared`, built by an allow-list. Learn: "wrong password" and "no such user" must look identical in the
   body and in the time taken, otherwise login becomes a way to list who has an account.
+- **4.3 Guest learners.** `POST /auth/guest` creates `Guest XXXX` (4 hex) on the demo teacher at A1, signs in, and
+  deletes up to 200 guests unseen for 7 days in the same request; per-IP limit of 10 an hour. A missing demo
+  teacher answers 503 `DEMO_UNAVAILABLE`. Learn: cleanup without a scheduler is "whoever arrives next sweeps", so
+  it must be bounded or one unlucky visitor pays for everyone.
