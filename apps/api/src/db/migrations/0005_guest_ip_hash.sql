@@ -1,0 +1,2 @@
+ALTER TABLE "users" ADD COLUMN "created_ip_hash" text;--> statement-breakpoint
+CREATE INDEX "users_created_ip_hash_idx" ON "users" USING btree ("created_ip_hash","created_at") WHERE "users"."created_ip_hash" is not null;

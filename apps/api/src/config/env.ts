@@ -78,6 +78,14 @@ const baseSchema = z.object({
   CONVERSATIONS_PER_DAY_GUEST: count(10),
   CONVERSATIONS_PER_DAY_LEARNER: count(40),
 
+  // Guest sign-ins: a ceiling on guests created per rolling 24 hours, whatever their network.
+  GUESTS_PER_DAY: count(300),
+  // Secret pepper for the keyed hash of a guest's IP stored on its row (users.created_ip_hash).
+  // Required in production; unset elsewhere falls back to a fixed development value.
+  IP_HASH_SALT: unsetIfEmpty(
+    z.string().trim().min(16, 'must be at least 16 characters').optional(),
+  ),
+
   // Invite sign-up for real students. Production refuses `true` while AI_TIER=free.
   INVITES_ENABLED: flag('false'),
 
@@ -119,6 +127,10 @@ export const envSchema = baseSchema.superRefine((e, ctx) => {
       'INVITES_ENABLED',
       'cannot be true while AI_TIER=free: free-tier prompts may be used for training',
     );
+  }
+
+  if (production && e.IP_HASH_SALT === undefined) {
+    fail('IP_HASH_SALT', 'is required in production (a random string of 16+ characters)');
   }
 
   // Wherever it runs: asking for the gemini adapter without a key, and paid spend without a ceiling.

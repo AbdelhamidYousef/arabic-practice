@@ -13,7 +13,7 @@ import {
 } from '../../test/factories.ts';
 import { bodyOf, cookieValue, errorOf, setCookieLine } from '../../test/http.ts';
 
-import { GUEST_CLEANUP_BATCH, deleteStaleGuests } from './service.ts';
+import { GUEST_CLEANUP_BATCH, createGuest, deleteStaleGuests, hashIp } from './service.ts';
 import { sha256 } from './sessions.ts';
 
 const app = makeTestApp();
@@ -127,5 +127,65 @@ describe('POST /auth/guest', () => {
     );
     expect(await deleteStaleGuests()).toBe(GUEST_CLEANUP_BATCH);
     expect(await deleteStaleGuests()).toBe(5);
+  });
+});
+
+describe('guest limits kept in the database', () => {
+  const limits = { perIpPerHour: 3, perDay: 5, ipHashSalt: 'a-test-salt-of-16+chars' };
+  const instanceA = api(makeTestApp({ config: { guestLimits: limits } }));
+  const instanceB = api(makeTestApp({ config: { guestLimits: limits } }));
+
+  it('stores a keyed hash of the IP, never the IP', async () => {
+    await createDemoTeacher();
+    const res = await instanceA.post('/auth/guest');
+    expect(res.status).toBe(201);
+    const [row] = await db.select().from(users).where(eq(users.isGuest, true));
+    expect(row?.createdIpHash).toBe(hashIp('::ffff:127.0.0.1', limits.ipHashSalt));
+    expect(row?.createdIpHash).toMatch(/^[0-9a-f]{64}$/);
+    expect(JSON.stringify(row)).not.toContain('127.0.0.1');
+    // A different salt gives a different hash: the pepper is part of the key.
+    expect(hashIp('::ffff:127.0.0.1', 'another-salt-16-chars!')).not.toBe(row?.createdIpHash);
+  });
+
+  it('refuses the fourth guest from one IP within the hour even on another instance', async () => {
+    await createDemoTeacher();
+    // Three instances' worth of in-memory limiters would each allow these; the rows do not.
+    expect((await instanceA.post('/auth/guest')).status).toBe(201);
+    expect((await instanceB.post('/auth/guest')).status).toBe(201);
+    expect((await instanceA.post('/auth/guest')).status).toBe(201);
+    const res = await instanceB.post('/auth/guest');
+    expect(res.status).toBe(429);
+    expect(errorOf(res).code).toBe('GUEST_LIMIT');
+    expect(await db.select().from(users).where(eq(users.isGuest, true))).toHaveLength(3);
+  });
+
+  it('forgets an IP after an hour, and other networks are not affected', async () => {
+    await createDemoTeacher();
+    const t0 = new Date();
+    for (let i = 0; i < 3; i++) await createGuest(null, '203.0.113.7', limits, t0);
+    await expect(createGuest(null, '203.0.113.7', limits, t0)).rejects.toMatchObject({
+      code: 'GUEST_LIMIT',
+    });
+    await expect(createGuest(null, '203.0.113.8', limits, t0)).resolves.toBeDefined();
+    const later = new Date(t0.getTime() + 3600_000 + 60_000);
+    await expect(createGuest(null, '203.0.113.7', limits, later)).resolves.toBeDefined();
+  });
+
+  it('holds a daily ceiling across all networks', async () => {
+    await createDemoTeacher();
+    const t0 = new Date();
+    for (let i = 0; i < 5; i++) await createGuest(null, `198.51.100.${i}`, limits, t0);
+    await expect(createGuest(null, '198.51.100.99', limits, t0)).rejects.toMatchObject({
+      code: 'GUEST_LIMIT',
+      status: 429,
+    });
+  });
+
+  it('counts parallel sign-ins exactly', async () => {
+    await createDemoTeacher();
+    const results = await Promise.allSettled(
+      Array.from({ length: 6 }, () => createGuest(null, '192.0.2.1', limits)),
+    );
+    expect(results.filter((r) => r.status === 'fulfilled')).toHaveLength(3);
   });
 });

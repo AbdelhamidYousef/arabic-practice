@@ -28,6 +28,8 @@ export interface AuthRouterOptions {
   invitesEnabled: boolean;
   /** Guest sign-ins per IP; defaults to 10 per hour. */
   guestRateLimit?: RateLimitOptions | undefined;
+  /** Database-backed guest limits (they hold across serverless instances, unlike the limiter above). */
+  guestLimits: service.GuestLimits;
 }
 
 export function createAuthRouter(opts: AuthRouterOptions): Router {
@@ -83,7 +85,11 @@ export function createAuthRouter(opts: AuthRouterOptions): Router {
     opts.guestRateLimit ?? { windowMs: 3600 * 1000, limit: 10 },
   );
   router.post('/auth/guest', guestLimit, async (req, res) => {
-    const { user, token } = await service.createGuest(readSessionCookie(req));
+    const { user, token } = await service.createGuest(
+      readSessionCookie(req),
+      req.ip ?? '',
+      opts.guestLimits,
+    );
     setSessionCookie(res, token, opts.secureCookies);
     res.status(201);
     respond(res, UserResponseSchema, { user: toUserDto(user) });

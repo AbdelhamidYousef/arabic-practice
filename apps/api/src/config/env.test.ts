@@ -56,6 +56,27 @@ describe('defaults', () => {
   });
 });
 
+describe('guest limits config', () => {
+  it('defaults GUESTS_PER_DAY to 300 and leaves IP_HASH_SALT unset outside production', () => {
+    const e = envSchema.parse(base);
+    expect(e.GUESTS_PER_DAY).toBe(300);
+    expect(e.IP_HASH_SALT).toBeUndefined();
+  });
+
+  it('requires IP_HASH_SALT in production and rejects a short one', () => {
+    const prod = {
+      ...base,
+      NODE_ENV: 'production',
+      WEB_ORIGIN: 'https://app.example.com',
+      DATABASE_URL: 'postgres://u:p@db.example.com/db',
+      AI_ENABLED: 'false',
+    };
+    expect(problems(prod)).toEqual(['IP_HASH_SALT']);
+    expect(problems({ ...prod, IP_HASH_SALT: 'too-short' })).toEqual(['IP_HASH_SALT']);
+    expect(problems({ ...prod, IP_HASH_SALT: 'x'.repeat(24) })).toEqual([]);
+  });
+});
+
 describe('validation', () => {
   it('requires a database url', () => {
     expect(problems({})).toEqual(['DATABASE_URL']);
@@ -105,6 +126,7 @@ const production = {
   NODE_ENV: 'production',
   WEB_ORIGIN: 'https://arabic-practice.example.app',
   GEMINI_API_KEY: 'AIza-example-key-0000',
+  IP_HASH_SALT: 'a-random-salt-0123456789',
 };
 
 describe('production rules', () => {

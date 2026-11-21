@@ -13,6 +13,8 @@ import { createErrorHandler, notFoundHandler } from './middleware/error.ts';
 import { createRateLimiter, type RateLimitOptions } from './middleware/rate-limit.ts';
 import { requestId } from './middleware/request-id.ts';
 import { createAuthRouter } from './modules/auth/router.ts';
+import { DEFAULT_GUEST_LIMITS } from './modules/auth/service.ts';
+import type { GuestLimits } from './modules/auth/service.ts';
 import { createLessonsRouter } from './modules/lessons/router.ts';
 import { createPracticeRouter } from './modules/practice/router.ts';
 import { createProgressRouter } from './modules/progress/router.ts';
@@ -32,6 +34,8 @@ export interface AppConfig {
   invitesEnabled: boolean;
   /** Chat turns and glosses per learner (defaults to 10 per minute); tests lower it. */
   turnRateLimit?: RateLimitOptions;
+  /** Guest creation limits kept in the database (per hashed IP per hour, and a daily ceiling). */
+  guestLimits?: GuestLimits;
   /** New conversations per user per UTC day (defaults 10 for a guest, 40 for a learner). */
   conversationsPerDay?: { guest: number; learner: number };
 }
@@ -89,6 +93,7 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
       authRateLimit: config.authRateLimit,
       invitesEnabled: config.invitesEnabled,
       guestRateLimit: config.guestRateLimit,
+      guestLimits: config.guestLimits ?? DEFAULT_GUEST_LIMITS,
     }),
   );
 

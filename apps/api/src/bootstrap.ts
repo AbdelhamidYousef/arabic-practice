@@ -3,6 +3,7 @@ import { createApp } from './app.ts';
 import { env } from './config/env.ts';
 import { db } from './db/client.ts';
 import { createLogger } from './lib/logger.ts';
+import { DEV_IP_HASH_SALT } from './modules/auth/service.ts';
 
 /**
  * Everything the API needs before it can answer a request: config, logger and the Express app.
@@ -21,6 +22,11 @@ export function bootstrap() {
       rateLimit: { windowMs: env.RATE_LIMIT_WINDOW_MS, limit: env.RATE_LIMIT_MAX },
       authRateLimit: { windowMs: env.RATE_LIMIT_AUTH_WINDOW_MS, limit: env.RATE_LIMIT_AUTH_MAX },
       invitesEnabled: env.INVITES_ENABLED,
+      guestLimits: {
+        perIpPerHour: 10,
+        perDay: env.GUESTS_PER_DAY,
+        ipHashSalt: env.IP_HASH_SALT ?? DEV_IP_HASH_SALT,
+      },
       conversationsPerDay: {
         guest: env.CONVERSATIONS_PER_DAY_GUEST,
         learner: env.CONVERSATIONS_PER_DAY_LEARNER,
