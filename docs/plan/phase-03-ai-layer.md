@@ -29,7 +29,11 @@ Nothing outside `src/ai/` knows which provider runs.
 ## Step 3.3 — the Gemini adapter
 - Plain `fetch` to `https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent`
   and `:streamGenerateContent?alt=sse`, key in the `x-goog-api-key` header. JSON via
-  `generationConfig.responseMimeType` + `responseSchema` (converted from Zod), then Zod-parsed;
+  `generationConfig.responseMimeType` + `responseJsonSchema` (from `z.toJSONSchema`), then Zod-parsed;
+  `thinkingConfig.thinkingLevel: 'MINIMAL'` for Flash-Lite. Shapes verified live on 2026-11-21: see
+  `work/pending-decisions.md` (SSE `data:` lines; the last chunk has `finishReason` + `usageMetadata`;
+  parts may be empty with a `thoughtSignature`; the stream ends when the connection closes).
+  Defaults: correction `gemini-3.5-flash-lite`, reply and gloss `gemini-3.1-flash-lite`.
   one retry on a schema miss. SSE parsed line by line from the response body. 429 → `LlmRateLimited`
   (retry-after read if present). `usageMetadata` → `Usage`. Timeout via `AbortSignal.timeout`.
 - Check the request/response shape against Google's current REST docs before writing it.
@@ -45,8 +49,9 @@ Nothing outside `src/ai/` knows which provider runs.
 
 ## Step 3.5 — budget guard
 - `ai/budget.ts`: before a call, check `AI_ENABLED`, the user's turns today (`AI_DAILY_TURNS_LEARNER`
-  default 60, `AI_DAILY_TURNS_GUEST` default 20), the global calls today (`AI_DAILY_CALLS_GLOBAL`,
-  default under the free RPD), and this month's cost against `AI_MONTHLY_BUDGET_USD`. One query
+  default 60, `AI_DAILY_TURNS_GUEST` default 20), the calls today **per model**
+  (`AI_DAILY_CALLS_PER_MODEL`, default 450: the free quota is 500 requests a day per model; replaces
+  `AI_DAILY_CALLS_GLOBAL`), and this month's cost against `AI_MONTHLY_BUDGET_USD`. One query
   each, indexed. Clear error codes. Unit + integration tests at each boundary.
 - Learn / explain: caps as the hard spend limit; why counting rows we wrote beats trusting the provider dashboard.
 - Commit: `feat(api): enforce daily caps and a monthly ai budget`
