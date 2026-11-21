@@ -77,6 +77,12 @@ export const ChangePasswordSchema = z.object({
 });
 export type ChangePasswordInput = z.input<typeof ChangePasswordSchema>;
 
+// Deleting the account asks for the password again.
+export const DeleteAccountSchema = z.object({
+  password: z.string().min(1).max(PASSWORD_MAX_LENGTH),
+});
+export type DeleteAccountInput = z.input<typeof DeleteAccountSchema>;
+
 // A reset token is 32 random bytes in base64url (43 characters); the bounds are loose, the database
 // lookup decides.
 export const ResetTokenSchema = z

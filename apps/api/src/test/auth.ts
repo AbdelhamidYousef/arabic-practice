@@ -32,8 +32,9 @@ export const api = (app: App) => ({
     const req = request(app).patch(`/api/v1${path}`).set('Origin', TEST_ORIGIN).send(body);
     return cookie ? req.set('Cookie', cookie) : req;
   },
-  delete: (path: string, cookie?: string) => {
+  delete: (path: string, cookie?: string, body?: object) => {
     const req = request(app).delete(`/api/v1${path}`).set('Origin', TEST_ORIGIN);
-    return cookie ? req.set('Cookie', cookie) : req;
+    const withBody = body ? req.send(body) : req;
+    return cookie ? withBody.set('Cookie', cookie) : withBody;
   },
 });

@@ -1,6 +1,6 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import { en } from '../i18n';
 import { jsonError, learner, renderAt, stubApi, teacher } from '../test-utils';
@@ -91,5 +91,110 @@ describe('settings page: change password', () => {
     renderAt('/settings');
     expect(await screen.findByText(en['settings.demo'])).toBeVisible();
     expect(screen.queryByLabelText(en['settings.password.current'])).toBeNull();
+  });
+});
+
+describe('settings page: your data', () => {
+  const exported = { profile: { id: 'u1' }, conversations: [] };
+
+  it('downloads the export as a JSON file', async () => {
+    const created: Blob[] = [];
+    // jsdom has no object URLs; add them to the real URL (replacing the whole global breaks the
+    // router) and take them away again at the end.
+    Object.assign(URL, {
+      createObjectURL: (blob: Blob) => {
+        created.push(blob);
+        return 'blob:test';
+      },
+      revokeObjectURL: vi.fn(),
+    });
+    const click = vi
+      .spyOn(HTMLAnchorElement.prototype, 'click')
+      .mockImplementation(() => undefined);
+    stubApi({ ...signedInAs(learner), 'GET /me/export': () => Response.json(exported) });
+    renderAt('/settings');
+    await userEvent.click(
+      await screen.findByRole('button', { name: en['settings.export.button'] }),
+    );
+    await waitFor(() => expect(click).toHaveBeenCalled());
+    expect(created).toHaveLength(1);
+    expect(JSON.parse((await created[0]?.text()) ?? '')).toEqual(exported);
+    click.mockRestore();
+    Reflect.deleteProperty(URL, 'createObjectURL');
+    Reflect.deleteProperty(URL, 'revokeObjectURL');
+  });
+
+  it('asks for the password, deletes the account and leaves for the start page', async () => {
+    const calls = stubApi({
+      ...signedInAs(learner),
+      'DELETE /me': () => new Response(null, { status: 204 }),
+    });
+    const router = renderAt('/settings');
+    await userEvent.click(
+      await screen.findByRole('button', { name: en['settings.delete.button'] }),
+    );
+    const dialog = await screen.findByRole('dialog');
+    await userEvent.type(
+      within(dialog).getByLabelText(en['settings.delete.password']),
+      'my password here',
+    );
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: en['settings.delete.confirm'] }),
+    );
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'));
+    expect(calls.find((c) => c.key === 'DELETE /me')?.body).toEqual({
+      password: 'my password here',
+    });
+  });
+
+  it('does not send an empty password, and keeps the dialog on a wrong one', async () => {
+    const calls = stubApi({
+      ...signedInAs(learner),
+      'DELETE /me': () => jsonError('WRONG_PASSWORD', 403),
+    });
+    const router = renderAt('/settings');
+    await userEvent.click(
+      await screen.findByRole('button', { name: en['settings.delete.button'] }),
+    );
+    const dialog = await screen.findByRole('dialog');
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: en['settings.delete.confirm'] }),
+    );
+    expect(await within(dialog).findByText(en['settings.password.currentRequired'])).toBeVisible();
+    expect(calls.some((c) => c.key === 'DELETE /me')).toBe(false);
+
+    await userEvent.type(
+      within(dialog).getByLabelText(en['settings.delete.password']),
+      'nope nope',
+    );
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: en['settings.delete.confirm'] }),
+    );
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      en['auth.error.wrongPassword'],
+    );
+    expect(router.state.location.pathname).toBe('/settings');
+  });
+
+  it('can be cancelled without sending anything', async () => {
+    const calls = stubApi(signedInAs(learner));
+    renderAt('/settings');
+    await userEvent.click(
+      await screen.findByRole('button', { name: en['settings.delete.button'] }),
+    );
+    const dialog = await screen.findByRole('dialog');
+    await userEvent.click(
+      within(dialog).getByRole('button', { name: en['settings.delete.cancel'] }),
+    );
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(calls.some((c) => c.key === 'DELETE /me')).toBe(false);
+  });
+
+  it('shows a teacher a note instead of the export and delete buttons', async () => {
+    stubApi(signedInAs(teacher));
+    renderAt('/settings');
+    expect(await screen.findByText(en['settings.data.teacher'])).toBeVisible();
+    expect(screen.queryByRole('button', { name: en['settings.delete.button'] })).toBeNull();
+    expect(screen.queryByRole('button', { name: en['settings.export.button'] })).toBeNull();
   });
 });

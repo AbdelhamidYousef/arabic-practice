@@ -195,6 +195,24 @@ export const en = {
   'reset.invalid.body':
     'It may have expired (a link lasts one day), been used already, or been replaced by a newer one. Ask your teacher for a new link.',
 
+  'settings.data.title': 'Your data',
+  'settings.data.teacher':
+    'Teacher accounts are closed by the person who runs this app, because your lessons belong to your learners. Ask them if you need yours removed.',
+  'settings.export.title': 'Download your data',
+  'settings.export.lead':
+    'A JSON file with your profile, your practice chats and their corrections, your mistakes and your progress.',
+  'settings.export.button': 'Download my data',
+  'settings.delete.title': 'Delete your account',
+  'settings.delete.lead':
+    'This removes your account and everything in it: your chats, corrections, mistakes, progress and review cards. It cannot be undone.',
+  'settings.delete.button': 'Delete my account',
+  'settings.delete.dialogTitle': 'Delete your account?',
+  'settings.delete.warning':
+    'Your chats, mistakes and progress will be erased for good. Type your password to confirm.',
+  'settings.delete.password': 'Your password',
+  'settings.delete.confirm': 'Delete everything',
+  'settings.delete.cancel': 'Keep my account',
+
   'lessons.lead': 'Pick a lesson and practise it as a conversation.',
   'load.error': 'We could not load this page. Check your connection and try again.',
   'load.retry': 'Try again',

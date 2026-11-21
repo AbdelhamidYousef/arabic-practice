@@ -482,3 +482,13 @@ password, and `POST /auth/reset` does three things in one transaction: claims th
 `UPDATE ... WHERE used_at IS NULL AND expires_at > now() RETURNING`, stores the new hash and deletes every session
 of that learner. Learn: let the database decide "has this been used?" in the same statement that marks it used; a
 SELECT followed by an UPDATE leaves a gap two requests can both walk through (the test fires both at once).
+
+### 21.4: delete my account and export my data
+`GET /me/export` returns one JSON file with the learner's profile, chats, corrections, mistakes and progress, built
+from queries that all filter on the session's own user id. `DELETE /me` asks for the password again and deletes the
+`users` row; the foreign keys cascade to everything the learner owns, while `ai_calls` keep their cost with the user
+and conversation ids set to null (a test checks that the ledger survives). Teachers, guests and the demo are refused:
+a teacher's lessons are `ON DELETE RESTRICT` because the learners' chats hang off them. On the web, the first version
+of "leave after deleting" sent the person to the sign-in: clearing the cached user made the page's own guard redirect
+before the navigation to `/` could happen. Learn: when a state change removes the very thing a guard checks, the guard
+fires first. Make the exit explicit in the same render instead of racing it.

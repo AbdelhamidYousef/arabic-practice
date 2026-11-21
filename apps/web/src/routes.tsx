@@ -26,6 +26,8 @@ export const routes: RouteObject[] = [
       { index: true, ...page(() => import('./pages/HomePage')) },
       { path: 'login', ...page(() => import('./pages/LoginPage')) },
       { path: 'register', ...page(() => import('./pages/RegisterPage')) },
+      // Guards itself (visitor to sign-in, guest to lessons) so a deleted account can leave for the start page.
+      { path: 'settings', ...page(() => import('./pages/SettingsPage')) },
       { path: 'reset/:token', ...page(() => import('./pages/ResetPasswordPage')) },
       { path: 'lessons', ...page(() => import('./pages/CoursePage')) },
       { path: 'lessons/:slug', ...page(() => import('./pages/LessonPage')) },
@@ -41,7 +43,6 @@ export const routes: RouteObject[] = [
         children: [
           { path: 'progress', ...page(() => import('./pages/ProgressPage')) },
           { path: 'review', ...page(() => import('./pages/ReviewPage')) },
-          { path: 'settings', ...page(() => import('./pages/SettingsPage')) },
         ],
       },
       // Teacher pages: a visitor goes to the sign-in, a learner to the lessons.

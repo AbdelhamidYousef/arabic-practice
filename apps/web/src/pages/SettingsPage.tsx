@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 
 import { Container } from '../components/layout/Container';
@@ -6,6 +7,7 @@ import { Alert } from '../components/ui/Alert';
 import { Card } from '../components/ui/Card';
 import { Spinner } from '../components/ui/Spinner';
 import { ChangePasswordForm } from '../features/account/ChangePasswordForm';
+import { DataSection } from '../features/account/DataSection';
 import { useMe } from '../features/auth/queries';
 import { useT } from '../i18n';
 
@@ -14,7 +16,9 @@ import { useT } from '../i18n';
 export default function SettingsPage() {
   const { t } = useT();
   const { data: user, isPending } = useMe();
+  const [deleted, setDeleted] = useState(false);
 
+  if (deleted) return <Navigate to="/" replace />;
   if (isPending) return <Spinner label={t('shell.loading')} className="mx-auto my-16" />;
   if (!user) return <Navigate to="/login" replace />;
   if (user.isGuest) return <Navigate to="/lessons" replace />;
@@ -55,6 +59,15 @@ export default function SettingsPage() {
             </section>
           </Card>
         )}
+
+        {/* Learners only: a teacher account owns the lessons every chat hangs off, so the operator
+            closes it (see the API's modules/me). */}
+        {!user.readOnly &&
+          (user.role === 'learner' ? (
+            <DataSection onDeleted={() => setDeleted(true)} />
+          ) : (
+            <Alert tone="info">{t('settings.data.teacher')}</Alert>
+          ))}
       </div>
     </Container>
   );

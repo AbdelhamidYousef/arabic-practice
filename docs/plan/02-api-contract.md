@@ -25,6 +25,15 @@ Mutations need a matching `Origin`. Ids that are missing or belong to someone el
   404 `NOT_FOUND` for an unknown, expired or already-used token (indistinguishable on purpose); 400 for a weak password.
 - (phase 21, script, not HTTP) `pnpm --filter @arabic/api teacher:create <email>` creates a teacher; see README.
 
+## My data (phase 21; a signed-in learner with an account)
+- `GET /me/export` → a JSON download (`Content-Disposition: attachment`, `no-store`): `{ exportedAt, profile,
+  conversations: [{ …, messages: [{ role, text, glossEn, correction }] }], mistakes, progress: { lessonSteps,
+  activityDays, vocabCards } }`. Never the password hash or the IP hash. 403 for a guest, a teacher; `DEMO_READ_ONLY` for the demo.
+- `DELETE /me` `{ password }` → 204 and the cookie is cleared. Deletes the user; sessions, conversations (messages,
+  corrections, mistakes), cards, progress, activity days and reset links cascade; `ai_calls` keep their cost with
+  `user_id` and `conversation_id` set null. 403 `WRONG_PASSWORD`; 403 for a guest or a teacher (the operator closes
+  a teacher account); rate-limited per user.
+
 ## Lessons (learner)
 - `GET /lessons` → published lessons of my teacher, grouped by level, with my conversation count per lesson
 - `GET /lessons/:slug` → lesson + vocab + my recent conversations for it. Phase 16 adds `lesson.unit`
