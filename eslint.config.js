@@ -13,6 +13,8 @@ export default tseslint.config(
       '**/playwright-report/**',
       '.playwright-mcp/**',
       'work/**',
+      // Agent worktrees: full copies of the repo with their own lint run.
+      '.claude/**',
     ],
   },
 

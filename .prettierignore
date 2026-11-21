@@ -5,6 +5,7 @@ playwright-report
 test-results
 pnpm-lock.yaml
 .playwright-mcp
+.claude
 # Tracked prose: prettier would reflow the plan's tables and wrapping
 docs
 *.md
