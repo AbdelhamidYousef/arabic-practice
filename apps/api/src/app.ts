@@ -14,6 +14,7 @@ import { createRateLimiter, type RateLimitOptions } from './middleware/rate-limi
 import { requestId } from './middleware/request-id.ts';
 import { createAuthRouter } from './modules/auth/router.ts';
 import { createLessonsRouter } from './modules/lessons/router.ts';
+import { createPracticeRouter } from './modules/practice/router.ts';
 import { createProgressRouter } from './modules/progress/router.ts';
 import { createReviewRouter } from './modules/review/router.ts';
 import { createTeacherRouter } from './modules/teacher/router.ts';
@@ -29,6 +30,8 @@ export interface AppConfig {
   guestRateLimit?: RateLimitOptions;
   /** Invite sign-up switch (INVITES_ENABLED); registration answers 403 INVITES_CLOSED while off. */
   invitesEnabled: boolean;
+  /** Chat turns and glosses per learner (defaults to 10 per minute); tests lower it. */
+  turnRateLimit?: RateLimitOptions;
 }
 
 export interface AppDeps {
@@ -91,6 +94,13 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
   app.use('/api/v1', createProgressRouter());
   app.use('/api/v1', createReviewRouter());
   app.use('/api/v1', createTeacherRouter());
+  app.use(
+    '/api/v1',
+    createPracticeRouter({
+      ai,
+      turnRateLimit: config.turnRateLimit ?? { windowMs: 60_000, limit: 10 },
+    }),
+  );
 
   // Order matters: unknown routes first, then the error handler that catches everything above.
   app.use(notFoundHandler);

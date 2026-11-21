@@ -7,3 +7,4 @@ export * from './teacher-lesson.ts';
 export * from './teacher-learners.ts';
 export * from './teacher-invites.ts';
 export * from './teacher-usage.ts';
+export * from './practice.ts';

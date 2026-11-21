@@ -59,6 +59,19 @@ describe('fakeCorrect', () => {
 });
 
 describe('FakeProvider', () => {
+  it('grades only the learner text of a correction prompt, not its English labels', async () => {
+    const fake = new FakeProvider();
+    const c = await fake.generateJson({
+      ...base,
+      purpose: 'correction',
+      messages: user(
+        'Partner said before (context only):\nمَرْحَبًا\n\nLearner message to grade:\nأنا طالب',
+      ),
+      schema: correctionSchema,
+    });
+    expect(c.data.isCorrect).toBe(true);
+  });
+
   it('returns schema-valid JSON for corrections and a translation for gloss', async () => {
     const fake = new FakeProvider();
     const c = await fake.generateJson({

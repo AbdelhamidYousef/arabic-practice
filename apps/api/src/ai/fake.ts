@@ -174,7 +174,12 @@ export class FakeProvider implements LlmProvider {
 
   async generateJson<T>(request: JsonRequest<T>): Promise<{ data: T; usage: Usage }> {
     const started = await this.begin(request);
-    const lastUser = [...request.messages].reverse().find((m) => m.role === 'user')?.text ?? '';
+    const lastUserText = [...request.messages].reverse().find((m) => m.role === 'user')?.text ?? '';
+    // The correction prompt wraps the learner's text in labels (and the partner's line before it);
+    // grade only what follows the last label, as the real model is told to.
+    const marker = 'Learner message to grade:\n';
+    const at = lastUserText.lastIndexOf(marker);
+    const lastUser = at === -1 ? lastUserText : lastUserText.slice(at + marker.length);
     const raw =
       request.purpose === 'gloss'
         ? { translation: `[fake translation] ${lastUser}` }
@@ -202,6 +207,8 @@ type BaseRequestLike = { model: string };
 
 function sleep(ms: number, signal?: AbortSignal): Promise<void> {
   return new Promise((resolve, reject) => {
+    // An already-aborted signal never fires 'abort' again, so check it first.
+    if (signal?.aborted) return reject(new LlmFailed('ABORTED', 'aborted before it started'));
     const timer = setTimeout(resolve, ms);
     signal?.addEventListener(
       'abort',

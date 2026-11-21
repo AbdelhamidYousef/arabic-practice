@@ -12,15 +12,16 @@ export const TEST_ORIGIN = 'http://localhost:5175';
 // The AI layer for tests: the real ledger and budget guard over the fake provider and the test
 // database, so tests exercise the same wrapping production uses. Keep the `fake` to inject faults
 // (`fake.failNext()`) and pass `runtime` to makeTestApp as `ai`.
-export function makeTestAi(
+export function makeTestAi<P extends FakeProvider = FakeProvider>(
   limits: Partial<{
     AI_ENABLED: boolean;
     AI_DAILY_TURNS_LEARNER: number;
     AI_DAILY_TURNS_GUEST: number;
     AI_DAILY_CALLS_PER_MODEL: number;
   }> = {},
+  // A subclass of the fake that scripts something the plain fake cannot (a mid-stream failure, a slow call).
+  fake: P = new FakeProvider() as P,
 ) {
-  const fake = new FakeProvider();
   const env = {
     AI_TIER: 'free' as const,
     AI_ENABLED: true,

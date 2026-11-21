@@ -50,3 +50,11 @@ export function createAuthRateLimiter(opts: RateLimitOptions): RequestHandler {
 export function createIpRateLimiter(opts: RateLimitOptions): RequestHandler {
   return limiter(opts);
 }
+
+// For signed-in actions that cost money (a chat turn, a gloss): keyed by user id, so one learner
+// cannot burn the shared free-tier requests-per-minute for everybody. Put it after `requireUser`.
+export function createUserRateLimiter(opts: RateLimitOptions): RequestHandler {
+  return limiter(opts, {
+    keyGenerator: (req) => req.user?.id ?? ipKeyGenerator(req.ip ?? ''),
+  });
+}
