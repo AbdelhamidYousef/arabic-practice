@@ -1,5 +1,14 @@
+import { createHash, randomBytes } from 'node:crypto';
+
 import { db } from '../db/client.ts';
-import { conversations, lessons, lessonVocab, messages, users } from '../db/schema/index.ts';
+import {
+  conversations,
+  invites,
+  lessons,
+  lessonVocab,
+  messages,
+  users,
+} from '../db/schema/index.ts';
 
 // Unique suffix per call so factories can be used many times inside one test without colliding
 // on slug / email unique constraints.
@@ -113,3 +122,23 @@ export const createDemoTeacher = (overrides: Partial<typeof users.$inferInsert> 
     passwordHash: '!unusable:test',
     ...overrides,
   });
+
+// An invite plus the plain code (only its SHA-256 is stored, like in production).
+export async function createInvite(
+  teacherId: string,
+  overrides: Partial<typeof invites.$inferInsert> = {},
+) {
+  const code = randomBytes(16).toString('base64url');
+  const [row] = await db
+    .insert(invites)
+    .values({
+      codeHash: createHash('sha256').update(code).digest('hex'),
+      teacherId,
+      expiresAt: new Date(Date.now() + 7 * 24 * 3600 * 1000),
+      maxUses: 1,
+      ...overrides,
+    })
+    .returning();
+  if (!row) throw new Error('factory: insert of invite returned no row');
+  return { invite: row, code };
+}

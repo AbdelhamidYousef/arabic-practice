@@ -1,14 +1,21 @@
 import { randomBytes } from 'node:crypto';
 
-import { and, eq, inArray, lt } from 'drizzle-orm';
+import { and, eq, gt, inArray, lt, sql } from 'drizzle-orm';
 
 import { db } from '../../db/client.ts';
-import { users } from '../../db/schema/index.ts';
+import { invites, users } from '../../db/schema/index.ts';
 import { DEMO_TEACHER } from '../../db/seed/users.ts';
-import { demoUnavailable, unauthenticated } from '../../lib/errors.ts';
-import { verify, verifyAgainstDummy } from '../../lib/password.ts';
+import { uniqueViolation } from '../../lib/db-errors.ts';
+import { conflict, demoUnavailable, unauthenticated, unprocessable } from '../../lib/errors.ts';
+import { hash, verify, verifyAgainstDummy } from '../../lib/password.ts';
 
-import { createSession, deleteSession, purgeExpiredSessions, type AuthUser } from './sessions.ts';
+import {
+  createSession,
+  deleteSession,
+  purgeExpiredSessions,
+  sha256,
+  type AuthUser,
+} from './sessions.ts';
 
 export interface Issued {
   user: AuthUser;
@@ -105,5 +112,72 @@ export async function createGuest(previousToken: string | null): Promise<Issued>
     })
     .returning(userColumns);
   if (!user) throw new Error('guest insert returned no row');
+  return issueFreshSession(user, previousToken);
+}
+
+// ---- invites -------------------------------------------------------------------------------------
+
+// Only the SHA-256 of a code is stored; the code itself is 128 random bits, so nothing needs slowing.
+export const hashInviteCode = sha256;
+
+export async function lookupInvite(
+  code: string,
+): Promise<{ valid: boolean; teacherName: string | null }> {
+  const [row] = await db
+    .select({ teacherName: users.displayName })
+    .from(invites)
+    .innerJoin(users, eq(users.id, invites.teacherId))
+    .where(
+      and(
+        eq(invites.codeHash, hashInviteCode(code)),
+        gt(invites.expiresAt, new Date()),
+        lt(invites.usedCount, invites.maxUses),
+      ),
+    );
+  return row ? { valid: true, teacherName: row.teacherName } : { valid: false, teacherName: null };
+}
+
+export async function register(
+  input: { code: string; email: string; password: string; displayName: string },
+  previousToken: string | null,
+): Promise<Issued> {
+  // Hashed before the transaction opens: argon2 takes ~100 ms and must not hold a connection.
+  const passwordHash = await hash(input.password);
+  const user = await db.transaction(async (tx) => {
+    // The single conditional UPDATE is what makes the last use un-stealable: two people racing for
+    // it cannot both match `used_count < max_uses`.
+    const [claimed] = await tx
+      .update(invites)
+      .set({ usedCount: sql`${invites.usedCount} + 1` })
+      .where(
+        and(
+          eq(invites.codeHash, hashInviteCode(input.code)),
+          lt(invites.usedCount, invites.maxUses),
+          gt(invites.expiresAt, new Date()),
+        ),
+      )
+      .returning({ teacherId: invites.teacherId });
+    if (!claimed) throw unprocessable('This invite is invalid, expired or already used up');
+    try {
+      const [created] = await tx
+        .insert(users)
+        .values({
+          email: input.email,
+          passwordHash,
+          displayName: input.displayName,
+          role: 'learner',
+          teacherId: claimed.teacherId,
+          level: 'A1',
+        })
+        .returning(userColumns);
+      if (!created) throw new Error('register insert returned no row');
+      return created;
+    } catch (err) {
+      // Throwing rolls the transaction back, so a duplicate email does not burn an invite use.
+      if (uniqueViolation(err) !== undefined)
+        throw conflict('An account with this email already exists');
+      throw err;
+    }
+  });
   return issueFreshSession(user, previousToken);
 }

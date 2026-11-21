@@ -94,7 +94,7 @@ describe('POST /auth/login', () => {
     expect((await post('/auth/login', {})).status).toBe(400);
     expect((await post('/auth/login', { email: 'not-an-email', password: 'x' })).status).toBe(400);
     expect(
-      (await post('/auth/login', { email: 'a@b.test', password: 'x'.repeat(201) })).status,
+      (await post('/auth/login', { email: 'a@b.test', password: 'x'.repeat(129) })).status,
     ).toBe(400);
   });
 

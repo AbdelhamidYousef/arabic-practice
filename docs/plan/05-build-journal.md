@@ -112,3 +112,8 @@ What was built per step and why, for the owner to read; three quiz questions at 
   deletes up to 200 guests unseen for 7 days in the same request; per-IP limit of 10 an hour. A missing demo
   teacher answers 503 `DEMO_UNAVAILABLE`. Learn: cleanup without a scheduler is "whoever arrives next sweeps", so
   it must be bounded or one unlucky visitor pays for everyone.
+- **4.4 Invites and registration.** Invite codes are 16 random bytes in base64url, stored as SHA-256. Register claims a
+  use with one `UPDATE ... WHERE used_count < max_uses AND expires_at > now() RETURNING` inside the same
+  transaction that inserts the user, so a duplicate email rolls the use back and four parallel sign-ups for the last
+  use produce exactly one account. Closed (the default) is 403 `INVITES_CLOSED`. Learn: "check then update" races;
+  a conditional UPDATE lets the database decide who got the last seat.

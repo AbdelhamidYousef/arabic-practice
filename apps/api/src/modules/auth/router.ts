@@ -1,7 +1,15 @@
-import { LoginSchema, UserResponseSchema } from '@arabic/shared';
-import { Router as ExpressRouter, type Router } from 'express';
+import {
+  InviteCodeSchema,
+  InviteInfoSchema,
+  LoginSchema,
+  RegisterSchema,
+  UserResponseSchema,
+} from '@arabic/shared';
+import { Router as ExpressRouter, type RequestHandler, type Router } from 'express';
+import { z } from 'zod';
 
 import { clearSessionCookie, readSessionCookie, setSessionCookie } from '../../lib/cookies.ts';
+import { invitesClosed } from '../../lib/errors.ts';
 import { respond, valid, validate } from '../../lib/validate.ts';
 import { requireUser } from '../../middleware/auth.ts';
 import {
@@ -16,6 +24,8 @@ import * as service from './service.ts';
 export interface AuthRouterOptions {
   secureCookies: boolean;
   authRateLimit: RateLimitOptions;
+  /** INVITES_ENABLED: while false, lookup and register answer 403 INVITES_CLOSED. */
+  invitesEnabled: boolean;
   /** Guest sign-ins per IP; defaults to 10 per hour. */
   guestRateLimit?: RateLimitOptions | undefined;
 }
@@ -33,6 +43,40 @@ export function createAuthRouter(opts: AuthRouterOptions): Router {
     setSessionCookie(res, token, opts.secureCookies);
     respond(res, UserResponseSchema, { user: toUserDto(user) });
   });
+
+  // Registration is one switch (INVITES_ENABLED, refused in production on the free AI tier). It is
+  // checked before anything else so a closed sign-up reveals nothing, not even whether a code exists.
+  const requireInvitesOpen: RequestHandler = (_req, _res, next) => {
+    next(opts.invitesEnabled ? undefined : invitesClosed());
+  };
+
+  const register = { body: RegisterSchema };
+  router.post(
+    '/auth/register',
+    requireInvitesOpen,
+    credentialLimit,
+    validate(register),
+    async (req, res) => {
+      const { body } = valid(req, register);
+      const { user, token } = await service.register(body, readSessionCookie(req));
+      setSessionCookie(res, token, opts.secureCookies);
+      res.status(201);
+      respond(res, UserResponseSchema, { user: toUserDto(user) });
+    },
+  );
+
+  const inviteLookup = { params: z.object({ code: InviteCodeSchema }) };
+  router.get(
+    '/auth/invites/:code',
+    requireInvitesOpen,
+    createIpRateLimiter(opts.authRateLimit),
+    validate(inviteLookup),
+    async (req, res) => {
+      const { params } = valid(req, inviteLookup);
+      res.setHeader('Cache-Control', 'no-store');
+      respond(res, InviteInfoSchema, await service.lookupInvite(params.code));
+    },
+  );
 
   // No account to key on, so the limit is per IP. It keeps one visitor from filling the users table.
   const guestLimit = createIpRateLimiter(

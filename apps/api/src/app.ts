@@ -78,6 +78,7 @@ export function createApp({ logger, db, ai, config }: AppDeps): Express {
     createAuthRouter({
       secureCookies: config.nodeEnv === 'production',
       authRateLimit: config.authRateLimit,
+      invitesEnabled: config.invitesEnabled,
       guestRateLimit: config.guestRateLimit,
     }),
   );

@@ -4,7 +4,7 @@ import { cefrLevelSchema } from '../cefr.ts';
 
 // What the API tells the browser about the signed-in person. Deliberately small: no password hash,
 // no teacher id, no timestamps. `email` is null for guests, who have no login.
-export const UserSchema = z.object({
+export const UserSchema = z.strictObject({
   id: z.string(),
   displayName: z.string(),
   role: z.enum(['learner', 'teacher']),
