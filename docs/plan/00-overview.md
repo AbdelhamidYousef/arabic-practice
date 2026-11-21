@@ -152,3 +152,7 @@ Supporting docs: `01-data-model.md`, `02-api-contract.md`, `03-conventions.md`, 
 
 ## Part 2 (2026-11-21)
 Phases 14–19 turn the chat demo into a course app: see `07-course-plan.md`.
+
+## Part 3 (2026-11-21)
+Phases 20–27: an Arabic look, production readiness for real students, PWA, Google Play, paid AI:
+see `08-production-plan.md`.
