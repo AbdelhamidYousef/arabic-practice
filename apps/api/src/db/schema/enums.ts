@@ -8,3 +8,20 @@ export const cefrLevel = pgEnum('cefr_level', CEFR_LEVELS);
 export const userRole = pgEnum('user_role', ['learner', 'teacher']);
 
 export const lessonStatus = pgEnum('lesson_status', ['draft', 'published']);
+
+export const messageRole = pgEnum('message_role', ['learner', 'partner']);
+
+export const mistakeType = pgEnum('mistake_type', [
+  'grammar',
+  'vocabulary',
+  'harakat',
+  'spelling',
+  'word_order',
+  'register',
+]);
+
+export const aiPurpose = pgEnum('ai_purpose', ['correction', 'reply', 'gloss', 'eval']);
+
+// `limited` is a call we refused ourselves (a cap or the kill switch), recorded so the usage page
+// can show it; `error` is a provider failure.
+export const aiCallStatus = pgEnum('ai_call_status', ['ok', 'error', 'limited']);

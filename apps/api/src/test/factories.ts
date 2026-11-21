@@ -1,5 +1,5 @@
 import { db } from '../db/client.ts';
-import { lessons, lessonVocab, users } from '../db/schema/index.ts';
+import { conversations, lessons, lessonVocab, messages, users } from '../db/schema/index.ts';
 
 // Unique suffix per call so factories can be used many times inside one test without colliding
 // on slug / email unique constraints.
@@ -74,5 +74,32 @@ export async function createVocab(
       })
       .returning(),
     'lesson vocab',
+  );
+}
+
+export async function createConversation(
+  overrides: Partial<typeof conversations.$inferInsert> = {},
+) {
+  const userId = overrides.userId ?? (await createUser()).id;
+  const lessonId = overrides.lessonId ?? (await createLesson()).id;
+  return first(
+    await db
+      .insert(conversations)
+      .values({ ...overrides, userId, lessonId })
+      .returning(),
+    'conversation',
+  );
+}
+
+export async function createMessage(
+  conversationId: string,
+  overrides: Partial<typeof messages.$inferInsert> = {},
+) {
+  return first(
+    await db
+      .insert(messages)
+      .values({ role: 'learner', text: 'أَنَا طَالِبٌ', ...overrides, conversationId })
+      .returning(),
+    'message',
   );
 }
