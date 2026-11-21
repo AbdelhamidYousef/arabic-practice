@@ -113,7 +113,7 @@ describe('routes', () => {
     ['/review', en['page.review'], learner],
     ['/teacher', en['page.teacher'], teacher],
     ['/teacher/lessons', en['page.teacherLessons'], teacher],
-    ['/teacher/lessons/l1', en['page.teacherLesson'], teacher],
+    ['/teacher/lessons/new', en['editor.new'], teacher],
     ['/teacher/invites', en['page.teacherInvites'], teacher],
     ['/teacher/usage', en['page.teacherUsage'], teacher],
   ];
